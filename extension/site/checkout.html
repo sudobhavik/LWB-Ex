@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nexus — Cryptographic Settlement & Checkout</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <div class="nav-top">
+      <a href="index.html" class="brand"><span class="brand-mark"></span> NEXUS // DEFENSE HARDWARE</a>
+      <nav class="nav-links">
+        <a href="index.html" id="nav-catalog">Catalog</a>
+        <a href="cart.html" id="nav-cart">Cart <span class="cart-pill" id="nav-cart-count">1</span></a>
+        <a href="checkout.html" class="active" id="nav-checkout">Checkout</a>
+        <a href="profile.html" id="nav-profile">Security & Profile</a>
+        <a href="dashboard.html" id="nav-dashboard">Treasury & Fleet</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="page-header">
+      <h1 class="page-title">Cryptographic Settlement & Order Dispatch</h1>
+      <p class="page-sub">Sensitive financial data, PII, and credentials entered here are masked on-device prior to off-device telemetry transmission.</p>
+    </div>
+
+    <div class="grid-2">
+      <!-- Left Column: Dispatch Details & Payment Methods -->
+      <div>
+        <div class="card" style="margin-bottom: 20px;">
+          <div class="card-header">
+            <span class="card-title">1. Dispatch Consignee Details (PII)</span>
+            <span class="badge">SECURED ENTITY</span>
+          </div>
+
+          <div class="field">
+            <label class="lbl">Consignee Full Name</label>
+            <input type="text" class="inp" id="cust-name" value="Dr. Aris Thorne" readonly>
+          </div>
+
+          <div class="field">
+            <label class="lbl">Procurement Organization</label>
+            <input type="text" class="inp" id="cust-org" value="Aegis Autonomous Defense Logistics" readonly>
+          </div>
+
+          <div class="field">
+            <label class="lbl">Delivery Address</label>
+            <input type="text" class="inp" id="cust-address" value="450 Innovation Parkway, Suite 800, Tech City" readonly>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">2. Payment Instrument</span>
+            <span class="badge badge-active">ENCRYPTED HSM</span>
+          </div>
+
+          <div class="field">
+            <label class="lbl">Payment Card Number (PII / Sensitive)</label>
+            <input type="text" class="inp privacy-target" id="card-number" value="4242 4242 4242 4242" data-privacy="pii">
+            <div style="font-size: 9px; color: var(--text-dim); margin-top: 3px;">
+              LUHN CHECKSUM: VALID [VISA NETWORK IDENTIFIER]
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div class="field">
+              <label class="lbl">Expiration (MM/YY)</label>
+              <input type="text" class="inp privacy-target" id="card-exp" value="12/28" data-privacy="pii">
+            </div>
+            <div class="field">
+              <label class="lbl">Security CVV (Password / Secret)</label>
+              <input type="password" class="inp privacy-target" id="card-cvv" value="842" data-privacy="password">
+            </div>
+          </div>
+
+          <div style="background: #000000; border: 1px solid var(--border); padding: 10px; font-size: 10px; color: var(--text-muted); margin-top: 4px;">
+            HSM ZERO-EGRESS SHIELD: Primary card number and CVV will be obfuscated by on-device privacy filter before screen capture leaves browser.
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Settlement Summary & Action -->
+      <div>
+        <div class="card" style="display: flex; flex-direction: column; justify-content: space-between;">
+          <div>
+            <div class="card-header">
+              <span class="card-title">Order Ledger Summary</span>
+              <span class="badge">TX-2026-ALPHA</span>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 11px;">
+              <span style="color: var(--text-muted);">1x Aegis 4K Vision Drone:</span>
+              <span style="font-weight: 700;">$899.00</span>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 11px;">
+              <span style="color: var(--text-muted);">Defense Logistics Surcharge:</span>
+              <span style="font-weight: 700;">$0.00</span>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 11px;">
+              <span style="color: var(--text-muted);">Cryptographic Escrow Fee:</span>
+              <span style="font-weight: 700;">$0.00</span>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; border-top: 1px solid var(--border); padding-top: 14px; font-size: 18px; font-weight: 800;">
+              <span>TOTAL CHARGE:</span>
+              <span>$899.00</span>
+            </div>
+          </div>
+
+          <div style="margin-top: 24px;">
+            <a href="order-success.html" id="btn-place-order" class="btn btn-block" style="padding: 14px; text-align: center;">
+              Place Order ($899.00)
+            </a>
+            <div style="font-size: 9px; color: var(--text-dim); text-align: center; margin-top: 8px;">
+              CLICKING PLACE ORDER ADVANCES TO CRYPTOGRAPHIC ORDER RECEIPT
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

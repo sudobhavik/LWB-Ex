@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PS171 WXT In-Browser Privacy Shield Diagnostic Lab</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --text: #f8fafc;
+      --sub: #94a3b8;
+      --accent: #3b82f6;
+      --border: rgba(255,255,255,0.1);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: var(--bg); color: var(--text); padding: 24px; min-height: 100vh; }
+    .container { max-width: 1040px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+    header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 16px; }
+    h1 { font-size: 20px; display: flex; align-items: center; gap: 10px; }
+    .badge { background: #10b98122; color: #10b981; border: 1px solid #10b98155; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+    .btn-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; align-items: center; }
+    button { background: var(--accent); color: #fff; border: none; padding: 10px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s; font-size: 13px; }
+    button:hover { filter: brightness(1.1); transform: translateY(-1px); }
+    button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .btn-secondary { background: #334155; }
+    .slider-box { display: flex; align-items: center; gap: 10px; background: #0b1120; padding: 6px 14px; border-radius: 8px; border: 1px solid var(--border); }
+    .slider-box span { font-size: 12px; color: var(--sub); }
+    .slider-box strong { color: var(--accent); font-size: 13px; min-width: 32px; font-family: monospace; }
+    .preview-container { margin-top: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .preview-box { border: 1px dashed var(--border); border-radius: 8px; overflow: hidden; min-height: 340px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #0b1120; position: relative; }
+    .preview-box img { max-width: 100%; height: auto; display: block; }
+    .preview-box span.title-tag { position: absolute; top: 8px; left: 8px; font-size: 11px; background: rgba(0,0,0,0.6); color: var(--sub); padding: 2px 8px; border-radius: 4px; z-index: 10; }
+    .stats-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-top: 16px; }
+    .stat-item { background: #0b1120; padding: 12px; border-radius: 8px; border: 1px solid var(--border); text-align: center; }
+    .stat-val { font-size: 22px; font-weight: 700; color: #60a5fa; font-family: monospace; }
+    .stat-lbl { font-size: 11px; color: var(--sub); margin-top: 2px; }
+    pre { background: #070b14; color: #38bdf8; padding: 14px; border-radius: 8px; font-size: 12px; overflow-x: auto; max-height: 200px; margin-top: 14px; font-family: monospace; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>[SHIELD] PS171 WXT In-Browser YOLO26 Privacy Shield Diagnostic Lab</h1>
+      <span id="status-badge" class="badge">Checking Engine...</span>
+    </header>
+
+    <div class="card">
+      <h3>[RUN] Pure Client-Side Zero-Egress Inference Engine</h3>
+      <p style="color: var(--sub); font-size: 13px; margin-top: 6px;">
+        Powered by WebAssembly & YOLO26-nano (4-class privacy detector: Faces, Passwords, PII, and Sensitive Text). Zero data leaves your machine.
+      </p>
+
+      <div class="btn-row">
+        <button id="btn-test-photo"> Test Real Portrait</button>
+        <button id="btn-test-screen" class="btn-secondary"> Test Web Screen</button>
+        <button id="btn-upload" class="btn-secondary"> Upload Image / Screenshot</button>
+        <input type="file" id="file-input" accept="image/*" style="display: none;">
+
+        <div class="slider-box">
+          <span>Confidence:</span>
+          <input type="range" id="slider-conf" min="5" max="80" value="25" step="5">
+          <strong id="val-conf">25%</strong>
+        </div>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-item">
+          <div id="stat-time" class="stat-val">-- ms</div>
+          <div class="stat-lbl">Inference Latency</div>
+        </div>
+        <div class="stat-item">
+          <div id="stat-faces" class="stat-val" style="color: #10b981;">0</div>
+          <div class="stat-lbl"> Faces</div>
+        </div>
+        <div class="stat-item">
+          <div id="stat-pwd" class="stat-val" style="color: #f43f5e;">0</div>
+          <div class="stat-lbl">[SECURE] Passwords</div>
+        </div>
+        <div class="stat-item">
+          <div id="stat-pii" class="stat-val" style="color: #f59e0b;">0</div>
+          <div class="stat-lbl"> PII Fields</div>
+        </div>
+        <div class="stat-item">
+          <div id="stat-text" class="stat-val" style="color: #8b5cf6;">0</div>
+          <div class="stat-lbl">[SHIELD] Private Data</div>
+        </div>
+      </div>
+
+      <div class="preview-container">
+        <div class="preview-box">
+          <span class="title-tag">Input Screenshot</span>
+          <img id="img-orig" src="" alt="Input" style="display: none;">
+        </div>
+        <div class="preview-box">
+          <span class="title-tag">YOLO26-nano Detection & Redaction</span>
+          <img id="img-annotated" src="" alt="Output" style="display: none;">
+        </div>
+      </div>
+
+      <h4 style="margin-top: 18px; font-size: 13px; color: var(--sub);">Detailed Detection JSON Output:</h4>
+      <pre id="json-output">// Click a test button above or upload any image to run inference...</pre>
+    </div>
+  </div>
+
+  <script type="module" src="./main.ts"></script>
+</body>
+</html>

@@ -1,0 +1,112 @@
+/* PS171 Privacy Agent — Monochrome High-Contrast Overlays */
+
+/* In-Page Privacy Masks */
+.ps171-mask-overlay {
+  position: absolute;
+  pointer-events: none;
+  z-index: 2147483640;
+  transition: all 0.15s ease;
+  border-radius: 2px;
+}
+
+.ps171-mask-blur {
+  backdrop-filter: blur(28px) contrast(80%);
+  -webkit-backdrop-filter: blur(28px) contrast(80%);
+  background-color: rgba(0, 0, 0, 0.65);
+}
+
+.ps171-mask-blackout {
+  background-color: #000000;
+}
+
+.ps171-mask-pixelate {
+  backdrop-filter: blur(36px) saturate(20%);
+  -webkit-backdrop-filter: blur(36px) saturate(20%);
+  background-color: rgba(10, 10, 10, 0.85);
+}
+
+/* Monochrome High-Contrast Borders */
+.ps171-badge-face { border: 1px solid #ffffff; }
+.ps171-badge-pwd { border: 1px solid #ffffff; }
+.ps171-badge-pii { border: 1px solid #ffffff; }
+.ps171-badge-text { border: 1px solid #ffffff; }
+
+/* Plain Black & White Label Badges (NO EMOJIS) */
+.ps171-label {
+  position: absolute;
+  top: -18px;
+  left: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace;
+  font-size: 9px;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 2px 2px 0 0;
+  color: #000000;
+  background: #ffffff;
+  white-space: nowrap;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.ps171-label-face { background: #ffffff; color: #000000; }
+.ps171-label-pwd { background: #ffffff; color: #000000; }
+.ps171-label-pii { background: #ffffff; color: #000000; }
+.ps171-label-text { background: #ffffff; color: #000000; }
+
+/* Autonomous Agent Visual Click Pointer (Clean Monochrome) */
+.ps171-agent-radar {
+  position: fixed;
+  pointer-events: none;
+  z-index: 2147483647;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  animation: ps171FadeOut 1.8s forwards;
+}
+
+.ps171-radar-ring {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 2px solid #ffffff;
+  background: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.5), inset 0 0 10px rgba(255, 255, 255, 0.3);
+  animation: ps171Pulse 0.8s infinite alternate ease-in-out;
+}
+
+.ps171-radar-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ffffff;
+  position: absolute;
+  box-shadow: 0 0 8px #ffffff;
+}
+
+.ps171-radar-tooltip {
+  margin-top: 8px;
+  background: #000000;
+  color: #ffffff;
+  border: 1px solid #ffffff;
+  border-radius: 3px;
+  padding: 3px 8px;
+  font-size: 10px;
+  font-weight: 700;
+  font-family: monospace;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.8);
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+@keyframes ps171Pulse {
+  0% { transform: scale(0.9); opacity: 0.7; }
+  100% { transform: scale(1.2); opacity: 1; }
+}
+
+@keyframes ps171FadeOut {
+  0% { opacity: 1; }
+  75% { opacity: 1; }
+  100% { opacity: 0; }
+}

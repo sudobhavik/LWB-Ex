@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nexus — Security & Officer Profile</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <div class="nav-top">
+      <a href="index.html" class="brand"><span class="brand-mark"></span> NEXUS // DEFENSE HARDWARE</a>
+      <nav class="nav-links">
+        <a href="index.html" id="nav-catalog">Catalog</a>
+        <a href="cart.html" id="nav-cart">Cart <span class="cart-pill" id="nav-cart-count">0</span></a>
+        <a href="checkout.html" id="nav-checkout">Checkout</a>
+        <a href="profile.html" class="active" id="nav-profile">Security & Profile</a>
+        <a href="dashboard.html" id="nav-dashboard">Treasury & Fleet</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="page-header">
+      <h1 class="page-title">Officer Profile & Security Credentials</h1>
+      <p class="page-sub">Confidential officer credentials, biometric portraits, and production API access keys.</p>
+    </div>
+
+    <div class="grid-2">
+      <!-- Left Column: Biometric Profile & Personal Information -->
+      <div>
+        <div class="card" style="margin-bottom: 20px;">
+          <div class="card-header">
+            <span class="card-title">Biometric Identity & Clearance</span>
+            <span class="badge badge-active">TOP SECRET // DEFENSE</span>
+          </div>
+
+          <div style="display: flex; gap: 16px; align-items: center; margin-bottom: 16px;">
+            <img src="profile_user.jpg" alt="Officer Portrait" class="privacy-target" data-privacy="face" style="width: 80px; height: 100px; object-fit: cover; border: 1px solid var(--border);">
+            <div>
+              <div style="font-size: 15px; font-weight: 800;">Dr. Aris Thorne</div>
+              <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">Chief Systems Engineer // Payload Telemetry</div>
+              <div style="font-size: 10px; color: var(--text-dim); margin-top: 6px;">ID: NX-SEC-8921-A • CLEARANCE: LEVEL 5</div>
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="lbl">Government Personnel Email (PII)</label>
+            <input type="text" class="inp privacy-target" id="user-email" value="a.thorne@nexus-defense.gov" data-privacy="pii" readonly>
+          </div>
+
+          <div class="field">
+            <label class="lbl">Secure Phone Number (PII)</label>
+            <input type="text" class="inp privacy-target" id="user-phone" value="+1 (555) 293-8419" data-privacy="pii" readonly>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Two-Factor Authenticator (2FA)</span>
+            <span class="badge">HARDWARE TOKEN</span>
+          </div>
+          <p style="font-size: 11px; color: var(--text-muted); line-height: 1.4; margin-bottom: 12px;">
+            Cryptographic hardware YubiKey registered for remote mission control and payload telecommand access.
+          </p>
+          <div style="display: flex; justify-content: space-between; align-items: center; background: #000000; border: 1px solid var(--border); padding: 10px;">
+            <span style="font-size: 10px; font-weight: 700;">SERIAL: YK-5C-NFC-99214</span>
+            <span class="badge badge-active">ACTIVE</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Authentication & API Tokens -->
+      <div>
+        <div class="card" style="margin-bottom: 20px;">
+          <div class="card-header">
+            <span class="card-title">Authentication Password</span>
+            <span class="badge">HSM MANAGED</span>
+          </div>
+
+          <div class="field">
+            <label class="lbl">Current Account Master Password (Secret)</label>
+            <input type="password" class="inp privacy-target" id="account-password" value="SuperSecretPassword99!" data-privacy="password">
+          </div>
+
+          <div class="field">
+            <label class="lbl">Backup Recovery Seed Phrase (Secret)</label>
+            <input type="password" class="inp privacy-target" id="backup-seed" value="alpha bravo charlie delta echo foxtrot golf hotel" data-privacy="password">
+          </div>
+          
+          <button class="btn btn-secondary" style="margin-top: 4px;">Update Password</button>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Production Developer API Credentials</span>
+            <span class="badge badge-active">RESTRICTED SCOPE</span>
+          </div>
+
+          <div class="field">
+            <label class="lbl">Live Production Telemetry API Key (Confidential Token)</label>
+            <div class="privacy-target" id="api-key-box" data-privacy="sensitive_text" style="background: #000000; border: 1px solid var(--border); padding: 12px; font-size: 12px; word-break: break-all; margin-bottom: 10px;">
+              live_sk_prod_992184_secret_auth_token_xyz
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 8px;">
+            <button class="btn btn-secondary" style="flex: 1;">Copy Key</button>
+            <button class="btn" style="flex: 1;">Regenerate Token</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

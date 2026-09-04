@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PS171 Privacy Agent</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="header">
+      <div class="brand">
+        <span class="brand-mark"></span>
+        <div>
+          <h1 class="title">PS171 PRIVACY AGENT</h1>
+          <p class="subtitle">Zero-Egress Client-Side Shield & VLM Agent</p>
+        </div>
+      </div>
+      <div class="status-badge">
+        <span class="status-dot"></span>
+        <span id="status-text">ACTIVE</span>
+      </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <div class="tab-bar">
+      <button class="tab-btn active" id="tab-agent-btn">AGENT CONTROLS</button>
+      <button class="tab-btn" id="tab-shield-btn">IN-PAGE SHIELD</button>
+    </div>
+
+    <!-- TAB 1: AUTONOMOUS AGENT LOOP -->
+    <div id="tab-agent" class="tab-content active">
+      <!-- User Query Input -->
+      <div class="query-box">
+        <label class="section-label">Instruction / Browser Goal</label>
+        <textarea id="agent-goal" class="query-textarea" placeholder="Enter browser instruction (e.g. Buy the Aegis 4K Drone and proceed to checkout)...">Buy the Aegis 4K Drone, proceed to checkout, and complete the order.</textarea>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="agent-actions">
+        <button id="btn-run-agent" class="btn-primary-agent">
+          <span id="agent-btn-text">RUN AUTONOMOUS LOOP</span>
+        </button>
+        <button id="btn-step-agent" class="btn-secondary-agent">
+          SINGLE STEP
+        </button>
+        <button id="btn-stop-agent" class="btn-stop-agent hidden">
+          HALT
+        </button>
+      </div>
+
+      <!-- Gemini Reasoning Card -->
+      <div class="reasoning-card">
+        <div class="reasoning-header">
+          <span>VLM REAL-TIME COGNITION</span>
+          <span id="vlm-latency-tag" class="latency-badge">-- MS</span>
+        </div>
+        <div id="vlm-thought" class="thought-box">
+          System idle. Enter an instruction above and click RUN AUTONOMOUS LOOP or SINGLE STEP.
+        </div>
+        <div class="decision-tags">
+          <div class="d-tag">TARGET: <strong id="tag-target">NONE</strong></div>
+          <div class="d-tag">ACTION: <strong id="tag-action">NONE</strong></div>
+          <div class="d-tag">STATUS: <strong id="tag-status">IDLE</strong></div>
+        </div>
+      </div>
+
+      <!-- Live Redacted Stream Preview -->
+      <div class="preview-box">
+        <div class="preview-header">
+          <span>REDACTED STREAM (ZERO-EGRESS)</span>
+          <span id="badge-shield-count" class="shield-count-pill">0 SHIELDED</span>
+        </div>
+        <div class="preview-viewport">
+          <img id="agent-preview-img" src="../assets/sample_login.jpg" alt="Redacted Screen Preview">
+        </div>
+      </div>
+
+      <!-- Step Activity Log -->
+      <div class="log-box">
+        <div class="log-header">
+          <span>ACTIVITY LOG</span>
+          <span id="log-step-counter">STEP: 0</span>
+        </div>
+        <div id="agent-log" class="log-content">
+[SYSTEM] PS171 Privacy Agent active.
+[PRIVACY] Zero-Egress active. API keys, cards, CVVs, faces, and balances redacted on-device.
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: IN-PAGE PRIVACY SHIELD CONTROLS -->
+    <div id="tab-shield" class="tab-content">
+      <div class="action-card">
+        <button id="btn-scan" class="primary-btn">
+          <span>SCAN & MASK ACTIVE TAB</span>
+        </button>
+        <button id="btn-clear" class="secondary-btn">
+          <span>CLEAR MASKS</span>
+        </button>
+      </div>
+
+      <!-- 4 Plain Metrics Grid (NO EMOJIS) -->
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-val" id="stat-face">0</div>
+          <div class="metric-label">FACES</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-val" id="stat-pwd">0</div>
+          <div class="metric-label">PASSWORDS</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-val" id="stat-pii">0</div>
+          <div class="metric-label">PII FIELDS</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-val" id="stat-text">0</div>
+          <div class="metric-label">API KEYS / BALANCES</div>
+        </div>
+      </div>
+
+      <div class="settings-card">
+        <div class="settings-header">PRIVACY SHIELD CONFIGURATION</div>
+        
+        <div class="setting-group">
+          <label class="setting-label">Mask Style</label>
+          <div class="segmented-control">
+            <label class="segment-opt">
+              <input type="radio" name="maskStyle" value="blur" checked>
+              <span>Gaussian Blur</span>
+            </label>
+            <label class="segment-opt">
+              <input type="radio" name="maskStyle" value="blackout">
+              <span>Blackout</span>
+            </label>
+            <label class="segment-opt">
+              <input type="radio" name="maskStyle" value="pixelate">
+              <span>Pixelate</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="setting-group">
+          <div class="slider-header">
+            <label class="setting-label">Confidence Threshold</label>
+            <span id="conf-val" class="slider-val">25%</span>
+          </div>
+          <input type="range" id="conf-slider" min="5" max="80" value="25" step="5" class="slider">
+        </div>
+
+        <div class="setting-group" style="margin-top: 14px; border-top: 1px solid #222; padding-top: 12px;">
+          <label class="setting-label">Active Cloud VLM Provider</label>
+          <div class="segmented-control" style="margin-top: 4px;">
+            <label class="segment-opt">
+              <input type="radio" name="vlmProvider" value="openai" checked>
+              <span>OpenAI (GPT-4o mini)</span>
+            </label>
+            <label class="segment-opt">
+              <input type="radio" name="vlmProvider" value="gemini">
+              <span>Google Gemini</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- OpenAI Configuration -->
+        <div id="openai-settings-box" class="setting-group" style="margin-top: 10px;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <label class="setting-label">OpenAI API Key (sk-...)</label>
+            <select id="openai-model-select" style="background: #000; color: #fff; border: 1px solid #333; font-size: 10px; padding: 2px 4px; font-family: monospace;">
+              <option value="gpt-4o-mini" selected>gpt-4o-mini ($0.15/M - Fast & Cheap)</option>
+              <option value="gpt-4o">gpt-4o (High Reasoning)</option>
+              <option value="gpt-5.6-luna">gpt-5.6-luna (2026 Multimodal)</option>
+            </select>
+          </div>
+          <div style="display: flex; gap: 6px; margin-top: 4px;">
+            <input type="password" id="openai-api-key" placeholder="Enter sk-..." style="flex: 1; background: #000; color: #fff; border: 1px solid #333; padding: 6px 8px; font-family: monospace; font-size: 11px; outline: none;">
+            <button id="btn-save-openai-key" style="background: #fff; color: #000; border: none; padding: 6px 12px; font-weight: 700; font-size: 11px; cursor: pointer; text-transform: uppercase;">Save</button>
+          </div>
+          <span id="openai-key-status" style="font-size: 10px; color: #888; display: block; margin-top: 4px;">Persisted in chrome.storage.local • 85 tokens/image (~$0.00001)</span>
+        </div>
+
+        <!-- Google Gemini Configuration -->
+        <div id="gemini-settings-box" class="setting-group" style="margin-top: 10px;">
+          <label class="setting-label">Google Gemini API Key (Fallback)</label>
+          <div style="display: flex; gap: 6px; margin-top: 4px;">
+            <input type="password" id="gemini-api-key" placeholder="Enter Gemini API key..." style="flex: 1; background: #000; color: #fff; border: 1px solid #333; padding: 6px 8px; font-family: monospace; font-size: 11px; outline: none;">
+            <button id="btn-save-key" style="background: #fff; color: #000; border: none; padding: 6px 12px; font-weight: 700; font-size: 11px; cursor: pointer; text-transform: uppercase;">Save</button>
+          </div>
+          <span id="key-status" style="font-size: 10px; color: #888; display: block; margin-top: 4px;">Persisted in chrome.storage.local (Fallback)</span>
+        </div>
+      </div>
+
+      <div style="text-align: center; margin-top: 10px;">
+        <a href="../test_page.html" target="_blank" style="color: #ffffff; font-size: 11px; text-decoration: underline; text-transform: uppercase; letter-spacing: 0.04em;">
+          Open In-Browser Diagnostic Lab
+        </a>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <span>ZERO-EGRESS VISUAL PRIVACY SHIELD • ISRO SIH 2026</span>
+    </footer>
+  </div>
+
+  <script src="../engine/onnx_detector.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

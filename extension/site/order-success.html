@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nexus — Order Confirmed</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <div class="nav-top">
+      <a href="index.html" class="brand"><span class="brand-mark"></span> NEXUS // DEFENSE HARDWARE</a>
+      <nav class="nav-links">
+        <a href="index.html" id="nav-catalog">Catalog</a>
+        <a href="cart.html" id="nav-cart">Cart <span class="cart-pill" id="nav-cart-count">0</span></a>
+        <a href="checkout.html" id="nav-checkout">Checkout</a>
+        <a href="profile.html" id="nav-profile">Security & Profile</a>
+        <a href="dashboard.html" id="nav-dashboard">Treasury & Fleet</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="container" style="max-width: 800px;">
+    <div class="card" style="padding: 28px; margin-top: 20px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 20px;">
+        <div>
+          <div class="badge badge-active" style="margin-bottom: 8px;">SETTLEMENT CONFIRMED // DISPATCH ACTIVE</div>
+          <h1 style="font-size: 20px; font-weight: 800; text-transform: uppercase;">Cryptographic Order Receipt</h1>
+          <p style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">ORDER REFERENCE: NX-ORD-2026-98124</p>
+        </div>
+        <div style="text-align: right;">
+          <div style="font-size: 10px; color: var(--text-dim);">TRANSACTION HASH:</div>
+          <div style="font-size: 10px; font-family: monospace; color: #ffffff;">0x8f2a99...3b41c0</div>
+        </div>
+      </div>
+
+      <!-- Item Manifest -->
+      <div style="background: #000000; border: 1px solid var(--border); padding: 16px; margin-bottom: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <div style="font-size: 13px; font-weight: 800; text-transform: uppercase;">1x Aegis 4K Vision Drone</div>
+            <div style="font-size: 10px; color: var(--text-muted); margin-top: 2px;">SKU: NX-4K-DRONE • Sub-orbital visual telemetry module</div>
+          </div>
+          <div style="font-size: 18px; font-weight: 800;">$899.00</div>
+        </div>
+      </div>
+
+      <!-- Dispatch Timeline -->
+      <div style="border: 1px solid var(--border); padding: 16px; margin-bottom: 24px;">
+        <div style="font-size: 11px; font-weight: 800; text-transform: uppercase; margin-bottom: 12px;">Fulfillment Schedule</div>
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; font-size: 10px;">
+          <div style="border-left: 2px solid #ffffff; padding-left: 8px;">
+            <div style="font-weight: 700; color: #ffffff;">1. SETTLED</div>
+            <div style="color: var(--text-dim);">Funds Escrowed</div>
+          </div>
+          <div style="border-left: 2px solid #ffffff; padding-left: 8px;">
+            <div style="font-weight: 700; color: #ffffff;">2. FIRMWARE</div>
+            <div style="color: var(--text-dim);">HSM Key Flashed</div>
+          </div>
+          <div style="border-left: 2px solid var(--border); padding-left: 8px;">
+            <div style="font-weight: 700; color: var(--text-muted);">3. PACKAGED</div>
+            <div style="color: var(--text-dim);">Cold-Chain Enclosure</div>
+          </div>
+          <div style="border-left: 2px solid var(--border); padding-left: 8px;">
+            <div style="font-weight: 700; color: var(--text-muted);">4. TRANSIT</div>
+            <div style="color: var(--text-dim);">Secure Delivery</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 12px;">
+        <a href="index.html" id="btn-return-catalog" class="btn" style="flex: 1; text-align: center;">Return to Catalog</a>
+        <a href="dashboard.html" class="btn btn-secondary" style="flex: 1; text-align: center;">View Treasury & Fleet</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

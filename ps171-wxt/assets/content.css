@@ -1,0 +1,201 @@
+/* PS171 Privacy Agent — In-Page Screen Shield Styling */
+
+.ps171-root-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 2147483640; /* High z-index to stay above page elements */
+}
+
+/* Base Mask Box */
+.ps171-mask-box {
+  position: absolute;
+  pointer-events: auto;
+  box-sizing: border-box;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+  overflow: visible;
+}
+
+/* 1. Blur Mode */
+.ps171-mode-blur {
+  backdrop-filter: blur(14px) saturate(120%);
+  -webkit-backdrop-filter: blur(14px) saturate(120%);
+  background: rgba(15, 23, 42, 0.45);
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+}
+
+/* 2. Redact Mode (Blackout) */
+.ps171-mode-redact {
+  background: #09090b !important;
+  border: 1.5px solid #27272a;
+}
+
+/* 3. Outline Mode */
+.ps171-mode-outline {
+  background: transparent !important;
+  border-width: 2px;
+  border-style: dashed;
+}
+
+/* Class-specific accents */
+.ps171-cls-face {
+  border-color: #10b981 !important;
+}
+.ps171-cls-face .ps171-badge {
+  background: linear-gradient(135deg, #059669, #10b981);
+}
+
+.ps171-cls-password_field {
+  border-color: #f43f5e !important;
+}
+.ps171-cls-password_field .ps171-badge {
+  background: linear-gradient(135deg, #e11d48, #f43f5e);
+}
+
+.ps171-cls-text_block {
+  border-color: #6366f1 !important;
+}
+.ps171-cls-text_block .ps171-badge {
+  background: linear-gradient(135deg, #4f46e5, #6366f1);
+}
+
+.ps171-cls-pii_field {
+  border-color: #f59e0b !important;
+}
+.ps171-cls-pii_field .ps171-badge {
+  background: linear-gradient(135deg, #d97706, #f59e0b);
+}
+
+.ps171-cls-sensitive_text {
+  border-color: #8b5cf6 !important;
+}
+.ps171-cls-sensitive_text .ps171-badge {
+  background: linear-gradient(135deg, #7c3aed, #8b5cf6);
+}
+
+/* Floating Badge */
+.ps171-badge {
+  position: absolute;
+  top: -18px;
+  left: 4px;
+  padding: 2px 8px;
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  color: #ffffff;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  white-space: nowrap;
+  user-select: none;
+}
+
+.ps171-badge .ps171-conf {
+  opacity: 0.85;
+  font-size: 9px;
+  background: rgba(0, 0, 0, 0.25);
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
+/* Unmasked / Revealed State */
+.ps171-unmasked {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1.5px dashed rgba(255, 255, 255, 0.6) !important;
+}
+
+.ps171-unmasked .ps171-badge {
+  opacity: 0.6;
+}
+
+/* Floating HUD */
+#ps171-privacy-banner {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 2147483647;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+.ps171-hud-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(15, 23, 42, 0.92);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #f8fafc;
+  padding: 10px 16px;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  font-size: 13px;
+}
+
+.ps171-hud-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ps171-pulse-dot {
+  width: 8px;
+  height: 8px;
+  background: #10b981;
+  border-radius: 50%;
+  box-shadow: 0 0 10px #10b981;
+  animation: ps171-pulse 1.8s infinite;
+}
+
+@keyframes ps171-pulse {
+  0% { transform: scale(0.95); opacity: 0.8; }
+  50% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(0.95); opacity: 0.8; }
+}
+
+.ps171-hud-btn {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.ps171-hud-btn:hover {
+  background: rgba(239, 68, 68, 0.8);
+  border-color: #ef4444;
+}
+
+/* Toast */
+.ps171-toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(15, 23, 42, 0.95);
+  color: #ffffff;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+  z-index: 2147483647;
+  transition: opacity 0.3s ease;
+}
+.ps171-toast-fade {
+  opacity: 0;
+}

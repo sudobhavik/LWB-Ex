@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nexus — Executive Treasury & Fleet Telemetry</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <div class="nav-top">
+      <a href="index.html" class="brand"><span class="brand-mark"></span> NEXUS // DEFENSE HARDWARE</a>
+      <nav class="nav-links">
+        <a href="index.html" id="nav-catalog">Catalog</a>
+        <a href="cart.html" id="nav-cart">Cart <span class="cart-pill" id="nav-cart-count">0</span></a>
+        <a href="checkout.html" id="nav-checkout">Checkout</a>
+        <a href="profile.html" id="nav-profile">Security & Profile</a>
+        <a href="dashboard.html" class="active" id="nav-dashboard">Treasury & Fleet</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="page-header">
+      <h1 class="page-title">Executive Metrics & Treasury Ledger</h1>
+      <p class="page-sub">Confidential enterprise balances, financial reserves, and live production API credentials.</p>
+    </div>
+
+    <!-- 3-Column Top Financial Cards -->
+    <div class="grid-3" style="margin-bottom: 20px;">
+      <div class="card">
+        <div class="lbl">Total Monthly Recurring Revenue (MRR)</div>
+        <div class="privacy-target" style="font-size: 22px; font-weight: 800; margin-top: 8px;" data-privacy="sensitive_text">
+          $124,500.00
+        </div>
+        <div style="font-size: 9px; color: var(--text-dim); margin-top: 6px;">FINANCIAL TELEMETRY // REDACTION REQUIRED</div>
+      </div>
+
+      <div class="card">
+        <div class="lbl">Available Treasury Cash Reserves</div>
+        <div class="privacy-target" style="font-size: 22px; font-weight: 800; margin-top: 8px;" data-privacy="sensitive_text">
+          $450,290.00
+        </div>
+        <div style="font-size: 9px; color: var(--text-dim); margin-top: 6px;">TREASURY ASSETS // REDACTION REQUIRED</div>
+      </div>
+
+      <div class="card">
+        <div class="lbl">Active Drone Fleet Nodes</div>
+        <div style="font-size: 22px; font-weight: 800; margin-top: 8px;">
+          48 Nodes
+        </div>
+        <div style="font-size: 9px; color: var(--text-muted); margin-top: 6px;">FLEET OPERATIONAL READINESS: 100%</div>
+      </div>
+    </div>
+
+    <!-- Production API Key Card -->
+    <div class="card" style="margin-bottom: 20px;">
+      <div class="card-header">
+        <span class="card-title">Production Telemetry API Token</span>
+        <span class="badge badge-active">CONFIDENTIAL SECRET</span>
+      </div>
+      <div class="privacy-target" id="cloud-api-token" style="background: #000000; border: 1px solid var(--border); padding: 14px; font-size: 13px; color: #ffffff;" data-privacy="sensitive_text">
+        live_sk_prod_992184_secret_auth_token_xyz
+      </div>
+    </div>
+
+    <!-- Active Fleet Table -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Live Node Telemetry Status Matrix</span>
+        <span class="badge">48 ACTIVE AIRFRAMES</span>
+      </div>
+
+      <table class="spec-table">
+        <tr>
+          <th>Node Identifier</th>
+          <th>Model Payload</th>
+          <th>Battery State</th>
+          <th>Signal RSSI</th>
+          <th>Encryption State</th>
+        </tr>
+        <tr>
+          <td>NX-AIRFRAME-01</td>
+          <td>Aegis 4K Optical</td>
+          <td>94% (42 Min)</td>
+          <td>-64 dBm (S-Band)</td>
+          <td>AES-256 ENCRYPTED</td>
+        </tr>
+        <tr>
+          <td>NX-AIRFRAME-02</td>
+          <td>Aegis 4K Optical</td>
+          <td>88% (39 Min)</td>
+          <td>-68 dBm (S-Band)</td>
+          <td>AES-256 ENCRYPTED</td>
+        </tr>
+        <tr>
+          <td>NX-GROUND-STATION</td>
+          <td>Receiver V3 Mast</td>
+          <td>100% (Mains)</td>
+          <td>-52 dBm (S-Band)</td>
+          <td>AES-256 ENCRYPTED</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+</body>
+</html>

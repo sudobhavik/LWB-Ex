@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nexus — Aegis 4K Vision Drone Specification</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <div class="nav-top">
+      <a href="index.html" class="brand"><span class="brand-mark"></span> NEXUS // DEFENSE HARDWARE</a>
+      <nav class="nav-links">
+        <a href="index.html" id="nav-catalog">Catalog</a>
+        <a href="cart.html" id="nav-cart">Cart <span class="cart-pill" id="nav-cart-count">1</span></a>
+        <a href="checkout.html" id="nav-checkout">Checkout</a>
+        <a href="profile.html" id="nav-profile">Security & Profile</a>
+        <a href="dashboard.html" id="nav-dashboard">Treasury & Fleet</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="container">
+    <div style="font-size: 10px; color: var(--text-muted); margin-bottom: 12px; text-transform: uppercase;">
+      <a href="index.html" style="color: var(--text-muted); text-decoration: none;">CATALOG</a> // VISION PAYLOADS // SKU: NX-4K-DRONE
+    </div>
+
+    <div class="grid-2">
+      <!-- Left Column: Schematic Wireframe -->
+      <div>
+        <div class="card" style="margin-bottom: 20px;">
+          <div class="card-header">
+            <span class="card-title">Hardware Blueprint Schematic</span>
+            <span class="badge badge-active">REV 3.1</span>
+          </div>
+
+          <div style="height: 240px; background: #080808; border: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative;">
+            <svg width="96" height="96" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.2">
+              <circle cx="12" cy="12" r="9"/>
+              <path d="M12 3v18M3 12h18"/>
+              <circle cx="12" cy="12" r="4"/>
+              <path d="m4.93 4.93 14.14 14.14M4.93 19.07 19.07 4.93"/>
+            </svg>
+            <div style="position: absolute; bottom: 8px; left: 12px; font-size: 9px; color: var(--text-dim);">
+              PAYLOAD WEIGHT: 840G • GIMBAL STABILIZATION: 3-AXIS BRUSHLESS
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Cryptographic Architecture</span>
+          </div>
+          <p style="font-size: 11px; color: var(--text-muted); line-height: 1.5; margin-bottom: 10px;">
+            The Aegis airframe integrates a dedicated on-device Hardware Security Module (HSM) capable of executing real-time AES-GCM-256 telemetry encryption. Zero unencrypted telemetry frames ever leave the physical vehicle bus.
+          </p>
+          <div style="font-size: 10px; color: #ffffff; background: #000000; border: 1px solid var(--border); padding: 8px;">
+            ENCLAVE CERT: FIPS 140-3 LEVEL 4 // ZERO-EGRESS COMPLIANT
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Procurement & Full Specs -->
+      <div>
+        <div class="card" style="margin-bottom: 20px;">
+          <div class="card-header">
+            <span class="card-title">Procurement Order</span>
+            <span class="badge">IN STOCK (48 UNITS)</span>
+          </div>
+
+          <h1 style="font-size: 18px; font-weight: 800; text-transform: uppercase; margin-bottom: 6px;">Aegis 4K Vision Drone</h1>
+          <div style="font-size: 22px; font-weight: 800; margin-bottom: 16px;">$899.00 <span style="font-size: 11px; color: var(--text-muted); font-weight: 400;">USD / UNIT</span></div>
+
+          <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 18px;">
+            <div style="width: 100px;">
+              <span class="lbl">Quantity</span>
+              <input type="number" id="drone-qty" class="inp" value="1" min="1" max="10" style="text-align: center;">
+            </div>
+            <div style="flex: 1; margin-top: 18px;">
+              <a href="cart.html" id="btn-add-pdp" class="btn btn-block" style="padding: 12px;">Add to Order Manifest</a>
+            </div>
+          </div>
+
+          <div style="font-size: 10px; color: var(--text-muted); border-top: 1px solid var(--border); padding-top: 10px;">
+            INCLUDED: Airframe, 4K Optical Pod, 2x High-Density LiPo Cells, Ground Antenna.
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Technical Specification Matrix</span>
+          </div>
+
+          <table class="spec-table">
+            <tr><th>Subsystem</th><th>Specification Metric</th></tr>
+            <tr><td>AIRFRAME</td><td>Carbon Fiber Monocoque Chassis (IP67)</td></tr>
+            <tr><td>MAX FLIGHT TIME</td><td>48 Minutes Continuous Loiter</td></tr>
+            <tr><td>MAX SPEED</td><td>85 km/h Tactical Dash</td></tr>
+            <tr><td>OPTICAL SENSOR</td><td>1/1.3" CMOS 48MP (4K @ 60fps)</td></tr>
+            <tr><td>THERMAL POD</td><td>640x512 VOx Microbolometer (30Hz)</td></tr>
+            <tr><td>COMMUNICATIONS</td><td>Encrypted S-Band (2.4 GHz FHSS)</td></tr>
+            <tr><td>OPERATING TEMP</td><td>-20°C to +55°C Extreme Environment</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

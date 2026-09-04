@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nexus — Cart Review & Manifest</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <div class="nav-top">
+      <a href="index.html" class="brand"><span class="brand-mark"></span> NEXUS // DEFENSE HARDWARE</a>
+      <nav class="nav-links">
+        <a href="index.html" id="nav-catalog">Catalog</a>
+        <a href="cart.html" class="active" id="nav-cart">Cart <span class="cart-pill" id="nav-cart-count">1</span></a>
+        <a href="checkout.html" id="nav-checkout">Checkout</a>
+        <a href="profile.html" id="nav-profile">Security & Profile</a>
+        <a href="dashboard.html" id="nav-dashboard">Treasury & Fleet</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="page-header">
+      <h1 class="page-title">Order Manifest & Payload Review</h1>
+      <p class="page-sub">Review configured line items and verify shipping allocations prior to cryptographic settlement.</p>
+    </div>
+
+    <div class="grid-2">
+      <!-- Left Column: Itemized Line Items -->
+      <div>
+        <div class="card" style="margin-bottom: 20px;">
+          <div class="card-header">
+            <span class="card-title">Active Manifest (1 Item Selected)</span>
+            <span class="badge">SECURED DISPATCH</span>
+          </div>
+
+          <div style="display: flex; gap: 16px; align-items: center; padding-bottom: 16px; border-bottom: 1px solid var(--border);">
+            <div style="width: 54px; height: 54px; background: #080808; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center;">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.5">
+                <path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M4.93 19.07L19.07 4.93"/>
+              </svg>
+            </div>
+            <div style="flex: 1;">
+              <div style="font-size: 13px; font-weight: 800; text-transform: uppercase;">Aegis 4K Vision Drone</div>
+              <div style="font-size: 10px; color: var(--text-muted); margin-top: 2px;">SKU: NX-4K-DRONE • BATCH: 2026-ALPHA</div>
+              <div style="margin-top: 8px; display: flex; gap: 8px; align-items: center;">
+                <span class="lbl" style="margin: 0;">QTY:</span>
+                <input type="number" value="1" min="1" max="10" class="inp" style="width: 50px; height: 28px; text-align: center;">
+              </div>
+            </div>
+            <div style="font-size: 16px; font-weight: 800;">$899.00</div>
+          </div>
+
+          <div style="margin-top: 14px; font-size: 10px; color: var(--text-muted);">
+            ESTIMATED DISPATCH: 24-48 HOURS • COLD-CHAIN SECURE COURIER
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Voucher & Contract Clearance</span>
+          </div>
+          <div style="display: flex; gap: 10px;">
+            <input type="text" class="inp" id="voucher-code" placeholder="ENTER CLEARANCE CODE..." value="ISRO-PS171-DEFENSE">
+            <button class="btn btn-secondary" style="white-space: nowrap;">Apply Code</button>
+          </div>
+          <div style="font-size: 10px; color: #ffffff; margin-top: 8px;">
+            VALID CONTRACT: 0% TARIFF DEDUCTION APPLIED
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Summary & Checkout Button -->
+      <div>
+        <div class="card" style="display: flex; flex-direction: column; justify-content: space-between;">
+          <div>
+            <div class="card-header">
+              <span class="card-title">Cost Summary Ledger</span>
+              <span class="badge badge-active">CURRENCY: USD</span>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 11px;">
+              <span style="color: var(--text-muted);">Payload Subtotal:</span>
+              <span style="font-weight: 700;">$899.00</span>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 11px;">
+              <span style="color: var(--text-muted);">Government Export Tariff:</span>
+              <span style="font-weight: 700;">$0.00</span>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 11px;">
+              <span style="color: var(--text-muted);">Encrypted Courier Logistics:</span>
+              <span style="font-weight: 700;">INCLUDED</span>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; border-top: 1px solid var(--border); padding-top: 14px; font-size: 18px; font-weight: 800;">
+              <span>TOTAL SETTLEMENT:</span>
+              <span>$899.00</span>
+            </div>
+          </div>
+
+          <div style="margin-top: 24px;">
+            <a href="checkout.html" id="btn-proceed-checkout" class="btn btn-block" style="padding: 14px; text-align: center;">
+              Proceed to Checkout ($899.00)
+            </a>
+            <div style="font-size: 9px; color: var(--text-dim); text-align: center; margin-top: 8px;">
+              ZERO DATA EGRESS GUARANTEE • ENCRYPTED TRANSACTION ENDPOINT
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
