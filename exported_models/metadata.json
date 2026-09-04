@@ -1,0 +1,23 @@
+{
+  "model_name": "isro_ps171_privacy_yolo26n",
+  "architecture": "YOLO26-nano",
+  "task": "browser_vision_privacy_redaction",
+  "version": "2.0-augmented",
+  "precision": "FP32 (ONNX Opset 12)",
+  "mAP50": 0.991,
+  "mAP50_95": 0.9005,
+  "classes": {
+    "0": "face",
+    "1": "password_field",
+    "2": "pii_field",
+    "3": "sensitive_text"
+  },
+  "recommended_conf_threshold": 0.25,
+  "input_shape": [1, 3, 640, 640],
+  "onnx_opset": 12,
+  "compatible_with": [
+    "onnxruntime-web (WebAssembly browser worker)",
+    "onnxruntime (Python / C++ / Node.js)",
+    "ultralytics (PyTorch)"
+  ]
+}
