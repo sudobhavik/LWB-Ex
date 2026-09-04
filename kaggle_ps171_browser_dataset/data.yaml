@@ -1,0 +1,8 @@
+path: /home/shreyas/SIH_brain/PS171/kaggle_ps171_browser_dataset
+train: images/train
+val: images/val
+names:
+  0: face
+  1: password_field
+  2: pii_field
+  3: sensitive_text

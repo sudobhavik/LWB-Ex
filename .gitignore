@@ -1,0 +1,32 @@
+# Python & Virtual Environments
+.venv/
+env/
+venv/
+ENV/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Secrets & Local Configurations
+.env
+
+# Training Logs & Intermediate Checkpoints
+runs/
+*.log
+
+# Caches & Temporary Files
+templates_cache/
+templates_cache_kaggle/
+.cache/
+/tmp/
+
+# Node & Build Artifacts
+node_modules/
+.output/
+.wxt/
+dist/
+
+# OS Specific
+.DS_Store
+Thumbs.db
