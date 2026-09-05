@@ -290,7 +290,7 @@
 
           <div style="display: flex; gap: 6px; margin-top: 8px;">
             <button id="btn-test-ollama" class="btn-sub-action">Test Connection</button>
-            <button id="btn-save-ollama" class="btn-sub-primary">Save Config</button>
+            <button id="btn-save-ollama" class="btn-sub-primary">Save & Activate</button>
           </div>
           <span id="ollama-status" style="font-size: 10px; color: #888; display: block; margin-top: 5px; font-family: monospace;">Local inference - Zero egress - Default: http://127.0.0.1:11434</span>
         </div>
@@ -298,28 +298,59 @@
         <!-- OpenAI Configuration -->
         <div id="openai-settings-box" class="setting-group" style="margin-top: 10px;">
           <div style="display: flex; justify-content: space-between; align-items: center;">
-            <label class="setting-label">OpenAI API Key (sk-...)</label>
-            <select id="openai-model-select" style="background: #000; color: #fff; border: 1px solid #333; font-size: 10px; padding: 2px 4px; font-family: monospace;">
+            <label class="setting-label">OpenAI Configuration</label>
+            <span id="openai-conn-badge" class="ollama-badge">STANDBY</span>
+          </div>
+
+          <div style="margin-top: 6px;">
+            <label class="input-sub-label">Model Selector</label>
+            <select id="openai-model-select" class="monochrome-select">
               <option value="gpt-4o-mini" selected>gpt-4o-mini ($0.15/M - Fast & Cheap)</option>
               <option value="gpt-4o">gpt-4o (High Reasoning)</option>
               <option value="gpt-5.6-luna">gpt-5.6-luna (2026 Multimodal)</option>
             </select>
           </div>
-          <div style="display: flex; gap: 6px; margin-top: 4px;">
-            <input type="password" id="openai-api-key" placeholder="Enter sk-..." style="flex: 1; background: #000; color: #fff; border: 1px solid #333; padding: 6px 8px; font-family: monospace; font-size: 11px; outline: none;">
-            <button id="btn-save-openai-key" style="background: #fff; color: #000; border: none; padding: 6px 12px; font-weight: 700; font-size: 11px; cursor: pointer; text-transform: uppercase;">Save</button>
+
+          <div style="margin-top: 6px;">
+            <label class="input-sub-label">OpenAI API Key (sk-...)</label>
+            <input type="password" id="openai-api-key" placeholder="Enter sk-..." class="monochrome-input">
           </div>
-          <span id="openai-key-status" style="font-size: 10px; color: #888; display: block; margin-top: 4px;">Persisted in browser.storage.local - 85 tokens/image (~$0.00001)</span>
+
+          <div style="display: flex; gap: 6px; margin-top: 8px;">
+            <button id="btn-test-openai" class="btn-sub-action">Test Connection</button>
+            <button id="btn-save-openai-key" class="btn-sub-primary">Save & Activate</button>
+          </div>
+          <span id="openai-key-status" style="font-size: 10px; color: #888; display: block; margin-top: 5px; font-family: monospace;">Persisted in browser.storage.local - 85 tokens/image (~$0.00001)</span>
         </div>
 
         <!-- Google Gemini Configuration -->
         <div id="gemini-settings-box" class="setting-group" style="margin-top: 10px;">
-          <label class="setting-label">Google Gemini API Key (Fallback)</label>
-          <div style="display: flex; gap: 6px; margin-top: 4px;">
-            <input type="password" id="gemini-api-key" placeholder="Enter Gemini API key..." style="flex: 1; background: #000; color: #fff; border: 1px solid #333; padding: 6px 8px; font-family: monospace; font-size: 11px; outline: none;">
-            <button id="btn-save-key" style="background: #fff; color: #000; border: none; padding: 6px 12px; font-weight: 700; font-size: 11px; cursor: pointer; text-transform: uppercase;">Save</button>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <label class="setting-label">Google Gemini Configuration</label>
+            <span id="gemini-conn-badge" class="ollama-badge">STANDBY</span>
           </div>
-          <span id="key-status" style="font-size: 10px; color: #888; display: block; margin-top: 4px;">Persisted in browser.storage.local (Fallback)</span>
+
+          <div style="margin-top: 6px;">
+            <label class="input-sub-label">Model Selector</label>
+            <select id="gemini-model-select" class="monochrome-select">
+              <option value="gemini-2.5-flash" selected>gemini-2.5-flash (Fast 2026 Vision - Recommended)</option>
+              <option value="gemini-2.0-flash">gemini-2.0-flash (Low Latency)</option>
+              <option value="gemini-1.5-flash">gemini-1.5-flash (Stable Baseline)</option>
+              <option value="gemini-1.5-pro">gemini-1.5-pro (Deep Reasoning)</option>
+              <option value="gemini-flash-lite-latest">gemini-flash-lite-latest (Lightweight)</option>
+            </select>
+          </div>
+
+          <div style="margin-top: 6px;">
+            <label class="input-sub-label">Gemini API Key</label>
+            <input type="password" id="gemini-api-key" placeholder="Enter Gemini API key..." class="monochrome-input">
+          </div>
+
+          <div style="display: flex; gap: 6px; margin-top: 8px;">
+            <button id="btn-test-gemini" class="btn-sub-action">Test Connection</button>
+            <button id="btn-save-key" class="btn-sub-primary">Save & Activate</button>
+          </div>
+          <span id="key-status" style="font-size: 10px; color: #888; display: block; margin-top: 5px; font-family: monospace;">Persisted in browser.storage.local (Cloud Enterprise)</span>
         </div>
       </div>
 

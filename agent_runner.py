@@ -29,17 +29,24 @@ PRIMARY_MODEL = get_env_var("GEMINI_MODEL", "gemini-2.5-flash-lite")
 FALLBACK_MODELS = [
     PRIMARY_MODEL,
     "gemini-2.5-flash-lite",
+    "gemini-2.5-flash",
+    "gemini-2.0-flash",
     "gemini-flash-lite-latest",
-    "gemini-flash-latest",
-    "gemini-3.5-flash",
-    "gemini-3.7-flash"
+    "gemini-flash-latest"
 ]
 MODELS_POOL = list(dict.fromkeys(FALLBACK_MODELS))
 
+OPENAI_API_KEY = get_env_var("OPENAI_API_KEY", "")
+OPENAI_MODEL = get_env_var("OPENAI_MODEL", "gpt-4o-mini")
+OLLAMA_ENDPOINT = get_env_var("OLLAMA_ENDPOINT", "http://127.0.0.1:11434")
+OLLAMA_MODEL = get_env_var("OLLAMA_MODEL", "qwen2.5-vl:3b")
+DEFAULT_PROVIDER = get_env_var("VLM_PROVIDER", "auto")
+
 class AutonomousPrivacyBrowserAgent:
-    def __init__(self, target_url="http://127.0.0.1:8080/site/", headless=True):
+    def __init__(self, target_url="http://127.0.0.1:8080/site/", headless=True, provider=None):
         self.target_url = target_url
         self.headless = headless
+        self.provider = provider or DEFAULT_PROVIDER
         self.shield = YOLOPrivacyShield()
         self.playwright = None
         self.browser = None
@@ -257,6 +264,216 @@ Note: "coordinates" are normalized floats between 0.0 and 1.0 representing [X, Y
             "is_task_complete": False
         }
 
+    def ask_ollama(self, redacted_bgr, goal, history=None, model=None, endpoint=None):
+        """
+        Transmits redacted screenshot directly to local Ollama VLM (Zero-Egress).
+        """
+        history = history or []
+        _, buffer = cv2.imencode(".jpg", redacted_bgr, [int(cv2.IMWRITE_JPEG_QUALITY), 85])
+        b64_img = base64.b64encode(buffer).decode("utf-8")
+
+        prompt = f"""USER GOAL: "{goal}"
+Current URL: {self.page.url if self.page else ""}
+Recent actions taken: {history[-3:] if history else 'None'}
+
+Decide the single next action to advance toward the goal.
+Return STRICT JSON adhering to this schema:
+{{
+  "thought": "Analysis of the current screen and reason for next step",
+  "action": "click" | "type" | "navigate" | "complete",
+  "coordinates": [x_norm, y_norm],
+  "text_to_type": "string" (only if action is type),
+  "target_description": "short description of the button/input being interacted with",
+  "is_task_complete": false
+}}
+Note: "coordinates" are normalized floats between 0.0 and 1.0 representing [X, Y] center."""
+
+        target_model = model or OLLAMA_MODEL
+        target_endpoint = (endpoint or OLLAMA_ENDPOINT).rstrip("/")
+
+        payload = {
+            "model": target_model,
+            "stream": False,
+            "format": "json",
+            "options": {"temperature": 0.1},
+            "messages": [
+                {
+                    "role": "system",
+                    "content": "You are an autonomous browser agent under ISRO SIH26171. The screenshot is processed by an On-Device Privacy Shield. Concealed areas with blur and tags are intentionally redacted. Return valid JSON only."
+                },
+                {
+                    "role": "user",
+                    "content": prompt,
+                    "images": [b64_img]
+                }
+            ]
+        }
+
+        url = f"{target_endpoint}/api/chat"
+        req = urllib.request.Request(
+            url,
+            data=json.dumps(payload).encode("utf-8"),
+            headers={"Content-Type": "application/json"}
+        )
+
+        with urllib.request.urlopen(req, timeout=25) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+            msg = data.get("message", {}).get("content", "{}").strip()
+            if msg.startswith("```"):
+                lines = msg.splitlines()
+                if lines and lines[0].startswith("```"):
+                    lines = lines[1:]
+                if lines and lines[-1].startswith("```"):
+                    lines = lines[:-1]
+                msg = "\n".join(lines).strip()
+            decision = json.loads(msg)
+            decision["active_model"] = f"{target_model} (Ollama)"
+            return decision
+
+    def ask_openai(self, redacted_bgr, goal, history=None, model=None, api_key=None):
+        """
+        Transmits redacted screenshot to OpenAI Vision API with low-detail token optimization.
+        """
+        key = api_key or OPENAI_API_KEY
+        if not key:
+            raise ValueError("OpenAI API key not configured. Set OPENAI_API_KEY in .env or environment.")
+
+        history = history or []
+        _, buffer = cv2.imencode(".jpg", redacted_bgr, [int(cv2.IMWRITE_JPEG_QUALITY), 85])
+        b64_img = base64.b64encode(buffer).decode("utf-8")
+
+        prompt = f"""USER GOAL: "{goal}"
+Current URL: {self.page.url if self.page else ""}
+Recent actions taken: {history[-3:] if history else 'None'}
+
+Decide the single next action to advance toward the goal.
+Return STRICT JSON:
+{{
+  "thought": "Analysis of the current screen and reason for next step",
+  "action": "click" | "type" | "navigate" | "complete",
+  "coordinates": [x_norm, y_norm],
+  "text_to_type": "string" (only if action is type),
+  "target_description": "short description of the button/input being interacted with",
+  "is_task_complete": false
+}}"""
+
+        target_model = model or OPENAI_MODEL
+        payload = {
+            "model": target_model,
+            "messages": [
+                {
+                    "role": "system",
+                    "content": "You are an autonomous browser agent under ISRO SIH26171. Regions with blur and tags are intentionally redacted sensitive data. Respond in valid JSON."
+                },
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": prompt},
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": f"data:image/jpeg;base64,{b64_img}",
+                                "detail": "low"
+                            }
+                        }
+                    ]
+                }
+            ],
+            "response_format": {"type": "json_object"},
+            "temperature": 0.1,
+            "max_tokens": 500
+        }
+
+        url = "https://api.openai.com/v1/chat/completions"
+        req = urllib.request.Request(
+            url,
+            data=json.dumps(payload).encode("utf-8"),
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {key}"
+            }
+        )
+
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+            content = data.get("choices", [{}])[0].get("message", {}).get("content", "{}").strip()
+            if content.startswith("```"):
+                lines = content.splitlines()
+                if lines and lines[0].startswith("```"):
+                    lines = lines[1:]
+                if lines and lines[-1].startswith("```"):
+                    lines = lines[:-1]
+                content = "\n".join(lines).strip()
+            decision = json.loads(content)
+            decision["active_model"] = f"{target_model} (OpenAI)"
+            return decision
+
+    def ask_vlm(self, redacted_bgr, goal, history=None, provider=None):
+        """
+        Unified router for all 3 VLM backends (Gemini, OpenAI, Ollama)
+        with graceful cascading failover.
+        """
+        p = (provider or self.provider or "auto").lower()
+
+        if p == "ollama":
+            try:
+                return self.ask_ollama(redacted_bgr, goal, history)
+            except Exception as err:
+                print(f"[WARN] Ollama failed: {err}. Cascading to OpenAI/Gemini...")
+                if OPENAI_API_KEY:
+                    try:
+                        return self.ask_openai(redacted_bgr, goal, history)
+                    except Exception:
+                        pass
+                return self.ask_gemini(redacted_bgr, goal, history)
+
+        elif p == "openai":
+            if OPENAI_API_KEY:
+                try:
+                    return self.ask_openai(redacted_bgr, goal, history)
+                except Exception as err:
+                    print(f"[WARN] OpenAI failed: {err}. Cascading to Gemini/Ollama...")
+                    try:
+                        return self.ask_gemini(redacted_bgr, goal, history)
+                    except Exception:
+                        return self.ask_ollama(redacted_bgr, goal, history)
+            else:
+                print("[WARN] OpenAI selected without key. Cascading to Gemini/Ollama...")
+                try:
+                    return self.ask_gemini(redacted_bgr, goal, history)
+                except Exception:
+                    return self.ask_ollama(redacted_bgr, goal, history)
+
+        elif p == "gemini":
+            try:
+                return self.ask_gemini(redacted_bgr, goal, history)
+            except Exception as err:
+                print(f"[WARN] Gemini failed: {err}. Cascading to OpenAI/Ollama...")
+                if OPENAI_API_KEY:
+                    try:
+                        return self.ask_openai(redacted_bgr, goal, history)
+                    except Exception:
+                        pass
+                return self.ask_ollama(redacted_bgr, goal, history)
+
+        else:  # auto
+            # Try Ollama first if running locally (zero egress)
+            try:
+                ping_req = urllib.request.Request(f"{OLLAMA_ENDPOINT.rstrip('/')}/api/tags")
+                with urllib.request.urlopen(ping_req, timeout=1.0) as resp:
+                    if resp.status == 200:
+                        return self.ask_ollama(redacted_bgr, goal, history)
+            except Exception:
+                pass
+
+            # Fall back to Gemini, then OpenAI
+            try:
+                return self.ask_gemini(redacted_bgr, goal, history)
+            except Exception:
+                if OPENAI_API_KEY:
+                    return self.ask_openai(redacted_bgr, goal, history)
+                raise
+
     def execute_action(self, action_data):
         """
         Executes the VLM action in the real browser with robust coordinate normalization.
@@ -336,7 +553,7 @@ Note: "coordinates" are normalized floats between 0.0 and 1.0 representing [X, Y
         except Exception as exec_err:
             print("  [WARN] Action execution note:", exec_err)
 
-    def run_step(self, goal, history=None):
+    def run_step(self, goal, history=None, provider=None):
         """
         Performs one single iteration of the autonomous privacy loop.
         """
@@ -346,9 +563,9 @@ Note: "coordinates" are normalized floats between 0.0 and 1.0 representing [X, Y
         # Step 1: Capture & On-Device Redact
         raw_bgr, redacted_bgr, detections, stats = self.capture_and_redact()
 
-        # Step 2: Send Redacted Screen to Gemini Cloud VLM
+        # Step 2: Send Redacted Screen to VLM (Gemini, OpenAI, or Ollama)
         start_vlm = time.time()
-        vlm_decision = self.ask_gemini(redacted_bgr, goal, history)
+        vlm_decision = self.ask_vlm(redacted_bgr, goal, history, provider=provider)
         vlm_latency_ms = int((time.time() - start_vlm) * 1000)
 
         # Step 3: Execute Action in Browser
@@ -375,3 +592,40 @@ Note: "coordinates" are normalized floats between 0.0 and 1.0 representing [X, Y
             "vlm_latency_ms": vlm_latency_ms,
             "is_complete": is_done
         }
+
+if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser(description="PS171 Autonomous Privacy Agent Runner")
+    parser.add_argument("--goal", type=str, default="Search for wireless headphones and add to cart", help="Agent target goal")
+    parser.add_argument("--url", type=str, default="http://127.0.0.1:8080/site/", help="Starting URL")
+    parser.add_argument("--provider", type=str, choices=["gemini", "openai", "ollama", "auto"], default="auto", help="VLM reasoning provider")
+    parser.add_argument("--model", type=str, default=None, help="Custom model override")
+    parser.add_argument("--steps", type=int, default=5, help="Maximum autonomous steps")
+    parser.add_argument("--headless", action="store_true", help="Run browser headlessly")
+
+    args = parser.parse_args()
+
+    agent = AutonomousPrivacyBrowserAgent(target_url=args.url, headless=args.headless, provider=args.provider)
+    history = []
+    print(f"[INIT] Starting PS171 autonomous loop. Provider: {args.provider.upper()}, Goal: '{args.goal}'")
+
+    try:
+        for step_idx in range(1, args.steps + 1):
+            print(f"\n--- STEP {step_idx}/{args.steps} ---")
+            result = agent.run_step(args.goal, history=history, provider=args.provider)
+            vlm = result["vlm_decision"]
+            history.append({
+                "action": vlm.get("action"),
+                "target": vlm.get("target_description"),
+                "url": result["current_url"]
+            })
+            print(f"  VLM Model: {vlm.get('active_model', 'N/A')}")
+            print(f"  Thought: {vlm.get('thought')}")
+            print(f"  Action: {vlm.get('action')} on '{vlm.get('target_description')}'")
+            print(f"  Latency: {result['vlm_latency_ms']} ms")
+            if result["is_complete"]:
+                print(f"[SUCCESS] Goal completed at step {step_idx}!")
+                break
+    finally:
+        agent.stop_browser()

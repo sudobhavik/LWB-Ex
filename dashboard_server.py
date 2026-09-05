@@ -369,6 +369,8 @@ class ExtensionVlmRequest(BaseModel):
     goal: str
     url: str = ""
     history: list = []
+    provider: str = "auto"
+    model: str = ""
 
 def _sync_step(goal: str):
     global AGENT, CURRENT_HISTORY, LAST_STEP_DATA
@@ -468,10 +470,10 @@ def handle_vlm_act(req: ExtensionVlmRequest):
         img_bytes = base64.b64decode(b64_data)
         redacted_bgr = cv2.imdecode(np.frombuffer(img_bytes, np.uint8), cv2.IMREAD_COLOR)
 
-        temp_agent = AutonomousPrivacyBrowserAgent()
+        temp_agent = AutonomousPrivacyBrowserAgent(provider=req.provider)
         temp_agent.page = type("MockPage", (), {"url": req.url or ""})()
 
-        vlm_decision = temp_agent.ask_gemini(redacted_bgr, req.goal, req.history)
+        vlm_decision = temp_agent.ask_vlm(redacted_bgr, req.goal, req.history, provider=req.provider)
         vlm_latency_ms = int((time.time() - t0) * 1000)
 
         is_complete = vlm_decision.get("is_task_complete", False)

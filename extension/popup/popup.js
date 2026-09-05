@@ -58,6 +58,7 @@ async function setStorageData(items) {
 const DEFAULT_GEMINI_KEY = "AQ.Ab8RN6Klgw2tX10HWouzLpd0DtyOnjYBahVHZ93eI1N86xua4w";
 let activeGeminiKey = DEFAULT_GEMINI_KEY;
 let activeApiKey = DEFAULT_GEMINI_KEY; // backward compatibility
+let activeGeminiModel = "gemini-2.5-flash";
 let activeOpenAiKey = "";
 let activeOpenAiModel = "gpt-4o-mini";
 let activeOllamaEndpoint = "http://127.0.0.1:11434";
@@ -82,7 +83,7 @@ function updateProviderIndicator() {
     } else if (activeProvider === "openai") {
       providerTag.textContent = `OPENAI (${activeOpenAiModel.toUpperCase()})`;
     } else {
-      providerTag.textContent = "GEMINI";
+      providerTag.textContent = `GEMINI (${activeGeminiModel.toUpperCase()})`;
     }
   }
 }
@@ -91,6 +92,7 @@ function initPopup() {
   // Load saved credentials & settings from browser storage
   getStorageData([
     "gemini_api_key",
+    "gemini_model",
     "openai_api_key",
     "vlm_provider",
     "openai_model",
@@ -101,6 +103,9 @@ function initPopup() {
     if (result.gemini_api_key) {
       activeGeminiKey = result.gemini_api_key;
       activeApiKey = result.gemini_api_key;
+    }
+    if (result.gemini_model) {
+      activeGeminiModel = result.gemini_model;
     }
     if (result.openai_api_key) {
       activeOpenAiKey = result.openai_api_key;
@@ -127,6 +132,9 @@ function initPopup() {
 
     const geminiInput = document.getElementById("gemini-api-key");
     if (geminiInput) geminiInput.value = activeGeminiKey;
+
+    const geminiModelSelect = document.getElementById("gemini-model-select");
+    if (geminiModelSelect) geminiModelSelect.value = activeGeminiModel;
 
     const openAiInput = document.getElementById("openai-api-key");
     if (openAiInput) openAiInput.value = activeOpenAiKey;
@@ -232,6 +240,18 @@ function initPopup() {
     btnTestOllama.addEventListener("click", testOllamaConnection);
   }
 
+  // Test OpenAI Connection
+  const btnTestOpenAi = document.getElementById("btn-test-openai");
+  if (btnTestOpenAi) {
+    btnTestOpenAi.addEventListener("click", testOpenAIConnection);
+  }
+
+  // Test Gemini Connection
+  const btnTestGemini = document.getElementById("btn-test-gemini");
+  if (btnTestGemini) {
+    btnTestGemini.addEventListener("click", testGeminiConnection);
+  }
+
   // Save OpenAI API Key
   const btnSaveOpenAiKey = document.getElementById("btn-save-openai-key");
   if (btnSaveOpenAiKey) {
@@ -251,17 +271,17 @@ function initPopup() {
           status.textContent = `[OK] OpenAI Key saved (${model} active)`;
           status.style.color = "#ffffff";
           setTimeout(() => {
-            status.textContent = "Persisted in browser storage - 85 tokens/image (~$0.00001)";
+            status.textContent = "Persisted in browser.storage.local - 85 tokens/image (~$0.00001)";
             status.style.color = "#888888";
           }, 2500);
         }
         updateProviderIndicator();
-        logAgent(`[CONFIG] OpenAI active model: ${model}`);
+        logAgent(`[CONFIG] OpenAI active: model=${model}`);
       }
     });
   }
 
-  // Model select change listener
+  // OpenAI Model select change listener
   const modelSelect = document.getElementById("openai-model-select");
   if (modelSelect) {
     modelSelect.addEventListener("change", (e) => {
@@ -269,6 +289,17 @@ function initPopup() {
       setStorageData({ openai_model: e.target.value });
       updateProviderIndicator();
       logAgent(`[CONFIG] OpenAI model set to: ${e.target.value}`);
+    });
+  }
+
+  // Gemini Model select change listener
+  const geminiSelect = document.getElementById("gemini-model-select");
+  if (geminiSelect) {
+    geminiSelect.addEventListener("change", (e) => {
+      activeGeminiModel = e.target.value;
+      setStorageData({ gemini_model: e.target.value });
+      updateProviderIndicator();
+      logAgent(`[CONFIG] Gemini model set to: ${e.target.value}`);
     });
   }
 
@@ -282,24 +313,32 @@ function initPopup() {
     });
   });
 
-  // Save Gemini API Key
+  // Save Gemini Configuration
   const btnSaveKey = document.getElementById("btn-save-key");
   if (btnSaveKey) {
     btnSaveKey.addEventListener("click", () => {
       const val = document.getElementById("gemini-api-key").value.trim();
+      const model = document.getElementById("gemini-model-select")?.value || "gemini-2.5-flash";
       if (val) {
         activeGeminiKey = val;
         activeApiKey = val;
-        setStorageData({ gemini_api_key: val });
+        activeGeminiModel = model;
+        activeProvider = "gemini";
+        setStorageData({ gemini_api_key: val, gemini_model: model, vlm_provider: "gemini" });
+        const providerRadio = document.querySelector(`input[name="vlmProvider"][value="gemini"]`);
+        if (providerRadio) providerRadio.checked = true;
+
         const status = document.getElementById("key-status");
         if (status) {
-          status.textContent = "[OK] Key saved to browser storage";
+          status.textContent = `[OK] Gemini config saved (${model} active)`;
           status.style.color = "#ffffff";
           setTimeout(() => {
-            status.textContent = "Persisted in browser storage (Fallback)";
+            status.textContent = "Persisted in browser.storage.local (Cloud Enterprise)";
             status.style.color = "#888888";
           }, 2500);
         }
+        updateProviderIndicator();
+        logAgent(`[CONFIG] Gemini active: model=${model}`);
       }
     });
   }
@@ -481,12 +520,15 @@ Note: "coordinates" are normalized floats between 0.0 and 1.0 representing [X, Y
     }
   };
 
-  const models = [
-    "gemini-flash-latest",
-    "gemini-1.5-flash",
+  const pool = [
+    activeGeminiModel || "gemini-2.5-flash",
+    "gemini-2.5-flash",
     "gemini-2.0-flash",
+    "gemini-1.5-flash",
+    "gemini-1.5-pro",
     "gemini-flash-lite-latest"
   ];
+  const models = [...new Set(pool)];
 
   let lastError = null;
   const t0 = performance.now();
@@ -519,7 +561,11 @@ Note: "coordinates" are normalized floats between 0.0 and 1.0 representing [X, Y
       const data = await resp.json();
       const candidate = data.candidates?.[0];
       const part = candidate?.content?.parts?.[0];
-      let rawText = (part?.text || "{}").trim();
+      if (!part) {
+        throw new Error("Empty candidate part received");
+      }
+
+      let rawText = part.text || "{}";
       if (rawText.startsWith("```")) {
         const firstLineEnd = rawText.indexOf("\n");
         if (firstLineEnd !== -1) {
@@ -530,7 +576,7 @@ Note: "coordinates" are normalized floats between 0.0 and 1.0 representing [X, Y
         }
       }
       const decision = JSON.parse(rawText.trim());
-      decision.active_model = model;
+      decision.active_model = `${model} (Gemini)`;
 
       const vlmLatencyMs = Math.round(performance.now() - t0);
       return { success: true, decision, latency_ms: vlmLatencyMs };
@@ -714,6 +760,129 @@ async function testOllamaConnection() {
   }
 }
 
+async function testOpenAIConnection() {
+  const badgeEl = document.getElementById("openai-conn-badge");
+  const statusEl = document.getElementById("openai-key-status");
+  const btn = document.getElementById("btn-test-openai");
+  const key = (document.getElementById("openai-api-key")?.value || activeOpenAiKey || "").trim();
+
+  if (!key) {
+    if (statusEl) {
+      statusEl.textContent = "[ERR] Please enter an OpenAI API key (sk-...)";
+      statusEl.style.color = "#ffffff";
+    }
+    return;
+  }
+
+  if (btn) btn.disabled = true;
+  if (statusEl) {
+    statusEl.textContent = "Validating OpenAI key...";
+    statusEl.style.color = "#888888";
+  }
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 6000);
+
+  try {
+    const resp = await fetch("https://api.openai.com/v1/models", {
+      method: "GET",
+      headers: { "Authorization": `Bearer ${key}` },
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+
+    if (!resp.ok) {
+      throw new Error(`HTTP ${resp.status}`);
+    }
+
+    if (badgeEl) {
+      badgeEl.textContent = "VALID";
+      badgeEl.style.color = "#ffffff";
+      badgeEl.style.borderColor = "#ffffff";
+    }
+    if (statusEl) {
+      statusEl.textContent = "[OK] OpenAI API key verified successfully";
+      statusEl.style.color = "#ffffff";
+    }
+    logAgent("[OPENAI] API key verified successfully.");
+  } catch (err) {
+    clearTimeout(timeoutId);
+    if (badgeEl) {
+      badgeEl.textContent = "INVALID";
+      badgeEl.style.color = "#888888";
+      badgeEl.style.borderColor = "#333333";
+    }
+    if (statusEl) {
+      statusEl.textContent = `[ERR] OpenAI validation failed: ${err.message}`;
+      statusEl.style.color = "#888888";
+    }
+    logAgent(`[OPENAI] Key check failed: ${err.message}`);
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+async function testGeminiConnection() {
+  const badgeEl = document.getElementById("gemini-conn-badge");
+  const statusEl = document.getElementById("key-status");
+  const btn = document.getElementById("btn-test-gemini");
+  const key = (document.getElementById("gemini-api-key")?.value || activeGeminiKey || "").trim();
+
+  if (!key) {
+    if (statusEl) {
+      statusEl.textContent = "[ERR] Please enter a Gemini API key";
+      statusEl.style.color = "#ffffff";
+    }
+    return;
+  }
+
+  if (btn) btn.disabled = true;
+  if (statusEl) {
+    statusEl.textContent = "Validating Gemini key...";
+    statusEl.style.color = "#888888";
+  }
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 6000);
+
+  try {
+    const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${key}`, {
+      method: "GET",
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+
+    if (!resp.ok) {
+      throw new Error(`HTTP ${resp.status}`);
+    }
+
+    if (badgeEl) {
+      badgeEl.textContent = "VALID";
+      badgeEl.style.color = "#ffffff";
+      badgeEl.style.borderColor = "#ffffff";
+    }
+    if (statusEl) {
+      statusEl.textContent = "[OK] Google Gemini API key verified successfully";
+      statusEl.style.color = "#ffffff";
+    }
+    logAgent("[GEMINI] API key verified successfully.");
+  } catch (err) {
+    clearTimeout(timeoutId);
+    if (badgeEl) {
+      badgeEl.textContent = "INVALID";
+      badgeEl.style.color = "#888888";
+      badgeEl.style.borderColor = "#333333";
+    }
+    if (statusEl) {
+      statusEl.textContent = `[ERR] Gemini validation failed: ${err.message}`;
+      statusEl.style.color = "#888888";
+    }
+    logAgent(`[GEMINI] Key check failed: ${err.message}`);
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
 async function askOllamaDirect(redactedDataUrl, goal, currentUrl, history, interactiveButtons = []) {
   const endpoint = (activeOllamaEndpoint || "http://127.0.0.1:11434").trim().replace(/\/+$/, "");
   const modelToUse = activeOllamaModel === "custom"
@@ -890,25 +1059,54 @@ async function askVlm(redactedDataUrl, goal, currentUrl, history, interactiveBut
       return await askOllamaDirect(redactedDataUrl, goal, currentUrl, history, interactiveButtons);
     } catch (err) {
       console.warn("[Ollama failed, attempting failover]:", err);
-      logAgent(`[VLM FAILOVER] Ollama error: ${err.message}. Trying fallback...`);
+      logAgent(`[VLM FAILOVER] Ollama error: ${err.message}. Trying OpenAI/Gemini...`);
       if (activeOpenAiKey) {
-        return await askOpenAIDirect(redactedDataUrl, goal, currentUrl, history, interactiveButtons);
+        try {
+          return await askOpenAIDirect(redactedDataUrl, goal, currentUrl, history, interactiveButtons);
+        } catch (oe) {
+          logAgent(`[VLM FAILOVER] OpenAI fallback failed: ${oe.message}. Trying Gemini...`);
+        }
       }
       return await askGeminiDirect(redactedDataUrl, goal, currentUrl, history, interactiveButtons);
     }
-  } else if (activeProvider === "openai" && activeOpenAiKey) {
-    try {
-      return await askOpenAIDirect(redactedDataUrl, goal, currentUrl, history, interactiveButtons);
-    } catch (err) {
-      console.warn("[OpenAI failed, attempting Gemini failover]:", err);
-      logAgent(`[VLM FAILOVER] OpenAI error: ${err.message}. Trying Gemini...`);
-      return await askGeminiDirect(redactedDataUrl, goal, currentUrl, history, interactiveButtons);
+  } else if (activeProvider === "openai") {
+    if (activeOpenAiKey) {
+      try {
+        return await askOpenAIDirect(redactedDataUrl, goal, currentUrl, history, interactiveButtons);
+      } catch (err) {
+        console.warn("[OpenAI failed, attempting failover]:", err);
+        logAgent(`[VLM FAILOVER] OpenAI error: ${err.message}. Trying Gemini...`);
+        try {
+          return await askGeminiDirect(redactedDataUrl, goal, currentUrl, history, interactiveButtons);
+        } catch (ge) {
+          logAgent(`[VLM FAILOVER] Gemini fallback failed: ${ge.message}. Trying Ollama...`);
+          return await askOllamaDirect(redactedDataUrl, goal, currentUrl, history, interactiveButtons);
+        }
+      }
+    } else {
+      logAgent("[WARN] OpenAI selected but no key entered. Trying Gemini/Ollama fallback...");
+      try {
+        return await askGeminiDirect(redactedDataUrl, goal, currentUrl, history, interactiveButtons);
+      } catch (_) {
+        return await askOllamaDirect(redactedDataUrl, goal, currentUrl, history, interactiveButtons);
+      }
     }
-  } else if (activeProvider === "openai" && !activeOpenAiKey) {
-    logAgent("[WARN] OpenAI selected but no key entered. Using Gemini fallback...");
-    return await askGeminiDirect(redactedDataUrl, goal, currentUrl, history, interactiveButtons);
   } else {
-    return await askGeminiDirect(redactedDataUrl, goal, currentUrl, history, interactiveButtons);
+    // Gemini selected
+    try {
+      return await askGeminiDirect(redactedDataUrl, goal, currentUrl, history, interactiveButtons);
+    } catch (err) {
+      console.warn("[Gemini failed, attempting failover]:", err);
+      logAgent(`[VLM FAILOVER] Gemini error: ${err.message}. Trying OpenAI/Ollama...`);
+      if (activeOpenAiKey) {
+        try {
+          return await askOpenAIDirect(redactedDataUrl, goal, currentUrl, history, interactiveButtons);
+        } catch (oe) {
+          logAgent(`[VLM FAILOVER] OpenAI fallback failed: ${oe.message}. Trying Ollama...`);
+        }
+      }
+      return await askOllamaDirect(redactedDataUrl, goal, currentUrl, history, interactiveButtons);
+    }
   }
 }
 
