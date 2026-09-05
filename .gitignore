@@ -26,6 +26,7 @@ node_modules/
 .output/
 .wxt/
 dist/
+web-ext-artifacts/
 
 # OS Specific
 .DS_Store
