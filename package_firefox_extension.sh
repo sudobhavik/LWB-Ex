@@ -111,7 +111,13 @@ if not action.get("default_popup"):
     print("[FAIL] Missing 'action.default_popup' in manifest.json")
     sys.exit(1)
 
-print(f"[OK] Manifest validated: ID={gecko_id}, min_version={strict_min}, popup={action.get('default_popup')}")
+# Check background.scripts for Firefox MV3 compatibility
+bg = data.get("background", {})
+if not bg.get("scripts"):
+    print("[FAIL] Missing 'background.scripts' in manifest.json for Firefox MV3 compatibility")
+    sys.exit(1)
+
+print(f"[OK] Manifest validated: ID={gecko_id}, min_version={strict_min}, popup={action.get('default_popup')}, bg_scripts={bg.get('scripts')}")
 PYEOF
 
 # 3. Validate JavaScript syntax on all extension scripts
