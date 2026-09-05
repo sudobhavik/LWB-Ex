@@ -1,8 +1,0 @@
-path: /home/shreyas/SIH_brain/PS171/dataset_2000_browser
-train: images/train
-val: images/val
-
-names:
-  0: face
-  1: input_field
-  2: text_block

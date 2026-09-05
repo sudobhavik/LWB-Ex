@@ -68,21 +68,18 @@ PS171/
 │   ├── content/                        # DOM anchors, radar pointer, and action runner
 │   ├── engine/                         # YOLO ONNX WebGPU inference worker
 │   ├── lib/                            # Bundled ONNX Runtime Web binaries
-│   ├── models/                         # Optimized yolo26n.onnx models
+│   ├── models/                         # Bundled yolo26n.onnx models
 │   ├── popup/                          # Side panel controller UI & VLM client
 │   └── site/                           # Tactical defense e-commerce demo testbed
-├── dataset_2000_browser/               # 2,000+ multi-page browser training dataset
-├── dataset_isro/                       # ISRO annotated privacy dataset
-├── kaggle_ps171_browser_dataset/       # Balanced validation dataset
 ├── exported_models/                    # Production ONNX and PyTorch model weights
-├── weights/                            # Base weights (yolo26n.pt, yolov8s.pt)
-├── generate_2000_multipage_dataset.py  # Synthetic multi-page dataset generator
-├── train_yolo_small_custom.py          # Custom YOLO training script
-├── train_local_gpu.py                  # Local GPU training script
 ├── privacy_shield.py                   # Python standalone privacy shield engine
 ├── agent_runner.py                     # Headless Playwright autonomous test agent
 ├── dashboard_server.py                 # Telemetry & benchmark visualization server
 ├── launch_extension_browser.sh         # One-click browser launcher
+├── demo_website/                       # Local testing storefront
+├── server/                             # FastAPI testbed server
+├── run_server.sh                       # Local server startup script
+├── run_ps171_demo.sh                   # Demo runner script
 └── README.md
 ```
 
@@ -93,7 +90,7 @@ PS171/
 ### Prerequisites
 - Linux / macOS / Windows
 - Google Chrome or Chromium (v120+)
-- Python 3.10+ (for dataset generation or local test server)
+- Python 3.10+ (for local test server)
 
 ### 1. Launch Browser & Extension
 Run the launcher script to start the local test site and launch Chromium with the unpacked extension:
@@ -122,33 +119,7 @@ Click **RUN AUTONOMOUS LOOP**. The agent will redact sensitive elements on-devic
 
 ---
 
-## 5. Model Training & Export
-
-### Generating Synthetic Datasets
-To generate 2,000+ diverse synthetic browser pages (e-commerce, payment gateways, profile settings, dashboards):
-```bash
-python3 generate_2000_multipage_dataset.py
-```
-
-### Training YOLO Models
-To train the YOLO detector on the generated browser dataset:
-```bash
-python3 train_yolo_small_custom.py
-```
-
-### Exporting to ONNX
-Export the trained PyTorch checkpoint to ONNX format:
-```bash
-python3 -c "
-from ultralytics import YOLO
-model = YOLO('runs/train/yolov8s_browser_2000/weights/best.pt')
-model.export(format='onnx', opset=17, simplify=True)
-"
-```
-
----
-
-## 6. Evaluation Metrics
+## 5. Evaluation Metrics
 
 | Metric | Target | Achieved |
 | :--- | :--- | :--- |

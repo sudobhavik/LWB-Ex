@@ -1,8 +1,0 @@
-path: /home/shreyas/SIH_brain/PS171/dataset_isro
-train: images/train
-val: images/val
-names:
-  0: face
-  1: password_field
-  2: pii_field
-  3: sensitive_text
