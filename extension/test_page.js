@@ -75,11 +75,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
+  const extRuntime = (typeof globalThis.browser !== "undefined" && globalThis.browser.runtime)
+    ? globalThis.browser.runtime
+    : (typeof globalThis.chrome !== "undefined" && globalThis.chrome.runtime ? globalThis.chrome.runtime : null);
+
   // 1. Test Sample Login Screen
   btnTestSynthetic.addEventListener("click", async () => {
     btnTestSynthetic.disabled = true;
     try {
-      const sampleUrl = chrome.runtime.getURL("assets/sample_login.jpg");
+      const sampleUrl = extRuntime ? extRuntime.getURL("assets/sample_login.jpg") : "assets/sample_login.jpg";
       await runInference(sampleUrl);
     } catch (err) {
       log("Error running test: " + err.message);
@@ -92,7 +96,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   btnTestReal.addEventListener("click", async () => {
     btnTestReal.disabled = true;
     try {
-      const sampleUrl = chrome.runtime.getURL("assets/sample_face.jpg");
+      const sampleUrl = extRuntime ? extRuntime.getURL("assets/sample_face.jpg") : "assets/sample_face.jpg";
       await runInference(sampleUrl);
     } catch (err) {
       log("Error running real test: " + err.message);

@@ -1,33 +1,51 @@
-// Content Script for PS171 Privacy Agent — In-Page Screen Redaction & Autonomous Click Execution
+// Content Script for PS171 Privacy Agent - In-Page Screen Redaction & Autonomous Click Execution
 (() => {
   const CONTAINER_ID = "ps171-privacy-shield-container";
 
-  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    if (message.action === "GET_PAGE_METADATA") {
-      const metadata = extractPageMetadata();
-      sendResponse(metadata);
-      return true;
-    }
+  // Cross-browser API polyfill
+  const browserAPI = (typeof globalThis.browser !== "undefined" && globalThis.browser.runtime)
+    ? globalThis.browser
+    : (typeof globalThis.chrome !== "undefined" ? globalThis.chrome : {});
 
-    if (message.action === "EXECUTE_AGENT_ACTION") {
-      handleExecuteAction(message.data)
-        .then((res) => sendResponse({ success: true, ...res }))
-        .catch((err) => sendResponse({ success: false, error: err.message }));
-      return true;
-    }
+  if (typeof globalThis.browser === "undefined" && typeof globalThis.chrome !== "undefined") {
+    globalThis.browser = globalThis.chrome;
+  }
+  if (typeof globalThis.chrome === "undefined" && typeof globalThis.browser !== "undefined") {
+    globalThis.chrome = globalThis.browser;
+  }
 
-    if (message.action === "APPLY_PRIVACY_MASKS") {
-      renderPrivacyOverlays(message.detections, message.settings || {});
-      sendResponse({ success: true });
-      return true;
-    }
+  const runtimeAPI = (browserAPI && browserAPI.runtime)
+    ? browserAPI.runtime
+    : (typeof chrome !== "undefined" ? chrome.runtime : null);
 
-    if (message.action === "CLEAR_PRIVACY_MASKS") {
-      clearAllOverlays();
-      sendResponse({ success: true });
-      return true;
-    }
-  });
+  if (runtimeAPI && runtimeAPI.onMessage) {
+    runtimeAPI.onMessage.addListener((message, sender, sendResponse) => {
+      if (message.action === "GET_PAGE_METADATA") {
+        const metadata = extractPageMetadata();
+        sendResponse(metadata);
+        return true;
+      }
+
+      if (message.action === "EXECUTE_AGENT_ACTION") {
+        handleExecuteAction(message.data)
+          .then((res) => sendResponse({ success: true, ...res }))
+          .catch((err) => sendResponse({ success: false, error: err.message }));
+        return true;
+      }
+
+      if (message.action === "APPLY_PRIVACY_MASKS") {
+        renderPrivacyOverlays(message.detections, message.settings || {});
+        sendResponse({ success: true });
+        return true;
+      }
+
+      if (message.action === "CLEAR_PRIVACY_MASKS") {
+        clearAllOverlays();
+        sendResponse({ success: true });
+        return true;
+      }
+    });
+  }
 
   function clearAllOverlays() {
     const existing = document.getElementById(CONTAINER_ID);

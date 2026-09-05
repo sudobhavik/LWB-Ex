@@ -32,9 +32,13 @@ class YOLO26InBrowserDetector {
 
     return new Promise((resolve, reject) => {
       try {
-        const workerUrl = chrome.runtime.getURL("engine/yolo_worker.js");
-        const modelUrl = chrome.runtime.getURL(`models/${modelName}`);
-        const wasmDir = chrome.runtime.getURL("lib/") + "/";
+        const extRuntime = (typeof globalThis.browser !== "undefined" && globalThis.browser.runtime)
+          ? globalThis.browser.runtime
+          : (typeof globalThis.chrome !== "undefined" && globalThis.chrome.runtime ? globalThis.chrome.runtime : null);
+
+        const workerUrl = extRuntime ? extRuntime.getURL("engine/yolo_worker.js") : "engine/yolo_worker.js";
+        const modelUrl = extRuntime ? extRuntime.getURL(`models/${modelName}`) : `models/${modelName}`;
+        const wasmDir = (extRuntime ? extRuntime.getURL("lib/") : "lib/") + "/";
 
         console.log(`[PS171] Spawning ONNX Worker at ${workerUrl}...`);
         this.worker = new Worker(workerUrl);

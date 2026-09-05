@@ -3,6 +3,12 @@
   "name": "PS171 Privacy Agent & Autonomous VLM",
   "version": "1.0.0",
   "description": "Zero-egress client-side privacy agent and autonomous VLM side panel controller.",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "ps171-privacy-agent@isro.sih",
+      "strict_min_version": "109.0"
+    }
+  },
   "permissions": [
     "sidePanel",
     "activeTab",
@@ -17,7 +23,8 @@
     "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"
   },
   "action": {
-    "default_title": "Open PS171 Privacy Agent Side Panel",
+    "default_popup": "popup/popup.html",
+    "default_title": "PS171 Privacy Agent",
     "default_icon": {
       "16": "icons/icon16.png",
       "48": "icons/icon48.png",

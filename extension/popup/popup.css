@@ -95,3 +95,37 @@ body { background: var(--bg-primary); color: var(--text-main); width: 100%; min-
 
 .footer { text-align: center; font-size: 9px; color: var(--text-muted); padding-top: 6px; border-top: 1px solid var(--border-color); font-family: monospace; letter-spacing: 0.04em; }
 .hidden { display: none !important; }
+
+/* ISRO SIH26171 5-Metric Evaluation Dashboard - Monochrome Brutalist */
+.sih-metrics-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 3px; padding: 10px; display: flex; flex-direction: column; gap: 8px; }
+.sih-card-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 7px; }
+.sih-card-title { font-size: 11px; font-weight: 800; color: #ffffff; letter-spacing: 0.06em; text-transform: uppercase; font-family: monospace; }
+.sih-card-subtitle { font-size: 8px; color: var(--text-muted); font-family: monospace; letter-spacing: 0.04em; text-transform: uppercase; margin-top: 1px; }
+.sih-composite-badge { display: flex; align-items: baseline; gap: 5px; background: #000000; border: 1px solid #ffffff; padding: 2px 7px; border-radius: 2px; }
+.sih-composite-lbl { font-size: 8px; font-family: monospace; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
+.sih-composite-val { font-size: 13px; font-weight: 900; font-family: monospace; color: #ffffff; }
+
+.sih-clauses-list { display: flex; flex-direction: column; gap: 5px; }
+.sih-clause-row { display: flex; justify-content: space-between; align-items: center; background: #080808; border: 1px solid var(--border-color); border-left: 3px solid #ffffff; padding: 5px 8px; border-radius: 1px; }
+.sih-clause-meta { display: flex; align-items: center; gap: 7px; }
+.sih-clause-idx { font-family: monospace; font-size: 10px; font-weight: 800; color: var(--text-muted); }
+.sih-clause-text { display: flex; flex-direction: column; }
+.sih-clause-name { font-size: 9px; font-weight: 800; color: #ffffff; text-transform: uppercase; letter-spacing: 0.02em; }
+.sih-clause-weight { font-size: 8px; font-family: monospace; color: var(--text-muted); font-weight: 600; }
+
+.sih-clause-stats { text-align: right; display: flex; flex-direction: column; align-items: flex-end; }
+.sih-stat-val { font-size: 10px; font-weight: 800; font-family: monospace; color: #ffffff; }
+.sih-stat-detail { font-size: 8px; font-family: monospace; color: var(--text-muted); text-transform: uppercase; }
+
+/* Ollama Settings and Brutalist Monochrome Inputs */
+.ollama-badge { background: #000000; border: 1px solid var(--border-color); color: #ffffff; font-size: 8px; font-family: monospace; font-weight: 700; padding: 2px 5px; border-radius: 1px; }
+.input-sub-label { font-size: 9px; color: var(--text-muted); font-family: monospace; display: block; margin-bottom: 2px; text-transform: uppercase; }
+.monochrome-input { width: 100%; background: #000000; color: #ffffff; border: 1px solid var(--border-color); padding: 6px 8px; font-family: monospace; font-size: 11px; outline: none; border-radius: 2px; }
+.monochrome-input:focus { border-color: #ffffff; }
+.monochrome-select { width: 100%; background: #000000; color: #ffffff; border: 1px solid var(--border-color); padding: 6px 8px; font-family: monospace; font-size: 10px; outline: none; border-radius: 2px; cursor: pointer; }
+.monochrome-select:focus { border-color: #ffffff; }
+.btn-sub-primary { background: #ffffff; color: #000000; border: none; padding: 6px 12px; font-weight: 800; font-size: 10px; cursor: pointer; text-transform: uppercase; font-family: monospace; letter-spacing: 0.04em; border-radius: 1px; }
+.btn-sub-primary:hover { background: #e5e5e5; }
+.btn-sub-action { background: #1a1a1a; color: #ffffff; border: 1px solid var(--border-color); padding: 6px 12px; font-weight: 700; font-size: 10px; cursor: pointer; text-transform: uppercase; font-family: monospace; letter-spacing: 0.04em; border-radius: 1px; }
+.btn-sub-action:hover { background: #262626; border-color: #ffffff; }
+
