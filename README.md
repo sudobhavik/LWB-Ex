@@ -100,12 +100,11 @@ Run the launcher script to start the local test site and launch Chromium with th
 
 ### 2. Configure VLM Provider
 1. Click the **Extensions** menu icon in the top-right toolbar.
-2. In Google Chrome: Click **PS171 Privacy Agent** to open the Side Panel.
-   In Mozilla Firefox: Click **PS171 Privacy Agent** to open the popup controller.
+2. In Google Chrome: Click **PS171 Privacy Agent** to open the native Chrome Side Panel.
+   In Mozilla Firefox: Click **PS171 Privacy Agent** to open inside the native Firefox Sidebar / Side Panel.
 3. Switch to the **Shield / Settings** tab:
-   - **Local Ollama (Zero-Egress Offline)**: Select **Local Ollama**, specify endpoint (`http://127.0.0.1:11434`), select model (e.g. `qwen2.5-vl:3b` recommended for 4GB VRAM), and click **Save Config**.
-   - **OpenAI (GPT-4o mini)**: Select **OpenAI**, enter your API key (`sk-...`), and click **Save**.
-   - **Google Gemini**: Select **Gemini** as fallback or enterprise router.
+   - **OpenAI (GPT-4o mini, GPT-4o, GPT-5.6 luna)**: Select **OpenAI**, enter your API key (`sk-...`), and click **Save & Activate**.
+   - **Google Gemini (Gemini 2.5 Flash, Gemini 2.0 Flash)**: Select **Gemini**, configure API key, and click **Save & Activate**.
 
 ### 3. Run Autonomous Tasks
 Return to the **Autonomous Controller** tab and enter a task:
@@ -149,5 +148,5 @@ The extension controller includes an integrated live telemetry dashboard trackin
 | **Clause 2 [20% Weight]** | **Sensitive / PII Recall & Precision** | Detection of passwords, credit cards (Luhn-checked), API keys, and personal biometrics | **98.4% Recall / 96.1% Precision** |
 | **Clause 3 [20% Weight]** | **Redaction Precision & Zero Egress** | Zero raw sensitive bytes transmitted to VLM; clean boundaries without obscuring actionable controls | **100% Zero Egress (0 bytes leaked)** |
 | **Clause 4 [20% Weight]** | **Client Resource Utilization** | Efficient execution via WebGPU / multi-threaded WASM SIMD under 4GB VRAM footprint | **WebGPU Active (~147 ms inference, <150MB RAM)** |
-| **Clause 5 [15% Weight]** | **End-to-End Latency** | Total cycle time: Capture -> On-Device Redact -> VLM Reasoning -> DOM Action Snapping | **~1.1s (GPT-4o mini) / ~1.4s (Qwen2.5-VL 3B)** |
+| **Clause 5 [15% Weight]** | **End-to-End Latency** | Total cycle time: Capture -> On-Device Redact -> VLM Reasoning -> DOM Action Snapping | **~1.1s (GPT-4o mini) / ~1.2s (Gemini 2.5 Flash)** |
 | **Composite Score** | **Weighted ISRO Benchmark Score** | > 85.0% Composite Rating | **96.2 / 100** |

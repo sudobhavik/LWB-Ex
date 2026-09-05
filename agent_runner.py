@@ -38,8 +38,6 @@ MODELS_POOL = list(dict.fromkeys(FALLBACK_MODELS))
 
 OPENAI_API_KEY = get_env_var("OPENAI_API_KEY", "")
 OPENAI_MODEL = get_env_var("OPENAI_MODEL", "gpt-4o-mini")
-OLLAMA_ENDPOINT = get_env_var("OLLAMA_ENDPOINT", "http://127.0.0.1:11434")
-OLLAMA_MODEL = get_env_var("OLLAMA_MODEL", "qwen2.5-vl:3b")
 DEFAULT_PROVIDER = get_env_var("VLM_PROVIDER", "auto")
 
 class AutonomousPrivacyBrowserAgent:
@@ -264,72 +262,6 @@ Note: "coordinates" are normalized floats between 0.0 and 1.0 representing [X, Y
             "is_task_complete": False
         }
 
-    def ask_ollama(self, redacted_bgr, goal, history=None, model=None, endpoint=None):
-        """
-        Transmits redacted screenshot directly to local Ollama VLM (Zero-Egress).
-        """
-        history = history or []
-        _, buffer = cv2.imencode(".jpg", redacted_bgr, [int(cv2.IMWRITE_JPEG_QUALITY), 85])
-        b64_img = base64.b64encode(buffer).decode("utf-8")
-
-        prompt = f"""USER GOAL: "{goal}"
-Current URL: {self.page.url if self.page else ""}
-Recent actions taken: {history[-3:] if history else 'None'}
-
-Decide the single next action to advance toward the goal.
-Return STRICT JSON adhering to this schema:
-{{
-  "thought": "Analysis of the current screen and reason for next step",
-  "action": "click" | "type" | "navigate" | "complete",
-  "coordinates": [x_norm, y_norm],
-  "text_to_type": "string" (only if action is type),
-  "target_description": "short description of the button/input being interacted with",
-  "is_task_complete": false
-}}
-Note: "coordinates" are normalized floats between 0.0 and 1.0 representing [X, Y] center."""
-
-        target_model = model or OLLAMA_MODEL
-        target_endpoint = (endpoint or OLLAMA_ENDPOINT).rstrip("/")
-
-        payload = {
-            "model": target_model,
-            "stream": False,
-            "format": "json",
-            "options": {"temperature": 0.1},
-            "messages": [
-                {
-                    "role": "system",
-                    "content": "You are an autonomous browser agent under ISRO SIH26171. The screenshot is processed by an On-Device Privacy Shield. Concealed areas with blur and tags are intentionally redacted. Return valid JSON only."
-                },
-                {
-                    "role": "user",
-                    "content": prompt,
-                    "images": [b64_img]
-                }
-            ]
-        }
-
-        url = f"{target_endpoint}/api/chat"
-        req = urllib.request.Request(
-            url,
-            data=json.dumps(payload).encode("utf-8"),
-            headers={"Content-Type": "application/json"}
-        )
-
-        with urllib.request.urlopen(req, timeout=25) as resp:
-            data = json.loads(resp.read().decode("utf-8"))
-            msg = data.get("message", {}).get("content", "{}").strip()
-            if msg.startswith("```"):
-                lines = msg.splitlines()
-                if lines and lines[0].startswith("```"):
-                    lines = lines[1:]
-                if lines and lines[-1].startswith("```"):
-                    lines = lines[:-1]
-                msg = "\n".join(lines).strip()
-            decision = json.loads(msg)
-            decision["active_model"] = f"{target_model} (Ollama)"
-            return decision
-
     def ask_openai(self, redacted_bgr, goal, history=None, model=None, api_key=None):
         """
         Transmits redacted screenshot to OpenAI Vision API with low-detail token optimization.
@@ -410,69 +342,39 @@ Return STRICT JSON:
 
     def ask_vlm(self, redacted_bgr, goal, history=None, provider=None):
         """
-        Unified router for all 3 VLM backends (Gemini, OpenAI, Ollama)
+        Unified router for VLM backends (Gemini and OpenAI)
         with graceful cascading failover.
         """
         p = (provider or self.provider or "auto").lower()
 
-        if p == "ollama":
-            try:
-                return self.ask_ollama(redacted_bgr, goal, history)
-            except Exception as err:
-                print(f"[WARN] Ollama failed: {err}. Cascading to OpenAI/Gemini...")
-                if OPENAI_API_KEY:
-                    try:
-                        return self.ask_openai(redacted_bgr, goal, history)
-                    except Exception:
-                        pass
-                return self.ask_gemini(redacted_bgr, goal, history)
-
-        elif p == "openai":
+        if p == "openai":
             if OPENAI_API_KEY:
                 try:
                     return self.ask_openai(redacted_bgr, goal, history)
                 except Exception as err:
-                    print(f"[WARN] OpenAI failed: {err}. Cascading to Gemini/Ollama...")
-                    try:
-                        return self.ask_gemini(redacted_bgr, goal, history)
-                    except Exception:
-                        return self.ask_ollama(redacted_bgr, goal, history)
-            else:
-                print("[WARN] OpenAI selected without key. Cascading to Gemini/Ollama...")
-                try:
+                    print(f"[WARN] OpenAI failed: {err}. Cascading to Gemini...")
                     return self.ask_gemini(redacted_bgr, goal, history)
-                except Exception:
-                    return self.ask_ollama(redacted_bgr, goal, history)
+            else:
+                print("[WARN] OpenAI selected without key. Cascading to Gemini...")
+                return self.ask_gemini(redacted_bgr, goal, history)
 
         elif p == "gemini":
             try:
                 return self.ask_gemini(redacted_bgr, goal, history)
             except Exception as err:
-                print(f"[WARN] Gemini failed: {err}. Cascading to OpenAI/Ollama...")
-                if OPENAI_API_KEY:
-                    try:
-                        return self.ask_openai(redacted_bgr, goal, history)
-                    except Exception:
-                        pass
-                return self.ask_ollama(redacted_bgr, goal, history)
-
-        else:  # auto
-            # Try Ollama first if running locally (zero egress)
-            try:
-                ping_req = urllib.request.Request(f"{OLLAMA_ENDPOINT.rstrip('/')}/api/tags")
-                with urllib.request.urlopen(ping_req, timeout=1.0) as resp:
-                    if resp.status == 200:
-                        return self.ask_ollama(redacted_bgr, goal, history)
-            except Exception:
-                pass
-
-            # Fall back to Gemini, then OpenAI
-            try:
-                return self.ask_gemini(redacted_bgr, goal, history)
-            except Exception:
+                print(f"[WARN] Gemini failed: {err}. Cascading to OpenAI...")
                 if OPENAI_API_KEY:
                     return self.ask_openai(redacted_bgr, goal, history)
                 raise
+
+        else:  # auto
+            if OPENAI_API_KEY:
+                try:
+                    return self.ask_openai(redacted_bgr, goal, history)
+                except Exception as err:
+                    print(f"[WARN] OpenAI auto-route failed: {err}. Cascading to Gemini...")
+                    return self.ask_gemini(redacted_bgr, goal, history)
+            return self.ask_gemini(redacted_bgr, goal, history)
 
     def execute_action(self, action_data):
         """
@@ -563,7 +465,7 @@ Return STRICT JSON:
         # Step 1: Capture & On-Device Redact
         raw_bgr, redacted_bgr, detections, stats = self.capture_and_redact()
 
-        # Step 2: Send Redacted Screen to VLM (Gemini, OpenAI, or Ollama)
+        # Step 2: Send Redacted Screen to VLM (Gemini or OpenAI)
         start_vlm = time.time()
         vlm_decision = self.ask_vlm(redacted_bgr, goal, history, provider=provider)
         vlm_latency_ms = int((time.time() - start_vlm) * 1000)
@@ -599,7 +501,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="PS171 Autonomous Privacy Agent Runner")
     parser.add_argument("--goal", type=str, default="Search for wireless headphones and add to cart", help="Agent target goal")
     parser.add_argument("--url", type=str, default="http://127.0.0.1:8080/site/", help="Starting URL")
-    parser.add_argument("--provider", type=str, choices=["gemini", "openai", "ollama", "auto"], default="auto", help="VLM reasoning provider")
+    parser.add_argument("--provider", type=str, choices=["gemini", "openai", "auto"], default="auto", help="VLM reasoning provider")
     parser.add_argument("--model", type=str, default=None, help="Custom model override")
     parser.add_argument("--steps", type=int, default=5, help="Maximum autonomous steps")
     parser.add_argument("--headless", action="store_true", help="Run browser headlessly")

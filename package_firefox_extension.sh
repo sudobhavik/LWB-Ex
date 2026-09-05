@@ -105,10 +105,10 @@ if not strict_min:
     print("[FAIL] Missing 'browser_specific_settings.gecko.strict_min_version' in manifest.json")
     sys.exit(1)
 
-# Check action.default_popup for Firefox fallback
-action = data.get("action", {})
-if not action.get("default_popup"):
-    print("[FAIL] Missing 'action.default_popup' in manifest.json")
+# Check sidebar_action for native Firefox sidebar / side panel
+sidebar = data.get("sidebar_action", {})
+if not sidebar.get("default_panel"):
+    print("[FAIL] Missing 'sidebar_action.default_panel' in manifest.json for Firefox side panel")
     sys.exit(1)
 
 # Check background.scripts for Firefox MV3 compatibility
@@ -117,7 +117,7 @@ if not bg.get("scripts"):
     print("[FAIL] Missing 'background.scripts' in manifest.json for Firefox MV3 compatibility")
     sys.exit(1)
 
-print(f"[OK] Manifest validated: ID={gecko_id}, min_version={strict_min}, popup={action.get('default_popup')}, bg_scripts={bg.get('scripts')}")
+print(f"[OK] Manifest validated: ID={gecko_id}, min_version={strict_min}, sidebar_panel={sidebar.get('default_panel')}, bg_scripts={bg.get('scripts')}")
 PYEOF
 
 # 3. Validate JavaScript syntax on all extension scripts

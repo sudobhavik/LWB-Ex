@@ -29,10 +29,10 @@ echo "Instructions:"
 echo "1. Firefox will launch with the PS171 extension pre-installed."
 echo "2. The target e-commerce store opens in the browser window."
 echo "3. Click the PS171 Privacy Agent icon in the Firefox toolbar."
-echo "   The full controller popup opens immediately."
-echo "4. In the controller, pick your VLM provider (Ollama / OpenAI / Gemini)."
+echo "   The full controller opens directly inside Firefox's native side panel / sidebar."
+echo "4. In the controller, pick your VLM provider (OpenAI or Gemini)."
 echo "5. Type your goal and click RUN AUTONOMOUS LOOP or SCAN & PROTECT TAB."
-echo "======================================================================"
+echo "============================================================================"
 
 exec npx --yes web-ext run \
     --source-dir "$EXT_DIR" \

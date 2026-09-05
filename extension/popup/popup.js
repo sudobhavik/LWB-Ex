@@ -61,10 +61,7 @@ let activeApiKey = DEFAULT_GEMINI_KEY; // backward compatibility
 let activeGeminiModel = "gemini-2.5-flash";
 let activeOpenAiKey = "";
 let activeOpenAiModel = "gpt-4o-mini";
-let activeOllamaEndpoint = "http://127.0.0.1:11434";
-let activeOllamaModel = "qwen2.5-vl:3b";
-let activeOllamaCustomModel = "";
-let activeProvider = "ollama";
+let activeProvider = "openai";
 
 let isAgentRunning = false;
 let stopRequested = false;
@@ -77,10 +74,7 @@ let sihGroundedCount = 0;
 function updateProviderIndicator() {
   const providerTag = document.getElementById("tag-provider");
   if (providerTag) {
-    if (activeProvider === "ollama") {
-      const m = activeOllamaModel === "custom" ? (activeOllamaCustomModel || "custom") : activeOllamaModel;
-      providerTag.textContent = `OLLAMA (${m.toUpperCase()})`;
-    } else if (activeProvider === "openai") {
+    if (activeProvider === "openai") {
       providerTag.textContent = `OPENAI (${activeOpenAiModel.toUpperCase()})`;
     } else {
       providerTag.textContent = `GEMINI (${activeGeminiModel.toUpperCase()})`;
@@ -95,10 +89,7 @@ function initPopup() {
     "gemini_model",
     "openai_api_key",
     "vlm_provider",
-    "openai_model",
-    "ollama_endpoint",
-    "ollama_model",
-    "ollama_custom_model"
+    "openai_model"
   ]).then((result) => {
     if (result.gemini_api_key) {
       activeGeminiKey = result.gemini_api_key;
@@ -110,24 +101,15 @@ function initPopup() {
     if (result.openai_api_key) {
       activeOpenAiKey = result.openai_api_key;
     }
-    if (result.vlm_provider) {
-      activeProvider = result.vlm_provider;
-    } else if (result.ollama_endpoint || !result.openai_api_key) {
-      activeProvider = "ollama";
-    } else {
-      activeProvider = "openai";
-    }
     if (result.openai_model) {
       activeOpenAiModel = result.openai_model;
     }
-    if (result.ollama_endpoint) {
-      activeOllamaEndpoint = result.ollama_endpoint;
-    }
-    if (result.ollama_model) {
-      activeOllamaModel = result.ollama_model;
-    }
-    if (result.ollama_custom_model) {
-      activeOllamaCustomModel = result.ollama_custom_model;
+    if (result.vlm_provider && (result.vlm_provider === "openai" || result.vlm_provider === "gemini")) {
+      activeProvider = result.vlm_provider;
+    } else if (result.openai_api_key) {
+      activeProvider = "openai";
+    } else {
+      activeProvider = "gemini";
     }
 
     const geminiInput = document.getElementById("gemini-api-key");
@@ -142,103 +124,11 @@ function initPopup() {
     const modelSelect = document.getElementById("openai-model-select");
     if (modelSelect) modelSelect.value = activeOpenAiModel;
 
-    const endpointInput = document.getElementById("ollama-endpoint");
-    if (endpointInput) endpointInput.value = activeOllamaEndpoint;
-
-    const ollamaModelSelect = document.getElementById("ollama-model-select");
-    if (ollamaModelSelect) {
-      ollamaModelSelect.value = activeOllamaModel;
-      const customBox = document.getElementById("ollama-custom-model-box");
-      if (customBox) {
-        if (activeOllamaModel === "custom") {
-          customBox.classList.remove("hidden");
-        } else {
-          customBox.classList.add("hidden");
-        }
-      }
-    }
-
-    const customInput = document.getElementById("ollama-custom-model");
-    if (customInput) customInput.value = activeOllamaCustomModel;
-
     const providerRadio = document.querySelector(`input[name="vlmProvider"][value="${activeProvider}"]`);
     if (providerRadio) providerRadio.checked = true;
 
     updateProviderIndicator();
   });
-
-  // Save Ollama Settings
-  const btnSaveOllama = document.getElementById("btn-save-ollama");
-  if (btnSaveOllama) {
-    btnSaveOllama.addEventListener("click", () => {
-      const endpointVal = (document.getElementById("ollama-endpoint")?.value || "http://127.0.0.1:11434").trim();
-      const modelVal = document.getElementById("ollama-model-select")?.value || "qwen2.5-vl:3b";
-      const customModelVal = (document.getElementById("ollama-custom-model")?.value || "").trim();
-
-      activeOllamaEndpoint = endpointVal;
-      activeOllamaModel = modelVal;
-      activeOllamaCustomModel = customModelVal;
-      activeProvider = "ollama";
-
-      setStorageData({
-        ollama_endpoint: endpointVal,
-        ollama_model: modelVal,
-        ollama_custom_model: customModelVal,
-        vlm_provider: "ollama"
-      });
-
-      const providerRadio = document.querySelector(`input[name="vlmProvider"][value="ollama"]`);
-      if (providerRadio) providerRadio.checked = true;
-
-      const effModel = modelVal === "custom" ? customModelVal : modelVal;
-      const status = document.getElementById("ollama-status");
-      if (status) {
-        status.textContent = `[OK] Ollama config saved (${effModel} @ ${endpointVal})`;
-        status.style.color = "#ffffff";
-        setTimeout(() => {
-          status.textContent = "Local inference - Zero egress - Default: http://127.0.0.1:11434";
-          status.style.color = "#888888";
-        }, 2500);
-      }
-      updateProviderIndicator();
-      logAgent(`[CONFIG] Ollama active: model=${effModel}, endpoint=${endpointVal}`);
-    });
-  }
-
-  // Ollama Model Selector Change
-  const ollamaSelect = document.getElementById("ollama-model-select");
-  if (ollamaSelect) {
-    ollamaSelect.addEventListener("change", (e) => {
-      activeOllamaModel = e.target.value;
-      const customBox = document.getElementById("ollama-custom-model-box");
-      if (customBox) {
-        if (e.target.value === "custom") {
-          customBox.classList.remove("hidden");
-        } else {
-          customBox.classList.add("hidden");
-        }
-      }
-      setStorageData({ ollama_model: e.target.value });
-      updateProviderIndicator();
-      logAgent(`[CONFIG] Ollama model set to: ${e.target.value}`);
-    });
-  }
-
-  // Ollama Custom Model Write-in
-  const customModelInput = document.getElementById("ollama-custom-model");
-  if (customModelInput) {
-    customModelInput.addEventListener("input", (e) => {
-      activeOllamaCustomModel = e.target.value.trim();
-      setStorageData({ ollama_custom_model: activeOllamaCustomModel });
-      updateProviderIndicator();
-    });
-  }
-
-  // Test Ollama Connection
-  const btnTestOllama = document.getElementById("btn-test-ollama");
-  if (btnTestOllama) {
-    btnTestOllama.addEventListener("click", testOllamaConnection);
-  }
 
   // Test OpenAI Connection
   const btnTestOpenAi = document.getElementById("btn-test-openai");
@@ -696,70 +586,6 @@ Return STRICT JSON adhering to this schema:
   }
 }
 
-async function testOllamaConnection() {
-  const endpoint = (document.getElementById("ollama-endpoint")?.value || "http://127.0.0.1:11434").trim().replace(/\/+$/, "");
-  const statusEl = document.getElementById("ollama-status");
-  const badgeEl = document.getElementById("ollama-conn-badge");
-  const btn = document.getElementById("btn-test-ollama");
-
-  if (btn) btn.disabled = true;
-  if (statusEl) {
-    statusEl.textContent = `Pinging ${endpoint}/api/tags...`;
-    statusEl.style.color = "#888888";
-  }
-
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 4000);
-
-  try {
-    const resp = await fetch(`${endpoint}/api/tags`, {
-      method: "GET",
-      signal: controller.signal
-    });
-    clearTimeout(timeoutId);
-
-    if (!resp.ok) {
-      throw new Error(`HTTP ${resp.status}`);
-    }
-
-    const data = await resp.json();
-    const models = data.models || [];
-    const modelNames = models.map(m => m.name);
-
-    if (badgeEl) {
-      badgeEl.textContent = "ONLINE";
-      badgeEl.style.color = "#ffffff";
-      badgeEl.style.borderColor = "#ffffff";
-    }
-
-    if (statusEl) {
-      if (models.length === 0) {
-        statusEl.textContent = `[OK] Connected! (0 models installed. Run: ollama pull qwen2.5-vl:3b)`;
-      } else {
-        const preview = modelNames.slice(0, 3).join(", ");
-        statusEl.textContent = `[OK] Connected! Found ${models.length} model(s): ${preview}${models.length > 3 ? "..." : ""}`;
-      }
-      statusEl.style.color = "#ffffff";
-    }
-    logAgent(`[OLLAMA] Connection verified: ${models.length} model(s) available at ${endpoint}`);
-  } catch (err) {
-    clearTimeout(timeoutId);
-    if (badgeEl) {
-      badgeEl.textContent = "OFFLINE";
-      badgeEl.style.color = "#888888";
-      badgeEl.style.borderColor = "#333333";
-    }
-    if (statusEl) {
-      const msg = err.name === "AbortError" ? "Request timed out" : err.message;
-      statusEl.textContent = `[ERR] Cannot reach ${endpoint} (${msg}). Run: ollama serve`;
-      statusEl.style.color = "#888888";
-    }
-    logAgent(`[OLLAMA] Ping failed at ${endpoint}: ${err.message}`);
-  } finally {
-    if (btn) btn.disabled = false;
-  }
-}
-
 async function testOpenAIConnection() {
   const badgeEl = document.getElementById("openai-conn-badge");
   const statusEl = document.getElementById("openai-key-status");
@@ -883,112 +709,6 @@ async function testGeminiConnection() {
   }
 }
 
-async function askOllamaDirect(redactedDataUrl, goal, currentUrl, history, interactiveButtons = []) {
-  const endpoint = (activeOllamaEndpoint || "http://127.0.0.1:11434").trim().replace(/\/+$/, "");
-  const modelToUse = activeOllamaModel === "custom"
-    ? (activeOllamaCustomModel || "qwen2.5-vl:3b")
-    : (activeOllamaModel || "qwen2.5-vl:3b");
-
-  const cleanB64 = redactedDataUrl.includes(",") ? redactedDataUrl.split(",", 2)[1] : redactedDataUrl;
-
-  const buttonsSummary = (interactiveButtons || []).slice(0, 35).map(b => {
-    const center = b.center_norm || [0.5, 0.5];
-    return `- [Index ${b.idx}] "${b.text}" at coords [${center[0]}, ${center[1]}] (id: "${b.id || ''}")`;
-  }).join("\n");
-
-  const promptText = `USER GOAL: "${goal}"
-Current URL: ${currentUrl}
-Recent actions taken: ${JSON.stringify(history.slice(-3))}
-
-VISIBLE INTERACTIVE ACTION ELEMENTS DETECTED ON THIS SCREEN:
-${buttonsSummary || "None detected"}
-
-Decide the single next action to advance toward the goal.
-SEARCH & FORMS RULE:
-If the user wants to search for something (e.g. "search for headphones on Amazon"), target the search input box (marked with [INPUT]), use action "type", provide the search query in "text_to_type", and set "press_enter": true to automatically submit the search query.
-
-If targeting one of the Visible Interactive Elements listed above, set "target_index" to that element's Index number (e.g. 1, 2, 3...) and use its coordinates.
-If the goal is fully achieved (e.g. Order Success screen reached, or target page reached and reviewed), set "is_task_complete": true.
-
-Return STRICT JSON adhering to this schema:
-{
-  "thought": "Analysis of current screen, matching button/input, and reason for next step",
-  "action": "click" | "type" | "scroll" | "press_key" | "navigate" | "complete",
-  "target_index": number or null,
-  "coordinates": [x_norm, y_norm],
-  "text_to_type": "string",
-  "press_enter": true | false,
-  "scroll_direction": "down" | "up",
-  "key": "Enter" | "Tab" | "Escape",
-  "target_description": "short description of element",
-  "is_task_complete": false
-}`;
-
-  const payload = {
-    model: modelToUse,
-    messages: [
-      {
-        role: "system",
-        content: "You are an autonomous browser control agent operating under ISRO Problem Statement SIH26171. The screenshot provided has been processed by an On-Device YOLO Privacy Shield. Regions with heavy blur and tags like [REDACTED_FACE], [REDACTED_PASSWORD], [REDACTED_PII], or [REDACTED_SECRET] are intentionally concealed sensitive data (credit cards, passwords, phone numbers, faces, balances) to guarantee ZERO PRIVACY EGRESS. Do not guess blurred content. Observe the visible layout, products, and interactive elements. Always respond in valid JSON matching the schema."
-      },
-      {
-        role: "user",
-        content: promptText,
-        images: [cleanB64]
-      }
-    ],
-    format: "json",
-    stream: false,
-    options: {
-      temperature: 0.1
-    }
-  };
-
-  const t0 = performance.now();
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 60000);
-
-  try {
-    const resp = await fetch(`${endpoint}/api/chat`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-      signal: controller.signal
-    });
-    clearTimeout(timeoutId);
-
-    if (!resp.ok) {
-      const errText = await resp.text();
-      throw new Error(`Ollama API error ${resp.status}: ${errText.slice(0, 150)}`);
-    }
-
-    const data = await resp.json();
-    const content = data.message?.content || "{}";
-    let rawText = content.trim();
-
-    // Clean code fences if present
-    let cleanJson = rawText;
-    if (cleanJson.includes("```")) {
-      const match = cleanJson.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
-      if (match) cleanJson = match[1];
-    }
-    const firstBrace = cleanJson.indexOf("{");
-    const lastBrace = cleanJson.lastIndexOf("}");
-    if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
-      cleanJson = cleanJson.slice(firstBrace, lastBrace + 1);
-    }
-
-    const decision = JSON.parse(cleanJson.trim());
-    decision.active_model = `${modelToUse} (Ollama)`;
-
-    const latencyMs = Math.round(performance.now() - t0);
-    return { success: true, decision, latency_ms: latencyMs };
-  } catch (err) {
-    clearTimeout(timeoutId);
-    throw err;
-  }
-}
-
 function updateSihEvaluationDashboard(stepTelemetry) {
   sihTotalStepCount++;
   if (stepTelemetry.actionValid) {
@@ -1054,58 +774,30 @@ function updateSihEvaluationDashboard(stepTelemetry) {
 }
 
 async function askVlm(redactedDataUrl, goal, currentUrl, history, interactiveButtons = []) {
-  if (activeProvider === "ollama") {
-    try {
-      return await askOllamaDirect(redactedDataUrl, goal, currentUrl, history, interactiveButtons);
-    } catch (err) {
-      console.warn("[Ollama failed, attempting failover]:", err);
-      logAgent(`[VLM FAILOVER] Ollama error: ${err.message}. Trying OpenAI/Gemini...`);
-      if (activeOpenAiKey) {
-        try {
-          return await askOpenAIDirect(redactedDataUrl, goal, currentUrl, history, interactiveButtons);
-        } catch (oe) {
-          logAgent(`[VLM FAILOVER] OpenAI fallback failed: ${oe.message}. Trying Gemini...`);
-        }
-      }
-      return await askGeminiDirect(redactedDataUrl, goal, currentUrl, history, interactiveButtons);
-    }
-  } else if (activeProvider === "openai") {
+  if (activeProvider === "openai") {
     if (activeOpenAiKey) {
       try {
         return await askOpenAIDirect(redactedDataUrl, goal, currentUrl, history, interactiveButtons);
       } catch (err) {
-        console.warn("[OpenAI failed, attempting failover]:", err);
-        logAgent(`[VLM FAILOVER] OpenAI error: ${err.message}. Trying Gemini...`);
-        try {
-          return await askGeminiDirect(redactedDataUrl, goal, currentUrl, history, interactiveButtons);
-        } catch (ge) {
-          logAgent(`[VLM FAILOVER] Gemini fallback failed: ${ge.message}. Trying Ollama...`);
-          return await askOllamaDirect(redactedDataUrl, goal, currentUrl, history, interactiveButtons);
-        }
+        console.warn("[OpenAI failed, cascading to Gemini]:", err);
+        logAgent(`[VLM FAILOVER] OpenAI error: ${err.message}. Cascading to Gemini...`);
+        return await askGeminiDirect(redactedDataUrl, goal, currentUrl, history, interactiveButtons);
       }
     } else {
-      logAgent("[WARN] OpenAI selected but no key entered. Trying Gemini/Ollama fallback...");
-      try {
-        return await askGeminiDirect(redactedDataUrl, goal, currentUrl, history, interactiveButtons);
-      } catch (_) {
-        return await askOllamaDirect(redactedDataUrl, goal, currentUrl, history, interactiveButtons);
-      }
+      logAgent("[WARN] OpenAI selected but no key configured. Cascading to Gemini...");
+      return await askGeminiDirect(redactedDataUrl, goal, currentUrl, history, interactiveButtons);
     }
   } else {
     // Gemini selected
     try {
       return await askGeminiDirect(redactedDataUrl, goal, currentUrl, history, interactiveButtons);
     } catch (err) {
-      console.warn("[Gemini failed, attempting failover]:", err);
-      logAgent(`[VLM FAILOVER] Gemini error: ${err.message}. Trying OpenAI/Ollama...`);
+      console.warn("[Gemini failed, cascading to OpenAI]:", err);
+      logAgent(`[VLM FAILOVER] Gemini error: ${err.message}. Cascading to OpenAI...`);
       if (activeOpenAiKey) {
-        try {
-          return await askOpenAIDirect(redactedDataUrl, goal, currentUrl, history, interactiveButtons);
-        } catch (oe) {
-          logAgent(`[VLM FAILOVER] OpenAI fallback failed: ${oe.message}. Trying Ollama...`);
-        }
+        return await askOpenAIDirect(redactedDataUrl, goal, currentUrl, history, interactiveButtons);
       }
-      return await askOllamaDirect(redactedDataUrl, goal, currentUrl, history, interactiveButtons);
+      throw err;
     }
   }
 }
@@ -1229,13 +921,9 @@ async function stepOnce() {
     });
 
     // Presentation buffer
-    let providerLabel = "Google Gemini";
-    if (activeProvider === "ollama") {
-      const m = activeOllamaModel === "custom" ? (activeOllamaCustomModel || "custom") : activeOllamaModel;
-      providerLabel = `Ollama (${m})`;
-    } else if (activeProvider === "openai" && activeOpenAiKey) {
-      providerLabel = `OpenAI (${activeOpenAiModel})`;
-    }
+    let providerLabel = (activeProvider === "openai")
+      ? `OpenAI (${activeOpenAiModel})`
+      : `Google Gemini (${activeGeminiModel})`;
     logAgent(`[VLM] Forwarding redacted telemetry directly to ${providerLabel}...`);
     document.getElementById("vlm-thought").textContent = `Zero-egress confirmed. Sending blurred viewport to ${providerLabel}...`;
     document.getElementById("tag-status").textContent = "THINKING";

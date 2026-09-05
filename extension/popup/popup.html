@@ -60,7 +60,7 @@
           System idle. Enter an instruction above and click RUN AUTONOMOUS LOOP or SINGLE STEP.
         </div>
         <div class="decision-tags">
-          <div class="d-tag">PROVIDER: <strong id="tag-provider">LOCAL OLLAMA</strong></div>
+          <div class="d-tag">PROVIDER: <strong id="tag-provider">OPENAI</strong></div>
           <div class="d-tag">TARGET: <strong id="tag-target">NONE</strong></div>
           <div class="d-tag">ACTION: <strong id="tag-action">NONE</strong></div>
           <div class="d-tag">STATUS: <strong id="tag-status">IDLE</strong></div>
@@ -246,11 +246,7 @@
           <label class="setting-label">Active VLM Provider</label>
           <div class="segmented-control" style="margin-top: 4px;">
             <label class="segment-opt">
-              <input type="radio" name="vlmProvider" value="ollama" checked>
-              <span>Local Ollama</span>
-            </label>
-            <label class="segment-opt">
-              <input type="radio" name="vlmProvider" value="openai">
+              <input type="radio" name="vlmProvider" value="openai" checked>
               <span>OpenAI</span>
             </label>
             <label class="segment-opt">
@@ -260,46 +256,11 @@
           </div>
         </div>
 
-        <!-- Ollama Local VLM Configuration -->
-        <div id="ollama-settings-box" class="setting-group" style="margin-top: 10px;">
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-            <label class="setting-label">Local Ollama Configuration</label>
-            <span id="ollama-conn-badge" class="ollama-badge">STANDBY</span>
-          </div>
-
-          <div style="margin-top: 6px;">
-            <label class="input-sub-label">Ollama Endpoint URL</label>
-            <input type="text" id="ollama-endpoint" value="http://127.0.0.1:11434" placeholder="http://127.0.0.1:11434" class="monochrome-input">
-          </div>
-
-          <div style="margin-top: 6px;">
-            <label class="input-sub-label">Model Selector</label>
-            <select id="ollama-model-select" class="monochrome-select">
-              <option value="qwen2.5-vl:3b" selected>qwen2.5-vl:3b (Recommended for 4GB VRAM)</option>
-              <option value="llama3.2-vision:11b">llama3.2-vision:11b (Quantized)</option>
-              <option value="minicpm-v:latest">minicpm-v:latest (High OCR accuracy)</option>
-              <option value="llava:7b">llava:7b</option>
-              <option value="custom">custom write-in model</option>
-            </select>
-          </div>
-
-          <div id="ollama-custom-model-box" class="hidden" style="margin-top: 6px;">
-            <label class="input-sub-label">Custom Model Name</label>
-            <input type="text" id="ollama-custom-model" placeholder="e.g. qwen2.5-vl:7b" class="monochrome-input">
-          </div>
-
-          <div style="display: flex; gap: 6px; margin-top: 8px;">
-            <button id="btn-test-ollama" class="btn-sub-action">Test Connection</button>
-            <button id="btn-save-ollama" class="btn-sub-primary">Save & Activate</button>
-          </div>
-          <span id="ollama-status" style="font-size: 10px; color: #888; display: block; margin-top: 5px; font-family: monospace;">Local inference - Zero egress - Default: http://127.0.0.1:11434</span>
-        </div>
-
         <!-- OpenAI Configuration -->
         <div id="openai-settings-box" class="setting-group" style="margin-top: 10px;">
           <div style="display: flex; justify-content: space-between; align-items: center;">
             <label class="setting-label">OpenAI Configuration</label>
-            <span id="openai-conn-badge" class="ollama-badge">STANDBY</span>
+            <span id="openai-conn-badge" class="vlm-badge">STANDBY</span>
           </div>
 
           <div style="margin-top: 6px;">
@@ -327,7 +288,7 @@
         <div id="gemini-settings-box" class="setting-group" style="margin-top: 10px;">
           <div style="display: flex; justify-content: space-between; align-items: center;">
             <label class="setting-label">Google Gemini Configuration</label>
-            <span id="gemini-conn-badge" class="ollama-badge">STANDBY</span>
+            <span id="gemini-conn-badge" class="vlm-badge">STANDBY</span>
           </div>
 
           <div style="margin-top: 6px;">

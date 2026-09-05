@@ -33,13 +33,35 @@ if (sidePanelAPI && typeof sidePanelAPI.setPanelBehavior === "function") {
   }
 }
 
-// Fallback action click listener (In Firefox, action.default_popup opens popup directly)
-const actionAPI = (typeof chrome !== "undefined" && chrome.action)
-  ? chrome.action
-  : ((typeof browser !== "undefined" && browser.action) ? browser.action : null);
+// Action click listener:
+// In Firefox: action.onClicked triggers browser.sidebarAction.toggle() or open().
+// In Chrome: action.onClicked triggers sidePanelAPI.open({ windowId: tab.windowId }).
+const actionAPI = (typeof browser !== "undefined" && browser.action)
+  ? browser.action
+  : ((typeof chrome !== "undefined" && chrome.action) ? chrome.action : null);
 
 if (actionAPI && actionAPI.onClicked) {
   actionAPI.onClicked.addListener(async (tab) => {
+    // Firefox Native Sidebar Support
+    const sidebarAPI = (typeof browser !== "undefined" && browser.sidebarAction)
+      ? browser.sidebarAction
+      : ((typeof chrome !== "undefined" && chrome.sidebarAction) ? chrome.sidebarAction : null);
+
+    if (sidebarAPI) {
+      try {
+        if (typeof sidebarAPI.toggle === "function") {
+          await sidebarAPI.toggle();
+          return;
+        } else if (typeof sidebarAPI.open === "function") {
+          await sidebarAPI.open();
+          return;
+        }
+      } catch (err) {
+        console.warn("Could not toggle Firefox sidebar:", err);
+      }
+    }
+
+    // Chrome Side Panel Support
     if (sidePanelAPI && typeof sidePanelAPI.open === "function") {
       try {
         await sidePanelAPI.open({ windowId: tab.windowId });
@@ -47,7 +69,7 @@ if (actionAPI && actionAPI.onClicked) {
         console.warn("Could not open side panel:", err);
       }
     } else {
-      console.info("Side panel API not supported in this browser; popup will handle UI.");
+      console.info("Side panel API not supported in this browser context.");
     }
   });
 }

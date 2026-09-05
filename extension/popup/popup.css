@@ -117,8 +117,8 @@ body { background: var(--bg-primary); color: var(--text-main); width: 100%; min-
 .sih-stat-val { font-size: 10px; font-weight: 800; font-family: monospace; color: #ffffff; }
 .sih-stat-detail { font-size: 8px; font-family: monospace; color: var(--text-muted); text-transform: uppercase; }
 
-/* Ollama Settings and Brutalist Monochrome Inputs */
-.ollama-badge { background: #000000; border: 1px solid var(--border-color); color: #ffffff; font-size: 8px; font-family: monospace; font-weight: 700; padding: 2px 5px; border-radius: 1px; }
+/* VLM Provider Settings and Brutalist Monochrome Inputs */
+.vlm-badge { background: #000000; border: 1px solid var(--border-color); color: #ffffff; font-size: 8px; font-family: monospace; font-weight: 700; padding: 2px 5px; border-radius: 1px; }
 .input-sub-label { font-size: 9px; color: var(--text-muted); font-family: monospace; display: block; margin-bottom: 2px; text-transform: uppercase; }
 .monochrome-input { width: 100%; background: #000000; color: #ffffff; border: 1px solid var(--border-color); padding: 6px 8px; font-family: monospace; font-size: 11px; outline: none; border-radius: 2px; }
 .monochrome-input:focus { border-color: #ffffff; }
