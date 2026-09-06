@@ -1,0 +1,38 @@
+{
+  "name": "lwb-ex",
+  "version": "1.0.0",
+  "description": "> **On-device Visual Perception for Lightweight Browser Agents**",
+  "main": "index.js",
+  "scripts": {
+    "dev": "wxt",
+    "build": "wxt build",
+    "zip": "wxt zip",
+    "postinstall": "wxt prepare"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ShantanuPaliwal2419/LWB-Ex.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/ShantanuPaliwal2419/LWB-Ex/issues"
+  },
+  "homepage": "https://github.com/ShantanuPaliwal2419/LWB-Ex#readme",
+  "devDependencies": {
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.7",
+    "@wxt-dev/module-react": "^1.2.2",
+    "typescript": "^7.0.2",
+    "wxt": "^0.21.4"
+  },
+  "dependencies": {
+    "@tailwindcss/vite": "^4.3.3",
+    "onnxruntime-node": "^1.29.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "tailwindcss": "^4.3.3"
+  }
+}
