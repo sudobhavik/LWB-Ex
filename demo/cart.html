@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Amazon.in Shopping Cart</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .guptchara-top-banner {
+      background: linear-gradient(90deg, #131921 0%, #1A222D 50%, #232F3E 100%);
+      color: #FFFFFF;
+      font-size: 11.5px;
+      font-weight: 700;
+      padding: 6px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      border-bottom: 2px solid #FF9900;
+      letter-spacing: 0.3px;
+    }
+    .guptchara-top-banner strong {
+      color: #FFD814;
+    }
+  </style>
+</head>
+<body>
+  <!-- GUPTCHARA Top Security Banner -->
+  <div class="guptchara-top-banner">
+    <span>&#128737;</span>
+    <span><strong>GUPTCHARA ACTIVE:</strong> Client-Side Zero-Egress AI Privacy Shield &bull; Cart &amp; Order Data Encrypted Locally</span>
+  </div>
+
+  <!-- Amazon Nav Header -->
+  <header class="amz-header">
+    <div class="nav-belt">
+      <div class="nav-logo">
+        <a href="index.html">
+          <img src="assets/logo.svg" alt="Amazon.in" width="115" height="32">
+        </a>
+      </div>
+
+      <div class="nav-deliver">
+        <span class="nav-deliver-sub">Deliver to Shreyas</span>
+        <span class="nav-deliver-main">&#128205; New Delhi 110001</span>
+      </div>
+
+      <!-- Search Bar -->
+      <div class="nav-search">
+        <select class="search-category-select">
+          <option>All Products</option>
+          <option>Computers</option>
+          <option>Smartphones</option>
+          <option>Audio</option>
+        </select>
+        <input type="text" class="search-input" placeholder="Search products, brands, and categories in India...">
+        <button class="search-button" aria-label="Search">
+          <svg viewBox="0 0 24 24">
+            <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Right Nav Tools -->
+      <div class="nav-tools">
+        <div class="nav-tool-item" style="cursor: default;">
+          <span class="nav-line-1">&#127470;&#127475; IN</span>
+          <span class="nav-line-2">EN &#9662;</span>
+        </div>
+        <a href="profile.html" class="nav-tool-item">
+          <span class="nav-line-1">Hello, Shreyas</span>
+          <span class="nav-line-2">Account &amp; Vault &#9662;</span>
+        </a>
+        <a href="checkout.html" class="nav-tool-item">
+          <span class="nav-line-1">Returns</span>
+          <span class="nav-line-2">&amp; Orders</span>
+        </a>
+        <a href="cart.html" class="nav-cart" style="border-color: #FFFFFF;">
+          <div class="cart-icon-wrapper">
+            <svg width="34" height="26" viewBox="0 0 36 28" fill="#FFFFFF">
+              <path d="M11 22a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm14 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-14.8-17l1.8 9h15.2l2.3-9H10.2zm-2.2-3l1 2h19.5a1 1 0 0 1 .98 1.2l-2.7 11a1 1 0 0 1-.98.8H12a1 1 0 0 1-.98-.8L8.7 4H5V2h5.2z"/>
+            </svg>
+            <span class="cart-badge">0</span>
+          </div>
+          <span>Cart</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Subnav -->
+    <nav class="nav-main">
+      <a href="index.html">&#9776; All Products</a>
+      <a href="index.html">&#127470;&#127475; Great Indian Festival</a>
+      <a href="product.html?id=macbook-pro-16">Laptops &amp; Computers</a>
+      <a href="product.html?id=iphone-16-pro">Smartphones</a>
+      <a href="product.html?id=sony-wh1000xm5">Audio &amp; Wearables</a>
+      <a href="checkout.html">Amazon Pay &amp; Checkout</a>
+      <a href="profile.html" class="secret-tab">&#128100; View User Profile &amp; Secrets &rarr;</a>
+      <a href="canvas_vault.html" style="color: #FFD814; font-weight: 800;">&#127912; Canvas KYC Vault (Pure Pixels) &rarr;</a>
+    </nav>
+  </header>
+
+  <main class="page-container">
+    <div id="cart-content-container">
+      <!-- Dynamic Content Injected Here by renderCart() -->
+    </div>
+  </main>
+
+  <footer class="amz-footer" style="margin-top: 50px;">
+    <div class="footer-back-to-top" onclick="window.scrollTo({top: 0, behavior: 'smooth'});">
+      Back to top
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 1996-2026, Amazon.com, Inc. or its affiliates &bull; Amazon.in (India) &bull; Protected by GUPTCHARA Privacy Engine</p>
+    </div>
+  </footer>
+
+  <script src="cart.js"></script>
+  <script src="search.js"></script>
+  <script>
+    function renderCart() {
+      const container = document.getElementById('cart-content-container');
+      if (!container) return;
+
+      const items = CartManager.getDetailedCart();
+      const itemCount = CartManager.getItemCount();
+      const subtotal = CartManager.getSubtotal();
+      const subtotalFormatted = CartManager.formatCurrency(subtotal);
+
+      if (items.length === 0) {
+        container.innerHTML = `
+          <div class="empty-cart-card">
+            <div class="empty-cart-icon">&#128722;</div>
+            <h1 class="empty-cart-title">Your Amazon Basket is empty</h1>
+            <p class="empty-cart-subtext">Explore today's best deals on high-performance workstations, smartphones, and noise-canceling audio.</p>
+            <a href="index.html" class="btn btn-cart" style="display:inline-block; width:auto; padding: 10px 28px; font-weight:700;">Explore Today's Deals</a>
+          </div>
+        `;
+        return;
+      }
+
+      const itemsHtml = items.map(item => `
+        <div class="cart-item-row" data-id="${item.id}">
+          <div class="cart-item-img-wrap">
+            <a href="product.html?id=${item.id}">
+              <img src="${item.image}" alt="${item.shortTitle}" class="cart-item-img">
+            </a>
+          </div>
+          <div class="cart-item-info">
+            <h2 class="cart-item-title">
+              <a href="product.html?id=${item.id}">${item.title}</a>
+            </h2>
+            <div class="cart-item-stock">In Stock</div>
+            <div class="cart-item-prime">&#10003; Prime Eligible &bull; FREE One-Day Delivery</div>
+            <div class="cart-item-actions">
+              <label for="qty-${item.id}" style="font-size: 12px; color: #565959; font-weight: 600;">Qty:</label>
+              <select id="qty-${item.id}" class="cart-qty-select" onchange="CartManager.updateQty('${item.id}', this.value); renderCart();">
+                ${[1,2,3,4,5,6,7,8,9,10].map(n => `<option value="${n}" ${item.qty === n ? 'selected' : ''}>${n}</option>`).join('')}
+              </select>
+              <span class="cart-action-separator">|</span>
+              <button type="button" class="cart-action-btn" onclick="CartManager.removeFromCart('${item.id}'); renderCart();">Delete</button>
+              <span class="cart-action-separator">|</span>
+              <button type="button" class="cart-action-btn" onclick="alert('Item saved for later.')">Save for later</button>
+              <span class="cart-action-separator">|</span>
+              <a href="product.html?id=${item.id}" class="cart-action-btn">See more like this</a>
+            </div>
+          </div>
+          <div class="cart-item-price">
+            ${CartManager.formatCurrency(item.price)}
+          </div>
+        </div>
+      `).join('');
+
+      container.innerHTML = `
+        <div class="cart-page-layout">
+          <!-- Left: Shopping Cart Items List -->
+          <div class="cart-main-box">
+            <div class="cart-header-row">
+              <h1 class="cart-heading">Shopping Cart</h1>
+              <span class="cart-price-col-label">Price</span>
+            </div>
+
+            <div class="cart-items-list">
+              ${itemsHtml}
+            </div>
+
+            <div class="cart-subtotal-footer">
+              Subtotal (${itemCount} item${itemCount === 1 ? '' : 's'}): <strong>${subtotalFormatted}</strong>
+            </div>
+          </div>
+
+          <!-- Right: Checkout Sidebar -->
+          <div class="cart-sidebar-card">
+            <div class="cart-free-delivery-badge">
+              <span>&#10003;</span>
+              <span>Your order qualifies for FREE Delivery in India.</span>
+            </div>
+            <div class="cart-sidebar-subtotal">
+              Subtotal (${itemCount} item${itemCount === 1 ? '' : 's'}): <br>
+              <strong>${subtotalFormatted}</strong>
+            </div>
+            <a href="checkout.html" class="btn btn-cart cart-proceed-btn">Proceed to Buy (${itemCount} item${itemCount === 1 ? '' : 's'})</a>
+            <p class="card-subtext" style="font-size: 11.5px; text-align: center; margin-top: 8px;">
+              Protected by GUPTCHARA Client-Side Privacy Shield
+            </p>
+          </div>
+        </div>
+      `;
+    }
+
+    document.addEventListener('DOMContentLoaded', renderCart);
+    window.addEventListener('cart-updated', renderCart);
+  </script>
+</body>
+</html>

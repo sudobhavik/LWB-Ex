@@ -92,7 +92,7 @@
         <img src="assets/logo.svg" alt="Amazon.in" width="115" height="32">
       </a>
     </div>
-    <div class="checkout-title">Checkout (<span style="color: #007185;">3 items</span>)</div>
+    <div class="checkout-title">Checkout (<span style="color: #007185;" id="checkout-header-count">3 items</span>)</div>
     <div class="checkout-secure-badge">&#128737; GUPTCHARA Protected &bull; 256-Bit SSL</div>
   </header>
 
@@ -230,40 +230,47 @@
             <strong>PHARMACEUTICAL PRESCRIPTION &amp; HEALTH COMPLIANCE:</strong><br>
             Patient ID: <strong>9184-IN</strong>. Medical sensor package includes prescription cardiovascular monitor. Telemetry data encrypted under Indian Digital Personal Data Protection Act (DPDPA).
           </div>
+          
+          <div id="checkout-items-preview" style="margin-top: 16px; border-top: 1px solid #F0F2F2; padding-top: 14px;">
+            <h3 style="font-size: 15px; font-weight: 700; margin-bottom: 10px;">Items in this Shipment:</h3>
+            <div id="checkout-items-list">
+              <!-- Dynamically populated from cart -->
+            </div>
+          </div>
         </section>
       </div>
 
       <!-- Right Column: Order Summary -->
       <div class="order-summary-sidebar">
         <section class="order-summary-box">
-          <button class="btn btn-cart" id="btn-place-order" onclick="window.location.href='order_success.html'" style="font-size: 15px; font-weight: 700; padding: 12px; margin-bottom: 12px;">Place your order</button>
+          <button class="btn btn-cart" id="btn-place-order" onclick="handlePlaceOrder()" style="font-size: 15px; font-weight: 700; padding: 12px; margin-bottom: 12px;">Place your order</button>
           <p class="card-subtext" style="font-size: 11px; text-align: center;">By placing your order, you agree to Amazon.in's Privacy Notice and Conditions of Use.</p>
           <div class="summary-total" style="border-top: none; margin-top: 8px;">Order Summary</div>
           <div class="summary-row">
-            <span>Items (3):</span>
-            <span>&#8377;3,39,790.00</span>
+            <span id="summary-items-count-label">Items (3):</span>
+            <span id="summary-items-cost">&#8377;3,39,790.00</span>
           </div>
           <div class="summary-row">
             <span>Shipping &amp; handling:</span>
-            <span>&#8377;0.00</span>
+            <span style="color: #007600;">&#8377;0.00</span>
           </div>
           <div class="summary-row">
             <span>Festival Savings:</span>
-            <span style="color: #B12704;">-&#8377;10,000.00</span>
+            <span style="color: #B12704;" id="summary-savings">-&#8377;10,000.00</span>
           </div>
           <div class="summary-row">
             <span>Estimated GST included:</span>
-            <span>&#8377;51,822.00</span>
+            <span id="summary-gst">&#8377;51,822.00</span>
           </div>
           <div class="summary-row summary-total">
             <span>Order total:</span>
-            <span>&#8377;3,29,790.00</span>
+            <span id="summary-order-total">&#8377;3,29,790.00</span>
           </div>
           <div class="secret-box" style="margin-top: 16px;">
             <div class="secret-box-title">
               <span>CHARGE TO PRIMARY CARD</span>
             </div>
-            <span class="secret-highlight-large">RuPay ending in 1924 (&#8377;3,29,790.00)</span>
+            <span class="secret-highlight-large" id="summary-card-charge">RuPay ending in 1924 (&#8377;3,29,790.00)</span>
           </div>
         </section>
       </div>
@@ -275,5 +282,97 @@
       <p>&copy; 1996-2026, Amazon.com, Inc. or its affiliates &bull; Amazon.in (India) &bull; Protected by GUPTCHARA</p>
     </div>
   </footer>
+
+  <script src="cart.js"></script>
+  <script>
+    function updateCheckoutView() {
+      const items = CartManager.getDetailedCart();
+      const itemCount = CartManager.getItemCount();
+      const subtotal = CartManager.getSubtotal();
+      const discount = subtotal > 50000 ? 10000 : 0;
+      const orderTotal = Math.max(0, subtotal - discount);
+      const gstEstimated = Math.round(orderTotal * 0.18);
+
+      // Header
+      const headerCount = document.getElementById('checkout-header-count');
+      if (headerCount) headerCount.textContent = `${itemCount} item${itemCount === 1 ? '' : 's'}`;
+
+      // Items list in Step 4
+      const listContainer = document.getElementById('checkout-items-list');
+      if (listContainer) {
+        if (items.length === 0) {
+          listContainer.innerHTML = `<p style="color: #565959;">Your cart is empty. <a href="index.html">Add items</a> before checking out.</p>`;
+        } else {
+          listContainer.innerHTML = items.map(item => `
+            <div style="display: flex; gap: 12px; align-items: center; padding: 8px 0; border-bottom: 1px dashed #E7E7E7;">
+              <img src="${item.image}" alt="${item.shortTitle}" style="width: 44px; height: 44px; object-fit: contain; background: #FFF; border: 1px solid #EEE; border-radius: 3px; padding: 2px;">
+              <div style="flex: 1;">
+                <div style="font-weight: 600; font-size: 13px;">${item.shortTitle}</div>
+                <div style="font-size: 12px; color: #565959;">Qty: <strong>${item.qty}</strong> &bull; ${CartManager.formatCurrency(item.price)} each</div>
+              </div>
+              <div style="font-weight: 700; font-size: 14px;">${CartManager.formatCurrency(item.lineTotal)}</div>
+            </div>
+          `).join('');
+        }
+      }
+
+      // Order Summary
+      const countLabel = document.getElementById('summary-items-count-label');
+      if (countLabel) countLabel.textContent = `Items (${itemCount}):`;
+
+      const itemsCost = document.getElementById('summary-items-cost');
+      if (itemsCost) itemsCost.textContent = CartManager.formatCurrency(subtotal);
+
+      const savingsEl = document.getElementById('summary-savings');
+      if (savingsEl) savingsEl.textContent = discount > 0 ? `-${CartManager.formatCurrency(discount)}` : '₹0.00';
+
+      const gstEl = document.getElementById('summary-gst');
+      if (gstEl) gstEl.textContent = CartManager.formatCurrency(gstEstimated);
+
+      const totalEl = document.getElementById('summary-order-total');
+      if (totalEl) totalEl.textContent = CartManager.formatCurrency(orderTotal);
+
+      const cardCharge = document.getElementById('summary-card-charge');
+      if (cardCharge) cardCharge.textContent = `RuPay ending in 1924 (${CartManager.formatCurrency(orderTotal)})`;
+    }
+
+    function handlePlaceOrder() {
+      const items = CartManager.getDetailedCart();
+      const itemCount = CartManager.getItemCount();
+      const subtotal = CartManager.getSubtotal();
+      const discount = subtotal > 50000 ? 10000 : 0;
+      const orderTotal = Math.max(0, subtotal - discount);
+
+      const orderRecord = {
+        orderId: `#AMZ-${Math.floor(10000 + Math.random() * 90000)}-2026`,
+        date: new Date().toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' }),
+        items: items,
+        itemCount: itemCount,
+        subtotal: subtotal,
+        discount: discount,
+        orderTotal: orderTotal,
+        recipient: {
+          name: 'Shreyas V. Sharma',
+          email: 'shreyas.sharma.private@mesh.io',
+          mobile: '+91 98765 43210',
+          address: 'Flat 402, Nilgiri Apartments, Barakhamba Road, Connaught Place, New Delhi 110001, India',
+          gateCode: '#4921'
+        },
+        payment: {
+          method: 'RuPay card ending in 1924',
+          upi: 'shreyas@oksbi'
+        }
+      };
+
+      try {
+        localStorage.setItem('guptchara_amz_last_order', JSON.stringify(orderRecord));
+      } catch (_) {}
+
+      CartManager.clearCart();
+      window.location.href = 'order_success.html';
+    }
+
+    document.addEventListener('DOMContentLoaded', updateCheckoutView);
+  </script>
 </body>
 </html>

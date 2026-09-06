@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Apple MacBook Pro 16" M3 Max (64GB, 2TB SSD, Space Black) - Amazon.in</title>
+  <title id="page-title">Apple MacBook Pro 16" M3 Max (64GB, 2TB SSD, Space Black) - Amazon.in</title>
   <link rel="stylesheet" href="styles.css">
   <style>
     .guptchara-top-banner {
@@ -46,6 +46,8 @@
       height: auto;
       border: 1px solid #F0F2F2;
       padding: 20px;
+      object-fit: contain;
+      max-height: 360px;
     }
     .product-title-heading {
       font-size: 22px;
@@ -96,9 +98,11 @@
       <div class="nav-search">
         <select class="search-category-select">
           <option>Computers</option>
+          <option>Smartphones</option>
+          <option>Audio</option>
           <option>All Departments</option>
         </select>
-        <input type="text" class="search-input" value="Apple MacBook Pro 16 M3 Max">
+        <input type="text" class="search-input" id="main-search-input" value="Apple MacBook Pro 16 M3 Max">
         <button class="search-button">
           <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
         </button>
@@ -116,10 +120,10 @@
           <span class="nav-line-1">Returns</span>
           <span class="nav-line-2">&amp; Orders</span>
         </a>
-        <a href="checkout.html" class="nav-cart">
+        <a href="cart.html" class="nav-cart">
           <div class="cart-icon-wrapper">
             <svg width="34" height="26" viewBox="0 0 36 28" fill="#FFFFFF"><path d="M11 22a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm14 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-14.8-17l1.8 9h15.2l2.3-9H10.2zm-2.2-3l1 2h19.5a1 1 0 0 1 .98 1.2l-2.7 11a1 1 0 0 1-.98.8H12a1 1 0 0 1-.98-.8L8.7 4H5V2h5.2z"/></svg>
-            <span class="cart-badge">3</span>
+            <span class="cart-badge">0</span>
           </div>
           <span>Cart</span>
         </a>
@@ -128,7 +132,7 @@
     <nav class="nav-main">
       <a href="index.html">&#9776; All</a>
       <a href="index.html">&#127470;&#127475; Great Indian Festival</a>
-      <a href="product.html" class="active">Featured Electronics</a>
+      <a href="product.html?id=macbook-pro-16" class="active" id="subnav-active-cat">Featured Electronics</a>
       <a href="checkout.html">Checkout &amp; Payment</a>
       <a href="profile.html">Your Account &amp; Security</a>
       <a href="profile.html" class="secret-tab">&#128274; Day-to-Day Secrets Vault</a>
@@ -137,81 +141,56 @@
   </header>
 
   <main class="page-container">
-    <div class="product-layout">
+    <div class="product-layout" id="product-details-container">
       <!-- Col 1: Product Visuals -->
       <div class="product-gallery">
-        <img src="assets/product_laptop.svg" alt="Apple MacBook Pro 16" class="product-hero-img" width="340" height="240">
+        <img src="assets/product_laptop.svg" alt="Product Image" class="product-hero-img" id="product-image" width="340" height="240">
         <p class="card-subtext" style="margin-top: 12px;">Roll over image to zoom in</p>
       </div>
 
       <!-- Col 2: Product Info & Sensitive Metadata -->
       <div class="product-details-col">
-        <h1 class="product-title-heading">Apple MacBook Pro 16" Laptop (M3 Max chip with 16‑core CPU and 40‑core GPU, 64GB Unified Memory, 2TB SSD Storage) - Space Black</h1>
-        <div class="card-subtext" style="margin-bottom: 12px;">
-          Brand: <a href="#">Apple</a> &bull; <span class="stars">&#9733;&#9733;&#9733;&#9733;&#9734;</span> 4.8 (2,419 ratings) &bull; 100+ bought in past month in India
+        <h1 class="product-title-heading" id="product-title">Apple MacBook Pro 16" Laptop</h1>
+        <div class="card-subtext" id="product-rating-row" style="margin-bottom: 12px;">
+          Brand: <a href="#" id="product-brand">Apple</a> &bull; <span class="stars">&#9733;&#9733;&#9733;&#9733;&#9734;</span> <span id="product-ratings-count">4.8 (2,419 ratings)</span> &bull; <span id="product-bought-count">100+ bought in past month in India</span>
         </div>
 
-        <div class="card-price" style="font-size: 26px; color: #B12704; margin-bottom: 12px;">
-          <span class="currency">&#8377;</span>1,89,900.00 <span style="font-size: 14px; color: #565959; font-weight: normal;">M.R.P.: <strike>&#8377;2,49,900.00</strike> (Save &#8377;60,000.00)</span>
+        <div class="card-price" id="product-pricing-box" style="font-size: 26px; color: #B12704; margin-bottom: 12px;">
+          <span class="currency">&#8377;</span><span id="product-price-val">1,89,900.00</span> 
+          <span style="font-size: 14px; color: #565959; font-weight: normal;" id="product-mrp-val">M.R.P.: <strike>&#8377;2,49,900.00</strike></span>
         </div>
 
-        <table class="amz-data-table" style="margin-bottom: 16px;">
+        <table class="amz-data-table" id="product-specs-table" style="margin-bottom: 16px;">
           <tbody>
-            <tr>
-              <td>Processor:</td>
-              <td>Apple M3 Max (16-core CPU, 40-core GPU)</td>
-            </tr>
-            <tr>
-              <td>Unified Memory:</td>
-              <td>64GB High-Bandwidth RAM</td>
-            </tr>
-            <tr>
-              <td>Internal Storage:</td>
-              <td>2TB High-Speed NVMe SSD</td>
-            </tr>
-            <tr>
-              <td>Display:</td>
-              <td>16.2-inch Liquid Retina XDR (3456 x 2234)</td>
-            </tr>
+            <!-- Populated via script -->
           </tbody>
         </table>
 
         <!-- Sensitive Day-to-Day Seller & Inventory Secrets (BIG TEXT) -->
-        <div class="secret-box">
+        <div class="secret-box" id="product-secrets-box">
           <div class="secret-box-title">
             <span>SELLER FULFILLMENT &amp; INVENTORY API TOKENS</span>
             <span class="secret-badge">MERCHANT SECRET</span>
           </div>
           <table class="amz-data-table">
-            <tbody>
-              <tr>
-                <td>Warehouse SKU:</td>
-                <td><span class="secret-highlight-large">APPL-MBP16-M3X-994812</span></td>
-              </tr>
-              <tr>
-                <td>Serial Range:</td>
-                <td><span class="secret-highlight-large">C02GF001M3X0 &bull; C02GF009M3X9</span></td>
-              </tr>
-              <tr>
-                <td>Webhook Secret:</td>
-                <td><span class="secret-code-large">whsec_98471abcf89123049182374619284710</span></td>
-              </tr>
+            <tbody id="product-secrets-tbody">
+              <!-- Populated via script -->
             </tbody>
           </table>
         </div>
 
         <!-- Confidential Corporate Procurement Note (BIG TEXT) -->
-        <div class="amz-confidential-note">
+        <div class="amz-confidential-note" id="product-compliance-box">
           <strong>CORPORATE PROCUREMENT &amp; EXPORT CONTROL NOTICE:</strong><br>
-          This workstation is registered under Corporate Encryption License <span class="secret-highlight-large" style="background: #1A1A1A; color: #FFF; padding: 2px 6px; border-radius: 3px;">ECCN 5A002</span>. Any transfer outside authorized research laboratories requires compliance clearance. Verified Prime Identity: <strong>Shreyas V. Sharma (Aadhaar: 5482 1928 3847)</strong>.
+          This workstation is registered under Corporate Encryption License <span class="secret-highlight-large" id="product-eccn" style="background: #1A1A1A; color: #FFF; padding: 2px 6px; border-radius: 3px;">ECCN 5A002</span>. Verified Prime Identity: <strong id="product-prime-id">Shreyas V. Sharma (Aadhaar: 5482 1928 3847)</strong>.
         </div>
       </div>
 
       <!-- Col 3: Buy Box -->
       <div class="buy-box">
-        <div class="buy-box-price"><span style="font-size: 14px;">&#8377;</span>1,89,900.00</div>
+        <div class="buy-box-price" id="buy-box-price">&#8377;1,89,900.00</div>
         <div class="card-subtext">Prime FREE One-Day Delivery in India. Order within 4 hrs 12 mins.</div>
-        <div class="in-stock">In Stock</div>
+        <div class="in-stock">&#10003; In Stock</div>
 
         <div class="secret-box" style="margin-bottom: 14px;">
           <div class="secret-box-title">
@@ -224,31 +203,148 @@
         </div>
 
         <div class="amz-form-group">
-          <label class="amz-label" for="quantity-select">Quantity</label>
+          <label class="amz-label" for="quantity-select">Quantity:</label>
           <select id="quantity-select" class="amz-input" style="height: 36px; font-weight: 700;">
             <option value="1">1</option>
             <option value="2">2</option>
             <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
           </select>
         </div>
 
-        <a href="checkout.html" class="btn btn-cart" style="height: 40px; font-size: 14px;">Add to Cart</a>
-        <a href="checkout.html" class="btn btn-buy" style="height: 40px; font-size: 14px;">Buy Now</a>
+        <button type="button" class="btn btn-cart" id="btn-add-cart" style="height: 42px; font-size: 14px; font-weight:700;">Add to Cart</button>
+        <button type="button" class="btn btn-buy" id="btn-buy-now" style="height: 42px; font-size: 14px; font-weight:700; margin-top: 6px;">Buy Now</button>
 
         <div class="card-subtext" style="margin-top: 14px; font-size: 11px;">
           Ships from: Amazon.in<br>
-          Sold by: Apple Authorized India Retail<br>
+          Sold by: Authorized India Retailer<br>
           Payment: 100% Secure Transaction &bull; UPI &amp; RuPay Accepted
         </div>
       </div>
     </div>
   </main>
 
-  <footer class="amz-footer">
+  <footer class="amz-footer" style="margin-top: 50px;">
     <div class="footer-bottom">
       <p>&copy; 1996-2026, Amazon.com, Inc. or its affiliates &bull; Amazon.in (India) &bull; Protected by GUPTCHARA</p>
     </div>
   </footer>
+
+  <script src="cart.js"></script>
   <script src="search.js"></script>
+  <script>
+    let currentProductId = 'macbook-pro-16';
+
+    function initProductPage() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const requestedId = urlParams.get('id');
+      if (requestedId && PRODUCTS[requestedId]) {
+        currentProductId = requestedId;
+      }
+
+      const prod = PRODUCTS[currentProductId];
+      if (!prod) return;
+
+      // Update document title & search input
+      document.title = `${prod.title} - Amazon.in`;
+      const searchInput = document.getElementById('main-search-input');
+      if (searchInput) searchInput.value = prod.shortTitle;
+
+      // Hero image
+      const heroImg = document.getElementById('product-image');
+      if (heroImg) {
+        heroImg.src = prod.image;
+        heroImg.alt = prod.title;
+      }
+
+      // Title & brand
+      const titleEl = document.getElementById('product-title');
+      if (titleEl) titleEl.textContent = prod.title;
+
+      const brandEl = document.getElementById('product-brand');
+      if (brandEl) brandEl.textContent = prod.brand;
+
+      const ratingsEl = document.getElementById('product-ratings-count');
+      if (ratingsEl) ratingsEl.textContent = `${prod.rating} (${prod.ratingsCount} ratings)`;
+
+      const boughtEl = document.getElementById('product-bought-count');
+      if (boughtEl) boughtEl.textContent = prod.boughtCount;
+
+      // Price
+      const priceVal = document.getElementById('product-price-val');
+      if (priceVal) priceVal.textContent = Number(prod.price).toLocaleString('en-IN') + '.00';
+
+      const mrpVal = document.getElementById('product-mrp-val');
+      if (mrpVal) {
+        if (prod.mrp > prod.price) {
+          const savings = prod.mrp - prod.price;
+          mrpVal.innerHTML = `M.R.P.: <strike>₹${Number(prod.mrp).toLocaleString('en-IN')}.00</strike> (Save ₹${Number(savings).toLocaleString('en-IN')}.00)`;
+        } else {
+          mrpVal.textContent = '';
+        }
+      }
+
+      const buyBoxPrice = document.getElementById('buy-box-price');
+      if (buyBoxPrice) buyBoxPrice.textContent = CartManager.formatCurrency(prod.price);
+
+      // Specs Table
+      const specsTable = document.getElementById('product-specs-table');
+      if (specsTable && prod.specs) {
+        specsTable.querySelector('tbody').innerHTML = prod.specs.map(spec => `
+          <tr>
+            <td>${spec.label}:</td>
+            <td>${spec.value}</td>
+          </tr>
+        `).join('');
+      }
+
+      // Secrets Table
+      const secretsTbody = document.getElementById('product-secrets-tbody');
+      if (secretsTbody && prod.secrets) {
+        secretsTbody.innerHTML = `
+          <tr>
+            <td>Warehouse SKU:</td>
+            <td><span class="secret-highlight-large">${prod.secrets.sku}</span></td>
+          </tr>
+          <tr>
+            <td>Hardware Serial:</td>
+            <td><span class="secret-highlight-large">${prod.secrets.serial}</span></td>
+          </tr>
+          <tr>
+            <td>API Webhook Secret:</td>
+            <td><span class="secret-code-large">${prod.secrets.webhook}</span></td>
+          </tr>
+        `;
+      }
+
+      // Compliance Notice
+      const eccnEl = document.getElementById('product-eccn');
+      if (eccnEl && prod.secrets) eccnEl.textContent = prod.secrets.eccn;
+
+      const primeIdEl = document.getElementById('product-prime-id');
+      if (primeIdEl && prod.secrets) primeIdEl.textContent = prod.secrets.primeId;
+
+      // Attach button listeners
+      const btnAddCart = document.getElementById('btn-add-cart');
+      if (btnAddCart) {
+        btnAddCart.onclick = function() {
+          const qty = parseInt(document.getElementById('quantity-select')?.value || '1', 10);
+          CartManager.addToCart(currentProductId, qty);
+        };
+      }
+
+      const btnBuyNow = document.getElementById('btn-buy-now');
+      if (btnBuyNow) {
+        btnBuyNow.onclick = function() {
+          const qty = parseInt(document.getElementById('quantity-select')?.value || '1', 10);
+          CartManager.addToCart(currentProductId, qty);
+          window.location.href = 'checkout.html';
+        };
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', initProductPage);
+  </script>
 </body>
 </html>

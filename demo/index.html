@@ -81,6 +81,7 @@
       border-radius: 4px;
       box-shadow: 0 1px 3px rgba(0,0,0,0.04);
       transition: transform 0.15s ease, box-shadow 0.15s ease;
+      cursor: pointer;
     }
     .showcase-card:hover {
       box-shadow: 0 4px 12px rgba(0,0,0,0.08);
@@ -91,6 +92,10 @@
       line-height: 1.3;
       margin-bottom: 12px;
       color: var(--amz-text);
+      transition: color 0.15s ease;
+    }
+    .showcase-card:hover h2 {
+      color: #C7511F;
     }
   </style>
 </head>
@@ -131,7 +136,7 @@
         </button>
       </div>
 
-      <!-- Right Nav Tools (Links to Profile & Checkout) -->
+      <!-- Right Nav Tools -->
       <div class="nav-tools">
         <div class="nav-tool-item" style="cursor: default;">
           <span class="nav-line-1">&#127470;&#127475; IN</span>
@@ -145,12 +150,12 @@
           <span class="nav-line-1">Returns</span>
           <span class="nav-line-2">&amp; Orders</span>
         </a>
-        <a href="checkout.html" class="nav-cart">
+        <a href="cart.html" class="nav-cart">
           <div class="cart-icon-wrapper">
             <svg width="34" height="26" viewBox="0 0 36 28" fill="#FFFFFF">
               <path d="M11 22a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm14 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-14.8-17l1.8 9h15.2l2.3-9H10.2zm-2.2-3l1 2h19.5a1 1 0 0 1 .98 1.2l-2.7 11a1 1 0 0 1-.98.8H12a1 1 0 0 1-.98-.8L8.7 4H5V2h5.2z"/>
             </svg>
-            <span class="cart-badge">3</span>
+            <span class="cart-badge">0</span>
           </div>
           <span>Cart</span>
         </a>
@@ -161,9 +166,9 @@
     <nav class="nav-main">
       <a href="index.html" class="active">&#9776; All Products</a>
       <a href="index.html">&#127470;&#127475; Great Indian Festival</a>
-      <a href="product.html">Laptops &amp; Computers</a>
-      <a href="index.html">Smartphones</a>
-      <a href="index.html">Audio &amp; Wearables</a>
+      <a href="product.html?id=macbook-pro-16">Laptops &amp; Computers</a>
+      <a href="product.html?id=iphone-16-pro">Smartphones</a>
+      <a href="product.html?id=sony-wh1000xm5">Audio &amp; Wearables</a>
       <a href="checkout.html">Amazon Pay &amp; Checkout</a>
       <a href="profile.html" class="secret-tab">&#128100; View User Profile &amp; Secrets &rarr;</a>
       <a href="canvas_vault.html" style="color: #FFD814; font-weight: 800;">&#127912; Canvas KYC Vault (Pure Pixels) &rarr;</a>
@@ -184,12 +189,14 @@
     <!-- Pure Product Showcase Grid (NO Profile Info) -->
     <div class="product-showcase-grid">
       <!-- Product 1: Apple MacBook Pro 16 -->
-      <article class="showcase-card" data-category="computers laptops apple" data-keywords="apple macbook pro 16 m3 max 64gb ram 2tb ssd laptop computer liquid retina xdr space black">
+      <article class="showcase-card" data-product-id="macbook-pro-16" data-category="computers laptops apple" data-keywords="apple macbook pro 16 m3 max 64gb ram 2tb ssd laptop computer liquid retina xdr space black">
         <div>
-          <h2>Apple MacBook Pro 16" M3 Max (64GB RAM, 2TB SSD)</h2>
-          <div class="card-image-wrap">
+          <a href="product.html?id=macbook-pro-16" class="product-card-link">
+            <h2>Apple MacBook Pro 16" M3 Max (64GB RAM, 2TB SSD)</h2>
+          </a>
+          <a href="product.html?id=macbook-pro-16" class="card-image-wrap">
             <img src="assets/product_laptop.svg" alt="Apple MacBook Pro 16" width="220" height="150">
-          </div>
+          </a>
           <span class="card-deal-tag">Limited Time Deal</span>
           <div class="card-price"><span class="currency">&#8377;</span>1,89,900.00 <span class="card-subtext">M.R.P.: &#8377;2,49,900.00</span></div>
           <div class="card-subtext"><span class="stars">&#9733;&#9733;&#9733;&#9733;&#9734;</span> 4.8 (2,419 reviews)</div>
@@ -198,18 +205,20 @@
           </p>
         </div>
         <div>
-          <a href="checkout.html" class="btn btn-buy" style="font-size: 15px; font-weight: 700; height: 42px; margin-bottom: 8px;">Buy Now</a>
-          <a href="product.html" class="btn btn-cart" style="font-size: 14px; font-weight: 600; height: 38px;">View Details &amp; Add to Cart</a>
+          <button type="button" class="btn btn-buy" onclick="handleBuyNow('macbook-pro-16', 1, event)" style="font-size: 15px; font-weight: 700; height: 42px; margin-bottom: 8px;">Buy Now</button>
+          <button type="button" class="btn btn-cart" onclick="handleAddToCart('macbook-pro-16', 1, event)" style="font-size: 14px; font-weight: 600; height: 38px;">Add to Cart</button>
         </div>
       </article>
 
       <!-- Product 2: iPhone 16 Pro -->
-      <article class="showcase-card" data-category="smartphones apple phones" data-keywords="apple iphone 16 pro 256gb natural titanium a18 pro chip 48mp fusion camera phone smartphone">
+      <article class="showcase-card" data-product-id="iphone-16-pro" data-category="smartphones apple phones" data-keywords="apple iphone 16 pro 256gb natural titanium a18 pro chip 48mp fusion camera phone smartphone">
         <div>
-          <h2>Apple iPhone 16 Pro 256GB Natural Titanium</h2>
-          <div class="card-image-wrap">
+          <a href="product.html?id=iphone-16-pro" class="product-card-link">
+            <h2>Apple iPhone 16 Pro 256GB Natural Titanium</h2>
+          </a>
+          <a href="product.html?id=iphone-16-pro" class="card-image-wrap">
             <img src="assets/product_phone.svg" alt="iPhone 16 Pro" width="130" height="170">
-          </div>
+          </a>
           <span class="card-deal-tag">Save &#8377;10,000 with Bank Card</span>
           <div class="card-price"><span class="currency">&#8377;</span>1,19,900.00 <span class="card-subtext">M.R.P.: &#8377;1,29,900.00</span></div>
           <div class="card-subtext"><span class="stars">&#9733;&#9733;&#9733;&#9733;&#9733;</span> 4.9 (5,120 reviews)</div>
@@ -218,18 +227,20 @@
           </p>
         </div>
         <div>
-          <a href="checkout.html" class="btn btn-buy" style="font-size: 15px; font-weight: 700; height: 42px; margin-bottom: 8px;">Buy Now</a>
-          <a href="checkout.html" class="btn btn-cart" style="font-size: 14px; font-weight: 600; height: 38px;">Add to Cart</a>
+          <button type="button" class="btn btn-buy" onclick="handleBuyNow('iphone-16-pro', 1, event)" style="font-size: 15px; font-weight: 700; height: 42px; margin-bottom: 8px;">Buy Now</button>
+          <button type="button" class="btn btn-cart" onclick="handleAddToCart('iphone-16-pro', 1, event)" style="font-size: 14px; font-weight: 600; height: 38px;">Add to Cart</button>
         </div>
       </article>
 
       <!-- Product 3: Sony WH-1000XM5 -->
-      <article class="showcase-card" data-category="audio headphones sony" data-keywords="sony wh-1000xm5 noise canceling headphones auto nc optimizer audio wireless crystal clear 30-hour">
+      <article class="showcase-card" data-product-id="sony-wh1000xm5" data-category="audio headphones sony" data-keywords="sony wh-1000xm5 noise canceling headphones auto nc optimizer audio wireless crystal clear 30-hour">
         <div>
-          <h2>Sony WH-1000XM5 Noise Canceling Headphones</h2>
-          <div class="card-image-wrap">
+          <a href="product.html?id=sony-wh1000xm5" class="product-card-link">
+            <h2>Sony WH-1000XM5 Noise Canceling Headphones</h2>
+          </a>
+          <a href="product.html?id=sony-wh1000xm5" class="card-image-wrap">
             <img src="assets/product_headphones.svg" alt="Sony Headphones" width="160" height="160">
-          </div>
+          </a>
           <div class="card-price"><span class="currency">&#8377;</span>29,990.00 <span class="card-subtext">M.R.P.: &#8377;34,990.00</span></div>
           <div class="card-subtext"><span class="stars">&#9733;&#9733;&#9733;&#9733;&#9734;</span> 4.7 (8,940 reviews)</div>
           <p class="card-subtext" style="font-size: 13px; line-height: 1.4; margin-bottom: 14px;">
@@ -237,18 +248,20 @@
           </p>
         </div>
         <div>
-          <a href="checkout.html" class="btn btn-buy" style="font-size: 15px; font-weight: 700; height: 42px; margin-bottom: 8px;">Buy Now</a>
-          <a href="checkout.html" class="btn btn-cart" style="font-size: 14px; font-weight: 600; height: 38px;">Add to Cart</a>
+          <button type="button" class="btn btn-buy" onclick="handleBuyNow('sony-wh1000xm5', 1, event)" style="font-size: 15px; font-weight: 700; height: 42px; margin-bottom: 8px;">Buy Now</button>
+          <button type="button" class="btn btn-cart" onclick="handleAddToCart('sony-wh1000xm5', 1, event)" style="font-size: 14px; font-weight: 600; height: 38px;">Add to Cart</button>
         </div>
       </article>
 
       <!-- Product 4: Apple Watch Ultra 2 -->
-      <article class="showcase-card" data-category="audio wearables smartwatch apple" data-keywords="apple watch ultra 2 gps cellular 49mm rugged titanium smartwatch action button wearables fitness">
+      <article class="showcase-card" data-product-id="apple-watch-ultra-2" data-category="audio wearables smartwatch apple" data-keywords="apple watch ultra 2 gps cellular 49mm rugged titanium smartwatch action button wearables fitness">
         <div>
-          <h2>Apple Watch Ultra 2 GPS + Cellular 49mm</h2>
-          <div class="card-image-wrap">
+          <a href="product.html?id=apple-watch-ultra-2" class="product-card-link">
+            <h2>Apple Watch Ultra 2 GPS + Cellular 49mm</h2>
+          </a>
+          <a href="product.html?id=apple-watch-ultra-2" class="card-image-wrap">
             <img src="assets/product_watch.svg" alt="Apple Watch Ultra 2" width="150" height="160">
-          </div>
+          </a>
           <div class="card-price"><span class="currency">&#8377;</span>89,900.00</div>
           <div class="card-subtext"><span class="stars">&#9733;&#9733;&#9733;&#9733;&#9733;</span> 4.9 (3,410 reviews)</div>
           <p class="card-subtext" style="font-size: 13px; line-height: 1.4; margin-bottom: 14px;">
@@ -256,18 +269,20 @@
           </p>
         </div>
         <div>
-          <a href="checkout.html" class="btn btn-buy" style="font-size: 15px; font-weight: 700; height: 42px; margin-bottom: 8px;">Buy Now</a>
-          <a href="checkout.html" class="btn btn-cart" style="font-size: 14px; font-weight: 600; height: 38px;">Add to Cart</a>
+          <button type="button" class="btn btn-buy" onclick="handleBuyNow('apple-watch-ultra-2', 1, event)" style="font-size: 15px; font-weight: 700; height: 42px; margin-bottom: 8px;">Buy Now</button>
+          <button type="button" class="btn btn-cart" onclick="handleAddToCart('apple-watch-ultra-2', 1, event)" style="font-size: 14px; font-weight: 600; height: 38px;">Add to Cart</button>
         </div>
       </article>
 
       <!-- Product 5: 32" Curved 4K Monitor -->
-      <article class="showcase-card" data-category="computers monitors displays samsung" data-keywords="samsung odyssey 32 4k curved gaming display 165hz 1ms quantum mini-led hdr2000 1000r monitor screen">
+      <article class="showcase-card" data-product-id="samsung-odyssey-32" data-category="computers monitors displays samsung" data-keywords="samsung odyssey 32 4k curved gaming display 165hz 1ms quantum mini-led hdr2000 1000r monitor screen">
         <div>
-          <h2>Samsung Odyssey 32" 4K Curved Gaming Display</h2>
-          <div class="card-image-wrap">
+          <a href="product.html?id=samsung-odyssey-32" class="product-card-link">
+            <h2>Samsung Odyssey 32" 4K Curved Gaming Display</h2>
+          </a>
+          <a href="product.html?id=samsung-odyssey-32" class="card-image-wrap">
             <img src="assets/product_monitor.svg" alt="Samsung Monitor" width="200" height="150">
-          </div>
+          </a>
           <span class="card-deal-tag">Festival Deal</span>
           <div class="card-price"><span class="currency">&#8377;</span>54,999.00 <span class="card-subtext">M.R.P.: &#8377;74,999.00</span></div>
           <div class="card-subtext"><span class="stars">&#9733;&#9733;&#9733;&#9733;&#9734;</span> 4.6 (1,820 reviews)</div>
@@ -276,18 +291,20 @@
           </p>
         </div>
         <div>
-          <a href="checkout.html" class="btn btn-buy" style="font-size: 15px; font-weight: 700; height: 42px; margin-bottom: 8px;">Buy Now</a>
-          <a href="checkout.html" class="btn btn-cart" style="font-size: 14px; font-weight: 600; height: 38px;">Add to Cart</a>
+          <button type="button" class="btn btn-buy" onclick="handleBuyNow('samsung-odyssey-32', 1, event)" style="font-size: 15px; font-weight: 700; height: 42px; margin-bottom: 8px;">Buy Now</button>
+          <button type="button" class="btn btn-cart" onclick="handleAddToCart('samsung-odyssey-32', 1, event)" style="font-size: 14px; font-weight: 600; height: 38px;">Add to Cart</button>
         </div>
       </article>
 
       <!-- Product 6: Keychron Mechanical Keyboard -->
-      <article class="showcase-card" data-category="computers accessories keyboards keychron" data-keywords="keychron q1 pro custom mechanical keyboard cnc aluminum qmk via hot-swappable switches accessories">
+      <article class="showcase-card" data-product-id="keychron-q1-pro" data-category="computers accessories keyboards keychron" data-keywords="keychron q1 pro custom mechanical keyboard cnc aluminum qmk via hot-swappable switches accessories">
         <div>
-          <h2>Keychron Q1 Pro Custom Mechanical Keyboard</h2>
-          <div class="card-image-wrap">
+          <a href="product.html?id=keychron-q1-pro" class="product-card-link">
+            <h2>Keychron Q1 Pro Custom Mechanical Keyboard</h2>
+          </a>
+          <a href="product.html?id=keychron-q1-pro" class="card-image-wrap">
             <img src="assets/product_keyboard.svg" alt="Keychron Keyboard" width="200" height="130">
-          </div>
+          </a>
           <div class="card-price"><span class="currency">&#8377;</span>17,999.00 <span class="card-subtext">M.R.P.: &#8377;21,999.00</span></div>
           <div class="card-subtext"><span class="stars">&#9733;&#9733;&#9733;&#9733;&#9733;</span> 4.9 (4,210 reviews)</div>
           <p class="card-subtext" style="font-size: 13px; line-height: 1.4; margin-bottom: 14px;">
@@ -295,8 +312,8 @@
           </p>
         </div>
         <div>
-          <a href="checkout.html" class="btn btn-buy" style="font-size: 15px; font-weight: 700; height: 42px; margin-bottom: 8px;">Buy Now</a>
-          <a href="checkout.html" class="btn btn-cart" style="font-size: 14px; font-weight: 600; height: 38px;">Add to Cart</a>
+          <button type="button" class="btn btn-buy" onclick="handleBuyNow('keychron-q1-pro', 1, event)" style="font-size: 15px; font-weight: 700; height: 42px; margin-bottom: 8px;">Buy Now</button>
+          <button type="button" class="btn btn-cart" onclick="handleAddToCart('keychron-q1-pro', 1, event)" style="font-size: 14px; font-weight: 600; height: 38px;">Add to Cart</button>
         </div>
       </article>
     </div>
@@ -311,10 +328,10 @@
       <div class="footer-col">
         <h4>Product Categories</h4>
         <ul>
-          <li><a href="index.html">Laptops &amp; Computers</a></li>
-          <li><a href="index.html">Smartphones</a></li>
-          <li><a href="index.html">Audio &amp; Accessories</a></li>
-          <li><a href="index.html">Curved Displays</a></li>
+          <li><a href="product.html?id=macbook-pro-16">Laptops &amp; Computers</a></li>
+          <li><a href="product.html?id=iphone-16-pro">Smartphones</a></li>
+          <li><a href="product.html?id=sony-wh1000xm5">Audio &amp; Accessories</a></li>
+          <li><a href="product.html?id=samsung-odyssey-32">Curved Displays</a></li>
         </ul>
       </div>
       <div class="footer-col">
@@ -322,7 +339,7 @@
         <ul>
           <li><a href="profile.html">Your Profile &amp; Biometrics</a></li>
           <li><a href="profile.html">Day-to-Day Secrets Vault</a></li>
-          <li><a href="checkout.html">Your Orders &amp; Checkout</a></li>
+          <li><a href="cart.html">Your Cart &amp; Saved Items</a></li>
           <li><a href="checkout.html">Amazon Pay &amp; UPI</a></li>
         </ul>
       </div>
@@ -339,6 +356,20 @@
       <p>&copy; 1996-2026, Amazon.com, Inc. or its affiliates &bull; Amazon.in (India) &bull; Protected by GUPTCHARA Privacy Engine</p>
     </div>
   </footer>
+
+  <script src="cart.js"></script>
   <script src="search.js"></script>
+  <script>
+    // Enable full card click navigation to product page
+    document.querySelectorAll('.showcase-card').forEach(card => {
+      card.addEventListener('click', (e) => {
+        if (e.target.closest('button') || e.target.closest('a')) return;
+        const prodId = card.getAttribute('data-product-id');
+        if (prodId) {
+          window.location.href = `product.html?id=${prodId}`;
+        }
+      });
+    });
+  </script>
 </body>
 </html>
