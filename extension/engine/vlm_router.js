@@ -48,6 +48,14 @@ ${anchorListStr}
 NOTE ON SENSITIVE DATA:
 All faces and sensitive PII (credit cards, passwords, CVV, identity tokens) have been blurred on-device with [REDACTED_*] placeholder badges. Do not guess redacted values.
 
+TASK:
+- If the user is asking a question (e.g. "what is the price of...", "what are the reviews", "what is on this page") and the answer is visible on this page:
+  Set "action": "finish" and provide the direct, concise answer in "answer" (e.g. "The price of the Apple MacBook Pro 16 is ₹1,89,900.00").
+- If you need to navigate, click, or scroll to find the requested product or answer:
+  Set "action": "click" | "type" | "scroll" and target the relevant element.
+- If the user gave an action goal (e.g. "buy this product", "add to cart", "checkout"):
+  Execute the required clicks and typing, and when the goal is achieved, set "action": "finish" with the summary in "answer".
+
 DECIDE THE NEXT ACTION. Respond with STRICT JSON matching this schema:
 {
   "thought": "Brief explanation of your visual reasoning and next step",
@@ -55,7 +63,8 @@ DECIDE THE NEXT ACTION. Respond with STRICT JSON matching this schema:
   "target_index": <number or null>,
   "coordinates": [<norm_x>, <norm_y>] or null,
   "text": "<string to type if action is type, otherwise empty>",
-  "direction": "down" | "up" (if scroll)
+  "direction": "down" | "up" (if scroll),
+  "answer": "<If action is finish, write the direct conversational answer to the user's question or goal>"
 }`;
   }
 
@@ -85,7 +94,8 @@ DECIDE THE NEXT ACTION. Respond with STRICT JSON matching this schema:
       target_index: decision.target_index ?? null,
       coordinates: decision.coordinates || null,
       text: decision.text || '',
-      direction: decision.direction || 'down'
+      direction: decision.direction || 'down',
+      answer: decision.answer || decision.thought || ''
     };
   }
 

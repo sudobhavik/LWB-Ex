@@ -455,15 +455,17 @@ html, body {
   font-size: 11.5px;
 }
 
-/* Privacy Shield Inspection Card */
-.privacy-shield-card {
+/* Visible Zero-Egress Privacy Proof Card */
+.privacy-proof-card {
   background-color: var(--emerald-bg);
   border: 1px solid var(--emerald-border);
   border-radius: var(--radius-md);
-  padding: 8px 12px;
+  padding: 10px 12px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
+  margin-top: 6px;
+  animation: fadeIn 0.25s ease;
 }
 
 .shield-header {
@@ -479,58 +481,69 @@ html, body {
   gap: 6px;
   font-size: 11.5px;
   color: var(--emerald-text);
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .shield-summary-icon {
-  font-size: 13px;
+  font-size: 14px;
 }
 
-.btn-inspect-toggle {
-  background: transparent;
+.shield-badge-tag {
+  font-family: var(--mono-font);
+  font-size: 9.5px;
+  font-weight: 700;
+  background-color: rgba(87, 211, 140, 0.15);
   border: 1px solid var(--emerald-border);
   color: var(--emerald-text);
-  font-size: 10px;
   padding: 2px 8px;
   border-radius: var(--radius-pill);
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.btn-inspect-toggle:hover {
-  background-color: rgba(87, 211, 140, 0.15);
-}
-
-.shield-details {
-  display: none;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: 4px;
-  padding-top: 6px;
-  border-top: 1px solid var(--emerald-border);
-}
-
-.shield-details.open {
-  display: flex;
+  white-space: nowrap;
 }
 
 .shield-preview-wrapper {
-  background-color: #000;
+  background-color: #000000;
   border-radius: var(--radius-sm);
   overflow: hidden;
   border: 1px solid var(--border-subtle);
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
 }
 
 .shield-preview-wrapper img,
 .shield-preview-wrapper canvas {
   width: 100%;
   height: auto;
-  max-height: 200px;
+  max-height: 220px;
   object-fit: contain;
   display: block;
+}
+
+.shield-overlay-tag {
+  position: absolute;
+  bottom: 6px;
+  left: 6px;
+  background-color: rgba(15, 36, 27, 0.88);
+  backdrop-filter: blur(4px);
+  border: 1px solid var(--emerald-border);
+  color: var(--emerald-text);
+  font-size: 9.5px;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.shield-footer-note {
+  font-size: 10px;
+  color: var(--emerald-text);
+  opacity: 0.9;
+  text-align: center;
+  line-height: 1.35;
 }
 
 /* Typing / Progress Indicator */
