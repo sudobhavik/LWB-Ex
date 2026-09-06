@@ -74,6 +74,7 @@ html, body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow: hidden;
+  scrollbar-width: none;
 }
 
 /* Scrollbar Customization */
@@ -250,12 +251,16 @@ html, body {
    ========================================================================== */
 .chat-container {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
-  padding: 16px 14px;
+  overflow-x: hidden;
+  padding: 14px 12px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
   scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-interactive) transparent;
 }
 
 /* Welcome Empty State */
@@ -493,6 +498,9 @@ html, body {
 }
 
 .btn-inspect-toggle:hover {
+  background-color: rgba(87, 211, 140, 0.15);
+}
+
 .shield-details {
   display: none;
   flex-direction: column;
@@ -572,43 +580,52 @@ html, body {
    Interaction Footer (Controls & Claude Input Pill)
    ========================================================================== */
 .interaction-footer {
-  background: linear-gradient(180deg, rgba(31, 30, 27, 0.85) 0%, var(--bg-root) 35%);
+  background: linear-gradient(180deg, rgba(31, 30, 27, 0.9) 0%, var(--bg-root) 30%);
   border-top: 1px solid var(--border-subtle);
-  padding: 10px 14px 14px;
+  padding: 8px 12px 12px;
   display: flex;
   flex-direction: column;
   gap: 8px;
   backdrop-filter: blur(8px);
+  width: 100%;
+  flex-shrink: 0;
 }
 
 /* Quick Execution Controls Toolbar */
 .controls-toolbar {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
 }
 
 .controls-left {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
+  width: 100%;
+}
+
+.controls-left .ctrl-btn {
+  flex: 1;
+  min-width: 0;
+  justify-content: center;
+  padding: 6px 4px;
 }
 
 .ctrl-btn {
   font-family: var(--sans-font);
   font-size: 11px;
   font-weight: 600;
-  padding: 5px 10px;
   border-radius: var(--radius-sm);
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
   cursor: pointer;
   transition: all 0.15s ease;
   border: 1px solid transparent;
   white-space: nowrap;
+  user-select: none;
 }
 
 .ctrl-btn:disabled {
@@ -619,6 +636,7 @@ html, body {
 
 .ctrl-icon {
   font-size: 10px;
+  line-height: 1;
 }
 
 .ctrl-btn-step {
@@ -657,18 +675,26 @@ html, body {
   display: flex;
   align-items: center;
   gap: 6px;
+  width: 100%;
 }
 
 .model-select {
+  flex: 1;
+  min-width: 0;
   background-color: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
+  border: 1px solid var(--border-interactive);
   color: var(--text-primary);
   font-size: 11px;
-  padding: 4px 8px;
+  padding: 5px 8px;
   border-radius: var(--radius-sm);
   outline: none;
   cursor: pointer;
-  max-width: 120px;
+  font-family: var(--sans-font);
+}
+
+.model-select option {
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
 }
 
 .model-select:focus {
@@ -678,16 +704,20 @@ html, body {
 .step-limit-wrapper {
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: 4px;
   background-color: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
+  border: 1px solid var(--border-interactive);
   border-radius: var(--radius-sm);
-  padding: 2px 6px;
+  padding: 3px 8px;
+  flex-shrink: 0;
 }
 
 .step-limit-prefix {
   font-size: 10px;
   color: var(--text-secondary);
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.3px;
 }
 
 .step-limit-input {
@@ -706,12 +736,13 @@ html, body {
   background-color: var(--bg-surface);
   border: 1px solid var(--border-interactive);
   border-radius: var(--radius-lg);
-  padding: 6px 8px 6px 14px;
+  padding: 6px 8px 6px 12px;
   display: flex;
   align-items: flex-end;
   gap: 8px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
   transition: border-color 0.15s ease;
+  width: 100%;
 }
 
 .chat-input-wrapper:focus-within {
@@ -726,7 +757,7 @@ html, body {
   outline: none;
   color: var(--text-primary);
   font-family: var(--sans-font);
-  font-size: 13px;
+  font-size: 12.5px;
   line-height: 1.4;
   resize: none;
   max-height: 120px;
@@ -905,4 +936,5 @@ html, body {
 
 .btn-save-settings:hover {
   background-color: var(--terracotta-hover);
+}
 
