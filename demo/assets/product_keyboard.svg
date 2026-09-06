@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 160" width="100%" height="100%">
+  <rect width="240" height="160" fill="#FFFFFF"/>
+  <!-- Keyboard Base -->
+  <rect x="20" y="35" width="200" height="90" rx="8" fill="#232F3E" stroke="#131921" stroke-width="3"/>
+  <!-- Key rows -->
+  <g fill="#D5D9D9">
+    <rect x="30" y="45" width="16" height="14" rx="2"/><rect x="50" y="45" width="16" height="14" rx="2"/>
+    <rect x="70" y="45" width="16" height="14" rx="2"/><rect x="90" y="45" width="16" height="14" rx="2"/>
+    <rect x="110" y="45" width="16" height="14" rx="2"/><rect x="130" y="45" width="16" height="14" rx="2"/>
+    <rect x="150" y="45" width="16" height="14" rx="2"/><rect x="170" y="45" width="16" height="14" rx="2"/>
+    <rect x="190" y="45" width="20" height="14" rx="2" fill="#FF9900"/>
+    
+    <rect x="30" y="65" width="20" height="14" rx="2"/><rect x="54" y="65" width="16" height="14" rx="2"/>
+    <rect x="74" y="65" width="16" height="14" rx="2"/><rect x="94" y="65" width="16" height="14" rx="2"/>
+    <rect x="114" y="65" width="16" height="14" rx="2"/><rect x="134" y="65" width="16" height="14" rx="2"/>
+    <rect x="154" y="65" width="16" height="14" rx="2"/><rect x="174" y="65" width="36" height="14" rx="2"/>
+    
+    <rect x="30" y="85" width="24" height="14" rx="2"/><rect x="58" y="85" width="16" height="14" rx="2"/>
+    <rect x="78" y="85" width="16" height="14" rx="2"/><rect x="98" y="85" width="50" height="14" rx="2" fill="#FFD814"/>
+    <rect x="152" y="85" width="16" height="14" rx="2"/><rect x="172" y="85" width="38" height="14" rx="2"/>
+  </g>
+</svg>

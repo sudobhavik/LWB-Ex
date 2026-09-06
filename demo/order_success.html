@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Order Placed - Amazon.com Checkout Success</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .success-card {
+      background: #FFFFFF;
+      border: 1px solid var(--amz-border);
+      border-top: 6px solid #007600;
+      padding: 30px;
+      margin: 20px auto;
+      max-width: 800px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .success-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .check-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: #E7F4E8;
+      border: 2px solid #007600;
+      color: #007600;
+      font-size: 28px;
+      font-weight: 800;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .success-title {
+      font-size: 26px;
+      font-weight: 800;
+      color: #0F1111;
+    }
+    .order-id-highlight {
+      font-family: var(--mono);
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--amz-orange);
+      background: #FFF8E7;
+      padding: 6px 12px;
+      border: 1px solid #FBD88F;
+      border-radius: 4px;
+      display: inline-block;
+      margin: 10px 0;
+    }
+    .tracking-step {
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px solid #F0F2F2;
+      padding: 12px 0;
+      font-size: 15px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Amazon Header -->
+  <header class="amz-header">
+    <div class="nav-belt">
+      <div class="nav-logo">
+        <a href="index.html">
+          <img src="assets/logo.svg" alt="Amazon" width="115" height="32">
+        </a>
+      </div>
+      <div class="nav-deliver">
+        <span class="nav-deliver-sub">Deliver to Devin</span>
+        <span class="nav-deliver-main">Palo Alto 94301</span>
+      </div>
+      <div class="nav-tools" style="margin-left: auto;">
+        <a href="index.html" class="nav-tool-item">
+          <span class="nav-line-1">Back to</span>
+          <span class="nav-line-2">Store Home</span>
+        </a>
+        <a href="account.html" class="nav-tool-item">
+          <span class="nav-line-1">Your</span>
+          <span class="nav-line-2">Orders</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-container">
+    <section class="success-card">
+      <div class="success-header">
+        <div class="check-icon">&#10003;</div>
+        <div>
+          <h1 class="success-title">Order Placed, thank you!</h1>
+          <p style="font-size: 14px; color: var(--amz-text-subtle);">Confirmation will be sent to <strong>devin.vance.private@mesh.io</strong></p>
+        </div>
+      </div>
+
+      <div>
+        <span style="font-size: 14px; font-weight: 700;">ORDER NUMBER:</span><br>
+        <span class="order-id-highlight">#AMZ-84920-2026</span>
+      </div>
+
+      <div class="secret-box" style="margin-top: 20px;">
+        <div class="secret-box-title">
+          <span>DELIVERY DETAILS (PRIME ONE-DAY)</span>
+          <span class="secret-badge">ORDER CONFIRMED</span>
+        </div>
+        <div class="tracking-step">
+          <span>Estimated Delivery:</span>
+          <strong style="color: #007600;">Tomorrow by 9:00 PM</strong>
+        </div>
+        <div class="tracking-step">
+          <span>Shipping To:</span>
+          <span>Devin R. Vance &bull; 482 Orchard Way, Apt 4B, Palo Alto, CA 94301</span>
+        </div>
+        <div class="tracking-step">
+          <span>Payment Method:</span>
+          <span>Prime Visa ending in 8291 (Total Charged: $3,405.68)</span>
+        </div>
+        <div class="tracking-step">
+          <span>Gate Access Instructions:</span>
+          <span>Code #4921 &bull; Climate-controlled North Veranda</span>
+        </div>
+      </div>
+
+      <div style="margin-top: 24px; display: flex; gap: 14px;">
+        <a href="index.html" class="btn btn-cart" style="font-size: 15px; font-weight: 700; padding: 12px 24px; width: auto;">Continue Shopping</a>
+        <a href="account.html" class="btn btn-secondary" style="font-size: 14px; font-weight: 600; padding: 12px 24px; width: auto;">View Order History</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="amz-footer" style="margin-top: 60px;">
+    <div class="footer-bottom">
+      <p>&copy; 1996-2026, Amazon.com, Inc. or its affiliates &bull; Order Confirmation Testbed</p>
+    </div>
+  </footer>
+</body>
+</html>

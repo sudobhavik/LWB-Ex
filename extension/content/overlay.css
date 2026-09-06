@@ -1,0 +1,147 @@
+/* Scoped styles for YOLO Privacy Agent on-page overlay */
+#yolo-agent-overlay-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  min-height: 100%;
+  pointer-events: none;
+  z-index: 2147483646;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  box-sizing: border-box;
+}
+
+.yolo-box {
+  position: absolute;
+  box-sizing: border-box;
+  transition: all 0.15s ease-out;
+  pointer-events: auto;
+}
+
+/* Outline Highlight Mode */
+.yolo-box-outline {
+  border: 2px solid #1A1A1A;
+  background-color: rgba(26, 26, 26, 0.04);
+  box-shadow: 0 0 0 1px rgba(247, 247, 245, 0.8);
+}
+
+.yolo-box-outline .yolo-badge {
+  position: absolute;
+  top: -22px;
+  left: -2px;
+  background: #1A1A1A;
+  color: #F7F7F5;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 2px;
+  white-space: nowrap;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  line-height: 14px;
+}
+
+/* Redact & Live Screen Blur Mode */
+.yolo-box-redact {
+  backdrop-filter: blur(18px) saturate(180%);
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+  background-color: rgba(20, 20, 20, 0.70) !important;
+  border: 2px solid #FF9900;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35), inset 0 0 12px rgba(0, 0, 0, 0.5);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+}
+
+.yolo-box-redact .yolo-badge {
+  position: absolute;
+  top: -24px;
+  left: -2px;
+  background: #131921;
+  color: #FFD814;
+  border: 1px solid #FF9900;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 3px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  white-space: nowrap;
+  line-height: 14px;
+}
+
+.yolo-box:hover {
+  outline: 2px solid #000000;
+}
+
+/* Floating Live Screen Privacy Pill Banner */
+#yolo-live-privacy-pill {
+  position: fixed;
+  top: 14px;
+  right: 20px;
+  background: #131921;
+  color: #FFFFFF;
+  border: 2px solid #FF9900;
+  padding: 8px 16px;
+  border-radius: 24px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  pointer-events: auto;
+  z-index: 2147483647;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  animation: slideInDown 0.3s ease-out;
+}
+
+#yolo-live-privacy-pill strong {
+  color: #FFD814;
+}
+
+@keyframes slideInDown {
+  from {
+    transform: translateY(-30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Agent Action Ripple Feedback */
+.agent-action-ripple {
+  position: absolute;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 153, 0, 0.4);
+  border: 3px solid #FF9900;
+  box-shadow: 0 0 12px #FF9900;
+  pointer-events: none;
+  z-index: 2147483647;
+  transform: translate(-50%, -50%) scale(0.5);
+  animation: agentPulseRipple 0.8s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
+}
+
+@keyframes agentPulseRipple {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(0.6);
+  }
+  60% {
+    opacity: 0.85;
+    transform: translate(-50%, -50%) scale(1.6);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(2.4);
+  }
+}

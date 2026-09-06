@@ -1,0 +1,29 @@
+{
+  "name": "yolo-webgpu-privacy-agent",
+  "version": "1.0.0",
+  "description": "On-device zero-egress visual privacy engine running YOLO via WebGPU in Chrome and Firefox with monochromatic HUD and live DOM redaction.",
+  "type": "commonjs",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "start": "./scripts/start_browsers.sh all",
+    "start:chrome": "./scripts/start_browsers.sh chrome",
+    "start:firefox": "./scripts/start_browsers.sh firefox",
+    "start:demo": "./scripts/start_browsers.sh demo",
+    "package": "./scripts/package_extension.sh"
+  },
+  "keywords": [
+    "yolo",
+    "webgpu",
+    "privacy-agent",
+    "manifest-v3",
+    "onnxruntime-web"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "jsdom": "^26.0.0",
+    "onnxruntime-web": "^1.22.0",
+    "vitest": "^3.0.7"
+  }
+}

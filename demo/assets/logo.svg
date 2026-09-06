@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 45" width="130" height="36">
+  <!-- Amazon style logo text -->
+  <text x="5" y="28" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="900" font-size="26" fill="#FFFFFF" letter-spacing="-1">amazon</text>
+  <text x="102" y="26" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="800" font-size="16" fill="#FFA41C">.in</text>
+  <!-- Curved smile arrow -->
+  <path d="M 12 36 Q 55 48 95 33" stroke="#FF9900" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+  <path d="M 92 31 L 98 34 L 91 38 Z" fill="#FF9900"/>
+</svg>

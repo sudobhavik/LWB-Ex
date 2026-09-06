@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GUPTCHARA - Zero-Egress Privacy Agent &amp; Autonomous Loop</title>
+  <link rel="stylesheet" href="sidepanel.css">
+  <script src="../lib/ort.all.min.js"></script>
+  <script src="../engine/yolo_processor.js"></script>
+  <script src="../engine/yolo_runner.js"></script>
+  <script src="../engine/pii_detector.js"></script>
+  <script src="../engine/ocr_detector.js"></script>
+  <script src="../engine/canvas_redactor.js"></script>
+  <script src="../engine/vlm_router.js"></script>
+</head>
+<body>
+  <div class="panel-container">
+    <!-- Header -->
+    <header class="panel-header">
+      <div class="brand">
+        <div class="brand-icon"></div>
+        <div class="brand-info">
+          <h1>GUPTCHARA HUD</h1>
+          <span class="sub-title">ZERO-EGRESS PRIVACY AGENT &bull; WEBGPU YOLO</span>
+        </div>
+      </div>
+      <div class="header-badges">
+        <span id="provider-badge" class="badge badge-neutral">INITIALIZING</span>
+        <span id="agent-status-badge" class="badge badge-neutral">IDLE</span>
+      </div>
+    </header>
+
+    <!-- Firefox Right-Side Docking Tip Banner -->
+    <div class="firefox-tip-banner" id="firefox-tip-banner" style="display: none;">
+      <div class="tip-content">
+        <span class="tip-icon">&#128161;</span>
+        <div class="tip-text">
+          <strong>Move to Right:</strong> Click the sidebar title/menu at the top &rarr; <em>&ldquo;Move Sidebar to Right&rdquo;</em>.
+        </div>
+      </div>
+      <button class="tip-close" id="btn-close-tip" title="Dismiss tip">&times;</button>
+    </div>
+
+    <!-- Top Navigation Tabs -->
+    <nav class="hud-tabs">
+      <button class="tab-btn active" data-tab="tab-agent">AGENT LOOP</button>
+      <button class="tab-btn" data-tab="tab-scanner">MANUAL SCANNER</button>
+      <button class="tab-btn" data-tab="tab-settings">API SETTINGS</button>
+    </nav>
+
+    <!-- TAB 1: AUTONOMOUS AGENT LOOP -->
+    <div id="tab-agent" class="tab-pane active">
+      <section class="action-card">
+        <label class="label" for="agent-goal">GOAL / NATURAL LANGUAGE PROMPT:</label>
+        <textarea id="agent-goal" class="agent-textarea" rows="3" placeholder="Enter what the agent should do on the page...">Buy the Apple MacBook Pro 16 and complete checkout</textarea>
+
+        <div class="agent-controls-grid">
+          <div class="control-col">
+            <label class="label" for="select-provider">VLM MODEL ROUTER:</label>
+            <select id="select-provider" class="hud-select">
+              <option value="auto">Auto Failover (OpenAI &rarr; Gemini)</option>
+              <option value="openai-gpt4o">OpenAI (gpt-4o)</option>
+              <option value="openai-gpt4o-mini">OpenAI (gpt-4o-mini)</option>
+              <option value="gemini-2.0-flash">Google Gemini (2.0 Flash)</option>
+              <option value="gemini-1.5-flash">Google Gemini (1.5 Flash)</option>
+            </select>
+          </div>
+          <div class="control-col" style="max-width: 100px;">
+            <label class="label" for="max-steps">MAX STEPS:</label>
+            <input type="number" id="max-steps" class="hud-input" value="10" min="1" max="25">
+          </div>
+        </div>
+
+        <div class="execution-controls">
+          <div class="button-row button-row-primary">
+            <button id="btn-step-agent" class="btn btn-step" title="Execute a single step and pause for demo inspection">
+              <span class="btn-icon">&#9654;</span>
+              <span class="btn-text" id="step-btn-text">STEP 1: EXECUTE</span>
+              <span class="spinner" id="step-spinner" style="display: none;"></span>
+            </button>
+            <button id="btn-start-agent" class="btn btn-primary" title="Run all steps continuously">
+              <span class="btn-text">RUN ALL &#9193;</span>
+              <span class="spinner" id="agent-spinner" style="display: none;"></span>
+            </button>
+          </div>
+          <div class="button-row button-row-secondary">
+            <button id="btn-stop-agent" class="btn btn-secondary" disabled title="Pause or stop agent loop">
+              &#9208; STOP
+            </button>
+            <button id="btn-reset-agent" class="btn btn-secondary" title="Reset demo loop and clear overlays">
+              &#8634; RESET
+            </button>
+          </div>
+        </div>
+
+        <!-- 4-Phase Stepper Pipeline for Live Demos -->
+        <div class="stepper-pipeline" id="stepper-pipeline">
+          <div class="stepper-phase" id="phase-1">
+            <div class="phase-badge-wrapper">
+              <span class="phase-badge">1</span>
+            </div>
+            <span class="phase-name">Capture</span>
+          </div>
+          <div class="stepper-phase" id="phase-2">
+            <div class="phase-badge-wrapper">
+              <span class="phase-badge">2</span>
+            </div>
+            <span class="phase-name">Shield PII</span>
+          </div>
+          <div class="stepper-phase" id="phase-3">
+            <div class="phase-badge-wrapper">
+              <span class="phase-badge">3</span>
+            </div>
+            <span class="phase-name">VLM Reason</span>
+          </div>
+          <div class="stepper-phase" id="phase-4">
+            <div class="phase-badge-wrapper">
+              <span class="phase-badge">4</span>
+            </div>
+            <span class="phase-name">Browser Act</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Agent Execution Live HUD -->
+      <section class="card" id="agent-live-hud">
+        <div class="card-header">
+          <h2>AGENT REASONING &amp; STEP LOG</h2>
+          <span id="agent-step-counter" class="meta-tag">STEP 0 / 10</span>
+        </div>
+
+        <div class="agent-reasoning-box">
+          <div class="reasoning-label">VLM THOUGHT:</div>
+          <div id="agent-thought" class="reasoning-text">Ready. Enter a goal prompt and click Start Agent Loop.</div>
+        </div>
+
+        <div class="agent-action-box">
+          <div class="reasoning-label">EXECUTED ACTION:</div>
+          <div id="agent-action-taken" class="action-text">None</div>
+        </div>
+
+        <div class="agent-stats-row">
+          <span class="stats-item">Provider: <strong id="agent-active-vlm">--</strong></span>
+          <span class="stats-item">Redacted: <strong id="agent-redacted-count">0 items</strong></span>
+          <span class="stats-item">Anchors: <strong id="agent-anchors-count">0</strong></span>
+        </div>
+
+        <!-- Sanitized Viewport Preview (Zero Sensitive Bytes) -->
+        <div class="card-header" style="margin-top: 12px;">
+          <h2>SANITIZED VLM VIEWPORT (ZERO-EGRESS)</h2>
+        </div>
+        <div class="preview-wrapper">
+          <canvas id="sanitized-preview-canvas" width="640" height="400"></canvas>
+        </div>
+      </section>
+    </div>
+
+    <!-- TAB 2: MANUAL SCANNER (PART 1 FEATURES) -->
+    <div id="tab-scanner" class="tab-pane">
+      <section class="action-card">
+        <button id="btn-detect" class="btn btn-primary">
+          <span class="btn-text">SCAN ACTIVE TAB</span>
+          <span class="spinner" id="action-spinner" style="display: none;"></span>
+        </button>
+
+        <div class="mode-selector">
+          <span class="label">VISUAL MODE:</span>
+          <div class="radio-group">
+            <label class="radio-label">
+              <input type="radio" name="overlay-mode" value="outline" checked>
+              <span>OUTLINE</span>
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="overlay-mode" value="redact">
+              <span>REDACT</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="slider-row">
+          <div class="slider-header">
+            <span class="label">CONFIDENCE THRESHOLD:</span>
+            <span id="threshold-val" class="mono-val">25%</span>
+          </div>
+          <input type="range" id="confidence-slider" min="10" max="90" value="25" step="5">
+        </div>
+
+        <button id="btn-clear" class="btn btn-secondary">
+          CLEAR ON-PAGE OVERLAYS
+        </button>
+      </section>
+
+      <!-- Metrics HUD -->
+      <section class="metrics-grid">
+        <div class="metric-box">
+          <span class="metric-label">LATENCY</span>
+          <span id="metric-latency" class="metric-value">-- ms</span>
+        </div>
+        <div class="metric-box">
+          <span class="metric-label">TOTAL FOUND</span>
+          <span id="metric-total" class="metric-value">0</span>
+        </div>
+      </section>
+
+      <!-- Class Breakdown -->
+      <section class="card">
+        <div class="card-header">
+          <h2>DETECTION BREAKDOWN</h2>
+        </div>
+        <div class="breakdown-grid">
+          <div class="breakdown-item">
+            <span class="breakdown-label">FACES</span>
+            <span id="count-face" class="breakdown-count">0</span>
+          </div>
+          <div class="breakdown-item">
+            <span class="breakdown-label">INPUT FIELDS</span>
+            <span id="count-input" class="breakdown-count">0</span>
+          </div>
+          <div class="breakdown-item">
+            <span class="breakdown-label">TEXT BLOCKS</span>
+            <span id="count-text" class="breakdown-count">0</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Screenshot Preview -->
+      <section class="card" id="preview-section" style="display: none;">
+        <div class="card-header">
+          <h2>SCAN PREVIEW</h2>
+        </div>
+        <div class="preview-wrapper">
+          <canvas id="preview-canvas" width="640" height="640"></canvas>
+        </div>
+      </section>
+    </div>
+
+    <!-- TAB 3: API SETTINGS -->
+    <div id="tab-settings" class="tab-pane">
+      <section class="card">
+        <div class="card-header">
+          <h2>VLM API CREDENTIALS</h2>
+          <span class="meta-tag">STORED LOCALLY</span>
+        </div>
+        <div class="form-group" style="margin-bottom: 12px;">
+          <label class="label" for="input-openai-key">OPENAI API KEY:</label>
+          <input type="password" id="input-openai-key" class="hud-input" placeholder="sk-proj-...">
+        </div>
+        <div class="form-group" style="margin-bottom: 14px;">
+          <label class="label" for="input-gemini-key">GOOGLE GEMINI API KEY:</label>
+          <input type="password" id="input-gemini-key" class="hud-input" placeholder="AIzaSy...">
+        </div>
+        <button id="btn-save-keys" class="btn btn-primary">SAVE API KEYS</button>
+        <div id="settings-status" class="status-message" style="margin-top: 8px;"></div>
+      </section>
+    </div>
+
+    <!-- Footer Status -->
+    <footer class="panel-footer">
+      <div id="status-text" class="status-message">Ready to initialize WebGPU engine.</div>
+    </footer>
+  </div>
+
+  <script src="sidepanel.js"></script>
+</body>
+</html>

@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Amazon.com Checkout - Select Payment Method & Shipping</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .checkout-header {
+      background-color: #FFFFFF;
+      border-bottom: 1px solid var(--amz-border);
+      padding: 14px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .checkout-title {
+      font-size: 22px;
+      font-weight: 500;
+      color: var(--amz-text);
+    }
+    .checkout-secure-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: var(--amz-text-subtle);
+      font-family: var(--mono);
+    }
+    .checkout-layout {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 24px;
+      margin-top: 20px;
+    }
+    @media (max-width: 900px) {
+      .checkout-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+    .step-box {
+      background: #FFFFFF;
+      border: 1px solid var(--amz-border);
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    .step-header {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      margin-bottom: 14px;
+      border-bottom: 1px solid #F0F2F2;
+      padding-bottom: 8px;
+    }
+    .step-num {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--amz-orange);
+    }
+    .step-title {
+      font-size: 18px;
+      font-weight: 700;
+    }
+    .order-summary-box {
+      background: #FFFFFF;
+      border: 1px solid var(--amz-border);
+      padding: 20px;
+      position: sticky;
+      top: 20px;
+    }
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 13px;
+    }
+    .summary-total {
+      font-size: 18px;
+      font-weight: 800;
+      color: #B12704;
+      border-top: 1px solid var(--amz-border);
+      padding-top: 12px;
+      margin-top: 12px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Minimal Amazon Checkout Header -->
+  <header class="checkout-header">
+    <div class="nav-logo">
+      <a href="index.html">
+        <img src="assets/logo.svg" alt="Amazon.in" width="115" height="32">
+      </a>
+    </div>
+    <div class="checkout-title">Checkout (<span style="color: #007185;">3 items</span>)</div>
+    <div class="checkout-secure-badge">&#128737; GUPTCHARA Protected &bull; 256-Bit SSL</div>
+  </header>
+
+  <main class="page-container">
+    <div class="checkout-layout">
+      <!-- Left Column: Checkout Steps -->
+      <div class="checkout-steps">
+        <!-- Step 1: Shipping Address & Recipient Biometric Face Verification -->
+        <section class="step-box">
+          <div class="step-header">
+            <span class="step-num">1</span>
+            <h2 class="step-title">Shipping Address &amp; Delivery Recipient Verification</h2>
+          </div>
+          <!-- Real Face Recipient Verification -->
+          <div class="real-face-container">
+            <img src="assets/real_face.jpg" alt="Shreyas Sharma Recipient Photo" class="real-face-photo">
+            <div class="real-face-details">
+              <span class="real-face-name">Shreyas V. Sharma (Recipient)</span>
+              <span class="real-face-badge">&#10003; PHOTO MATCH VERIFIED</span>
+              <span class="real-face-meta">Delivery Mobile: <br><strong>+91 98765 43210</strong></span>
+            </div>
+          </div>
+          <div class="secret-box">
+            <div class="secret-box-title">
+              <span>PRIMARY RESIDENTIAL DESTINATION</span>
+              <span class="secret-badge">DAY-TO-DAY PII</span>
+            </div>
+            <span class="secret-highlight-large">
+              Flat 402, Nilgiri Apartments, Barakhamba Road, Connaught Place, New Delhi 110001, India
+            </span>
+          </div>
+          <p class="card-subtext"><a href="profile.html">Change address or add delivery instructions</a></p>
+        </section>
+
+        <!-- Step 2: Payment Method (Saved Secrets & Interactive Inputs - BIG TEXT) -->
+        <section class="step-box">
+          <div class="step-header">
+            <span class="step-num">2</span>
+            <h2 class="step-title">Payment Method &amp; UPI / RuPay</h2>
+          </div>
+
+          <!-- Saved Card Inputs -->
+          <div class="secret-box">
+            <div class="secret-box-title">
+              <span>AMAZON PAY ICICI RUPAY CARD</span>
+              <span class="secret-badge">FINANCIAL SECRET</span>
+            </div>
+            <div class="amz-form-group">
+              <label class="amz-label" for="checkout-card-number">Card Number</label>
+              <input type="text" id="checkout-card-number" class="amz-input input-large" value="4532 8812 9044 1924">
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+              <div class="amz-form-group">
+                <label class="amz-label" for="checkout-exp">Expiration Date</label>
+                <input type="text" id="checkout-exp" class="amz-input input-large" value="08/2029">
+              </div>
+              <div class="amz-form-group">
+                <label class="amz-label" for="checkout-cvv">Security Code (CVV)</label>
+                <input type="password" id="checkout-cvv" class="amz-input input-large" value="842">
+              </div>
+            </div>
+          </div>
+
+          <!-- Bank & UPI Direct Transfer -->
+          <div class="secret-box">
+            <div class="secret-box-title">
+              <span>DIRECT BANKING &amp; UPI BHIM GATEWAY</span>
+              <span class="secret-badge">BANKING PII</span>
+            </div>
+            <div class="amz-form-group">
+              <label class="amz-label" for="checkout-upi">Virtual Payment Address (UPI ID)</label>
+              <input type="text" id="checkout-upi" class="amz-input input-large" value="shreyas@oksbi">
+            </div>
+            <table class="amz-data-table">
+              <tbody>
+                <tr>
+                  <td>Linked Bank:</td>
+                  <td>State Bank of India (SBI)</td>
+                </tr>
+                <tr>
+                  <td>Account Number:</td>
+                  <td><span class="secret-highlight-large">8492 0193 8291</span></td>
+                </tr>
+                <tr>
+                  <td>IFSC Code:</td>
+                  <td><span class="secret-highlight-large">SBIN0001234</span></td>
+                </tr>
+                <tr>
+                  <td>Savings Balance:</td>
+                  <td><span class="secret-highlight-large" style="color: #007600;">&#8377;8,42,500.00</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Step 3: Customs & KYC Identity Verification (BIG TEXT) -->
+        <section class="step-box">
+          <div class="step-header">
+            <span class="step-num">3</span>
+            <h2 class="step-title">Customs Clearance &amp; Indian KYC Verification</h2>
+          </div>
+          <p class="card-subtext">Order contains high-value imported electronics exceeding &#8377;2,00,000. Government identification is required.</p>
+          <div class="secret-box">
+            <div class="secret-box-title">
+              <span>AADHAAR CARD UID NUMBER</span>
+              <span class="secret-badge">IDENTITY SECRET</span>
+            </div>
+            <div class="amz-form-group">
+              <input type="text" id="checkout-aadhaar" class="amz-input input-large" value="5482 1928 3847">
+            </div>
+          </div>
+          <div class="secret-box">
+            <div class="secret-box-title">
+              <span>PERMANENT ACCOUNT NUMBER (PAN)</span>
+              <span class="secret-badge">TAX IDENTIFIER</span>
+            </div>
+            <div class="amz-form-group">
+              <input type="text" id="checkout-pan" class="amz-input input-large" value="ABCDE1234F">
+            </div>
+          </div>
+        </section>
+
+        <!-- Step 4: Review Items & Confidential Delivery Instructions (BIG GATE CODE) -->
+        <section class="step-box">
+          <div class="step-header">
+            <span class="step-num">4</span>
+            <h2 class="step-title">Review Items &amp; Confidential Instructions</h2>
+          </div>
+          <div class="amz-confidential-note">
+            <strong>CONFIDENTIAL DELIVERY INSTRUCTIONS &bull; GATE ACCESS CODE:</strong><br>
+            Please use security gate code <span class="secret-highlight-large" style="background: #1A1A1A; color: #FFF; padding: 2px 8px; border-radius: 3px;">#4921</span> upon arrival at Barakhamba Road checkpoint. Contact resident via intercom.
+          </div>
+          <div class="amz-confidential-note">
+            <strong>PHARMACEUTICAL PRESCRIPTION &amp; HEALTH COMPLIANCE:</strong><br>
+            Patient ID: <strong>9184-IN</strong>. Medical sensor package includes prescription cardiovascular monitor. Telemetry data encrypted under Indian Digital Personal Data Protection Act (DPDPA).
+          </div>
+        </section>
+      </div>
+
+      <!-- Right Column: Order Summary -->
+      <div class="order-summary-sidebar">
+        <section class="order-summary-box">
+          <button class="btn btn-cart" id="btn-place-order" onclick="window.location.href='order_success.html'" style="font-size: 15px; font-weight: 700; padding: 12px; margin-bottom: 12px;">Place your order</button>
+          <p class="card-subtext" style="font-size: 11px; text-align: center;">By placing your order, you agree to Amazon.in's Privacy Notice and Conditions of Use.</p>
+          <div class="summary-total" style="border-top: none; margin-top: 8px;">Order Summary</div>
+          <div class="summary-row">
+            <span>Items (3):</span>
+            <span>&#8377;3,39,790.00</span>
+          </div>
+          <div class="summary-row">
+            <span>Shipping &amp; handling:</span>
+            <span>&#8377;0.00</span>
+          </div>
+          <div class="summary-row">
+            <span>Festival Savings:</span>
+            <span style="color: #B12704;">-&#8377;10,000.00</span>
+          </div>
+          <div class="summary-row">
+            <span>Estimated GST included:</span>
+            <span>&#8377;51,822.00</span>
+          </div>
+          <div class="summary-row summary-total">
+            <span>Order total:</span>
+            <span>&#8377;3,29,790.00</span>
+          </div>
+          <div class="secret-box" style="margin-top: 16px;">
+            <div class="secret-box-title">
+              <span>CHARGE TO PRIMARY CARD</span>
+            </div>
+            <span class="secret-highlight-large">RuPay ending in 1924 (&#8377;3,29,790.00)</span>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <footer class="amz-footer" style="margin-top: 40px;">
+    <div class="footer-bottom">
+      <p>&copy; 1996-2026, Amazon.com, Inc. or its affiliates &bull; Amazon.in (India) &bull; Protected by GUPTCHARA</p>
+    </div>
+  </footer>
+</body>
+</html>

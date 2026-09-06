@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Amazon.in: Online Shopping India - Electronics, Mobiles &amp; Workstations</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .guptchara-top-banner {
+      background: linear-gradient(90deg, #131921 0%, #1A222D 50%, #232F3E 100%);
+      color: #FFFFFF;
+      font-size: 11.5px;
+      font-weight: 700;
+      padding: 6px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      border-bottom: 2px solid #FF9900;
+      letter-spacing: 0.3px;
+    }
+    .guptchara-top-banner strong {
+      color: #FFD814;
+    }
+    .hero-banner {
+      background: linear-gradient(135deg, #131921 0%, #232F3E 60%, #352316 100%);
+      color: #FFFFFF;
+      padding: 30px 24px;
+      margin-bottom: 20px;
+      border-radius: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border: 1px solid rgba(255, 153, 0, 0.3);
+    }
+    .festive-tag {
+      display: inline-block;
+      background-color: #FF9900;
+      color: #131921;
+      font-size: 10px;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 3px;
+      margin-bottom: 8px;
+      letter-spacing: 0.5px;
+    }
+    .hero-text h1 {
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 6px;
+    }
+    .hero-text p {
+      font-size: 14px;
+      color: #D5D9D9;
+    }
+    .hero-badge {
+      background-color: var(--amz-orange);
+      color: #131921;
+      font-size: 13px;
+      font-weight: 800;
+      padding: 8px 16px;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      box-shadow: 0 2px 8px rgba(255, 153, 0, 0.4);
+      flex-shrink: 0;
+    }
+    .product-showcase-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 20px;
+    }
+    .showcase-card {
+      background-color: #FFFFFF;
+      border: 1px solid var(--amz-border);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      border-radius: 4px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .showcase-card:hover {
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    .showcase-card h2 {
+      font-size: 19px;
+      font-weight: 700;
+      line-height: 1.3;
+      margin-bottom: 12px;
+      color: var(--amz-text);
+    }
+  </style>
+</head>
+<body>
+  <!-- GUPTCHARA Top Security Banner -->
+  <div class="guptchara-top-banner">
+    <span>&#128737;</span>
+    <span><strong>GUPTCHARA ACTIVE:</strong> On-Device Zero-Egress AI Privacy Shield &bull; Aadhaar, PAN, UPI &amp; Biometric Masks Deployed</span>
+  </div>
+
+  <!-- Amazon Nav Header -->
+  <header class="amz-header">
+    <div class="nav-belt">
+      <div class="nav-logo">
+        <a href="index.html">
+          <img src="assets/logo.svg" alt="Amazon.in" width="115" height="32">
+        </a>
+      </div>
+
+      <div class="nav-deliver">
+        <span class="nav-deliver-sub">Deliver to Shreyas</span>
+        <span class="nav-deliver-main">&#128205; New Delhi 110001</span>
+      </div>
+
+      <!-- Amazon Search Bar -->
+      <div class="nav-search">
+        <select class="search-category-select">
+          <option>All Products</option>
+          <option>Computers</option>
+          <option>Smartphones</option>
+          <option>Audio</option>
+        </select>
+        <input type="text" class="search-input" placeholder="Search products, brands, and categories in India...">
+        <button class="search-button" aria-label="Search">
+          <svg viewBox="0 0 24 24">
+            <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Right Nav Tools (Links to Profile & Checkout) -->
+      <div class="nav-tools">
+        <div class="nav-tool-item" style="cursor: default;">
+          <span class="nav-line-1">&#127470;&#127475; IN</span>
+          <span class="nav-line-2">EN &#9662;</span>
+        </div>
+        <a href="profile.html" class="nav-tool-item">
+          <span class="nav-line-1">Hello, Shreyas</span>
+          <span class="nav-line-2">Account &amp; Vault &#9662;</span>
+        </a>
+        <a href="checkout.html" class="nav-tool-item">
+          <span class="nav-line-1">Returns</span>
+          <span class="nav-line-2">&amp; Orders</span>
+        </a>
+        <a href="checkout.html" class="nav-cart">
+          <div class="cart-icon-wrapper">
+            <svg width="34" height="26" viewBox="0 0 36 28" fill="#FFFFFF">
+              <path d="M11 22a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm14 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-14.8-17l1.8 9h15.2l2.3-9H10.2zm-2.2-3l1 2h19.5a1 1 0 0 1 .98 1.2l-2.7 11a1 1 0 0 1-.98.8H12a1 1 0 0 1-.98-.8L8.7 4H5V2h5.2z"/>
+            </svg>
+            <span class="cart-badge">3</span>
+          </div>
+          <span>Cart</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Subnav -->
+    <nav class="nav-main">
+      <a href="index.html" class="active">&#9776; All Products</a>
+      <a href="index.html">&#127470;&#127475; Great Indian Festival</a>
+      <a href="product.html">Laptops &amp; Computers</a>
+      <a href="index.html">Smartphones</a>
+      <a href="index.html">Audio &amp; Wearables</a>
+      <a href="checkout.html">Amazon Pay &amp; Checkout</a>
+      <a href="profile.html" class="secret-tab">&#128100; View User Profile &amp; Secrets &rarr;</a>
+      <a href="canvas_vault.html" style="color: #FFD814; font-weight: 800;">&#127912; Canvas KYC Vault (Pure Pixels) &rarr;</a>
+    </nav>
+  </header>
+
+  <main class="page-container">
+    <!-- Hero Banner -->
+    <section class="hero-banner">
+      <div class="hero-text">
+        <div class="festive-tag">&#127470;&#127475; GREAT INDIAN FESTIVAL 2026</div>
+        <h1>Amazon.in Flagship Tech &amp; Workstations</h1>
+        <p>Up to 40% off on workstations, flagship smartphones &amp; noise-canceling audio &bull; 10% Instant Bank Discount &bull; No Cost EMI</p>
+      </div>
+      <div class="hero-badge">FESTIVAL DEALS LIVE</div>
+    </section>
+
+    <!-- Pure Product Showcase Grid (NO Profile Info) -->
+    <div class="product-showcase-grid">
+      <!-- Product 1: Apple MacBook Pro 16 -->
+      <article class="showcase-card" data-category="computers laptops apple" data-keywords="apple macbook pro 16 m3 max 64gb ram 2tb ssd laptop computer liquid retina xdr space black">
+        <div>
+          <h2>Apple MacBook Pro 16" M3 Max (64GB RAM, 2TB SSD)</h2>
+          <div class="card-image-wrap">
+            <img src="assets/product_laptop.svg" alt="Apple MacBook Pro 16" width="220" height="150">
+          </div>
+          <span class="card-deal-tag">Limited Time Deal</span>
+          <div class="card-price"><span class="currency">&#8377;</span>1,89,900.00 <span class="card-subtext">M.R.P.: &#8377;2,49,900.00</span></div>
+          <div class="card-subtext"><span class="stars">&#9733;&#9733;&#9733;&#9733;&#9734;</span> 4.8 (2,419 reviews)</div>
+          <p class="card-subtext" style="font-size: 13px; line-height: 1.4; margin-bottom: 14px;">
+            16-core CPU, 40-core GPU, Liquid Retina XDR display, Space Black finish. Prime FREE Delivery in India. No Cost EMI available.
+          </p>
+        </div>
+        <div>
+          <a href="checkout.html" class="btn btn-buy" style="font-size: 15px; font-weight: 700; height: 42px; margin-bottom: 8px;">Buy Now</a>
+          <a href="product.html" class="btn btn-cart" style="font-size: 14px; font-weight: 600; height: 38px;">View Details &amp; Add to Cart</a>
+        </div>
+      </article>
+
+      <!-- Product 2: iPhone 16 Pro -->
+      <article class="showcase-card" data-category="smartphones apple phones" data-keywords="apple iphone 16 pro 256gb natural titanium a18 pro chip 48mp fusion camera phone smartphone">
+        <div>
+          <h2>Apple iPhone 16 Pro 256GB Natural Titanium</h2>
+          <div class="card-image-wrap">
+            <img src="assets/product_phone.svg" alt="iPhone 16 Pro" width="130" height="170">
+          </div>
+          <span class="card-deal-tag">Save &#8377;10,000 with Bank Card</span>
+          <div class="card-price"><span class="currency">&#8377;</span>1,19,900.00 <span class="card-subtext">M.R.P.: &#8377;1,29,900.00</span></div>
+          <div class="card-subtext"><span class="stars">&#9733;&#9733;&#9733;&#9733;&#9733;</span> 4.9 (5,120 reviews)</div>
+          <p class="card-subtext" style="font-size: 13px; line-height: 1.4; margin-bottom: 14px;">
+            Grade 5 titanium design, A18 Pro chip, 48MP Fusion camera system. FREE One-Day Delivery by Amazon.in.
+          </p>
+        </div>
+        <div>
+          <a href="checkout.html" class="btn btn-buy" style="font-size: 15px; font-weight: 700; height: 42px; margin-bottom: 8px;">Buy Now</a>
+          <a href="checkout.html" class="btn btn-cart" style="font-size: 14px; font-weight: 600; height: 38px;">Add to Cart</a>
+        </div>
+      </article>
+
+      <!-- Product 3: Sony WH-1000XM5 -->
+      <article class="showcase-card" data-category="audio headphones sony" data-keywords="sony wh-1000xm5 noise canceling headphones auto nc optimizer audio wireless crystal clear 30-hour">
+        <div>
+          <h2>Sony WH-1000XM5 Noise Canceling Headphones</h2>
+          <div class="card-image-wrap">
+            <img src="assets/product_headphones.svg" alt="Sony Headphones" width="160" height="160">
+          </div>
+          <div class="card-price"><span class="currency">&#8377;</span>29,990.00 <span class="card-subtext">M.R.P.: &#8377;34,990.00</span></div>
+          <div class="card-subtext"><span class="stars">&#9733;&#9733;&#9733;&#9733;&#9734;</span> 4.7 (8,940 reviews)</div>
+          <p class="card-subtext" style="font-size: 13px; line-height: 1.4; margin-bottom: 14px;">
+            Industry-leading noise cancellation with Auto NC Optimizer, crystal clear hands-free calling, 30-hour battery.
+          </p>
+        </div>
+        <div>
+          <a href="checkout.html" class="btn btn-buy" style="font-size: 15px; font-weight: 700; height: 42px; margin-bottom: 8px;">Buy Now</a>
+          <a href="checkout.html" class="btn btn-cart" style="font-size: 14px; font-weight: 600; height: 38px;">Add to Cart</a>
+        </div>
+      </article>
+
+      <!-- Product 4: Apple Watch Ultra 2 -->
+      <article class="showcase-card" data-category="audio wearables smartwatch apple" data-keywords="apple watch ultra 2 gps cellular 49mm rugged titanium smartwatch action button wearables fitness">
+        <div>
+          <h2>Apple Watch Ultra 2 GPS + Cellular 49mm</h2>
+          <div class="card-image-wrap">
+            <img src="assets/product_watch.svg" alt="Apple Watch Ultra 2" width="150" height="160">
+          </div>
+          <div class="card-price"><span class="currency">&#8377;</span>89,900.00</div>
+          <div class="card-subtext"><span class="stars">&#9733;&#9733;&#9733;&#9733;&#9733;</span> 4.9 (3,410 reviews)</div>
+          <p class="card-subtext" style="font-size: 13px; line-height: 1.4; margin-bottom: 14px;">
+            Rugged titanium case, precision dual-frequency GPS, customizable Action button, 36-hour battery life.
+          </p>
+        </div>
+        <div>
+          <a href="checkout.html" class="btn btn-buy" style="font-size: 15px; font-weight: 700; height: 42px; margin-bottom: 8px;">Buy Now</a>
+          <a href="checkout.html" class="btn btn-cart" style="font-size: 14px; font-weight: 600; height: 38px;">Add to Cart</a>
+        </div>
+      </article>
+
+      <!-- Product 5: 32" Curved 4K Monitor -->
+      <article class="showcase-card" data-category="computers monitors displays samsung" data-keywords="samsung odyssey 32 4k curved gaming display 165hz 1ms quantum mini-led hdr2000 1000r monitor screen">
+        <div>
+          <h2>Samsung Odyssey 32" 4K Curved Gaming Display</h2>
+          <div class="card-image-wrap">
+            <img src="assets/product_monitor.svg" alt="Samsung Monitor" width="200" height="150">
+          </div>
+          <span class="card-deal-tag">Festival Deal</span>
+          <div class="card-price"><span class="currency">&#8377;</span>54,999.00 <span class="card-subtext">M.R.P.: &#8377;74,999.00</span></div>
+          <div class="card-subtext"><span class="stars">&#9733;&#9733;&#9733;&#9733;&#9734;</span> 4.6 (1,820 reviews)</div>
+          <p class="card-subtext" style="font-size: 13px; line-height: 1.4; margin-bottom: 14px;">
+            165Hz refresh rate, 1ms response time, Quantum Mini-LED HDR2000, 1000R curvature for immersive viewing.
+          </p>
+        </div>
+        <div>
+          <a href="checkout.html" class="btn btn-buy" style="font-size: 15px; font-weight: 700; height: 42px; margin-bottom: 8px;">Buy Now</a>
+          <a href="checkout.html" class="btn btn-cart" style="font-size: 14px; font-weight: 600; height: 38px;">Add to Cart</a>
+        </div>
+      </article>
+
+      <!-- Product 6: Keychron Mechanical Keyboard -->
+      <article class="showcase-card" data-category="computers accessories keyboards keychron" data-keywords="keychron q1 pro custom mechanical keyboard cnc aluminum qmk via hot-swappable switches accessories">
+        <div>
+          <h2>Keychron Q1 Pro Custom Mechanical Keyboard</h2>
+          <div class="card-image-wrap">
+            <img src="assets/product_keyboard.svg" alt="Keychron Keyboard" width="200" height="130">
+          </div>
+          <div class="card-price"><span class="currency">&#8377;</span>17,999.00 <span class="card-subtext">M.R.P.: &#8377;21,999.00</span></div>
+          <div class="card-subtext"><span class="stars">&#9733;&#9733;&#9733;&#9733;&#9733;</span> 4.9 (4,210 reviews)</div>
+          <p class="card-subtext" style="font-size: 13px; line-height: 1.4; margin-bottom: 14px;">
+            Full CNC aluminum body, QMK/VIA programmable, hot-swappable switches, double-gasket acoustic dampening.
+          </p>
+        </div>
+        <div>
+          <a href="checkout.html" class="btn btn-buy" style="font-size: 15px; font-weight: 700; height: 42px; margin-bottom: 8px;">Buy Now</a>
+          <a href="checkout.html" class="btn btn-cart" style="font-size: 14px; font-weight: 600; height: 38px;">Add to Cart</a>
+        </div>
+      </article>
+    </div>
+  </main>
+
+  <!-- Amazon Footer -->
+  <footer class="amz-footer" style="margin-top: 50px;">
+    <div class="footer-back-to-top" onclick="window.scrollTo({top: 0, behavior: 'smooth'});">
+      Back to top
+    </div>
+    <div class="footer-links-grid">
+      <div class="footer-col">
+        <h4>Product Categories</h4>
+        <ul>
+          <li><a href="index.html">Laptops &amp; Computers</a></li>
+          <li><a href="index.html">Smartphones</a></li>
+          <li><a href="index.html">Audio &amp; Accessories</a></li>
+          <li><a href="index.html">Curved Displays</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Customer Account</h4>
+        <ul>
+          <li><a href="profile.html">Your Profile &amp; Biometrics</a></li>
+          <li><a href="profile.html">Day-to-Day Secrets Vault</a></li>
+          <li><a href="checkout.html">Your Orders &amp; Checkout</a></li>
+          <li><a href="checkout.html">Amazon Pay &amp; UPI</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Payment &amp; Security</h4>
+        <ul>
+          <li><a href="checkout.html">Amazon Pay ICICI Card</a></li>
+          <li><a href="profile.html">KYC Tax &amp; Identity</a></li>
+          <li><a href="profile.html">GUPTCHARA Privacy Shield</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 1996-2026, Amazon.com, Inc. or its affiliates &bull; Amazon.in (India) &bull; Protected by GUPTCHARA Privacy Engine</p>
+    </div>
+  </footer>
+  <script src="search.js"></script>
+</body>
+</html>
