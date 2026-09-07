@@ -64,17 +64,42 @@ class YoloWebGPURunner {
     const hasWebGPU = typeof navigator !== 'undefined' && !!navigator.gpu;
     if (hasWebGPU) {
       try {
+        console.log('[YoloRunner] WebGPU detected in browser. Querying adapter...');
+        if (ortInstance.env && ortInstance.env.webgpu) {
+          ortInstance.env.webgpu.validateInputContent = false;
+        }
+
+        try {
+          const adapter = await navigator.gpu.requestAdapter({ powerPreference: 'high-performance' })
+            || await navigator.gpu.requestAdapter();
+          if (adapter && adapter.info) {
+            console.log('[YoloRunner] GPU Adapter:', adapter.info.vendor, adapter.info.architecture || adapter.info.device || '');
+          }
+        } catch (_) {}
+
         console.log('[YoloRunner] Attempting to load model with WebGPU provider...');
-        session = await ortInstance.InferenceSession.create(modelUrl, {
-          executionProviders: ['webgpu']
-        });
+        try {
+          session = await ortInstance.InferenceSession.create(modelUrl, {
+            executionProviders: [{
+              name: 'webgpu',
+              deviceType: 'gpu',
+              powerPreference: 'high-performance'
+            }]
+          });
+        } catch (optsErr) {
+          console.log('[YoloRunner] Trying standard executionProviders array:', optsErr.message);
+          session = await ortInstance.InferenceSession.create(modelUrl, {
+            executionProviders: ['webgpu']
+          });
+        }
+
         provider = 'webgpu';
-        console.log('[YoloRunner] WebGPU session initialized successfully.');
+        console.log('[YoloRunner] WebGPU session initialized successfully on GPU.');
       } catch (err) {
         console.warn('[YoloRunner] WebGPU session initialization failed, falling back to WASM:', err);
       }
     } else {
-      console.log('[YoloRunner] WebGPU not supported in this browser context, using WASM.');
+      console.log('[YoloRunner] navigator.gpu not detected (ensure browser is launched with --enable-unsafe-webgpu --ignore-gpu-blocklist), using WASM.');
     }
 
     // Attempt 2: WASM Fallback Provider
