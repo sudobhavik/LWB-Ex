@@ -12,6 +12,7 @@
   <script src="../engine/ocr_detector.js"></script>
   <script src="../engine/canvas_redactor.js"></script>
   <script src="../engine/vlm_router.js"></script>
+  <script src="../engine/chrome_ai_engine.js"></script>
 </head>
 <body>
   <div class="app-layout">
@@ -128,6 +129,7 @@
         <div class="controls-right">
           <select id="select-provider" class="model-select" title="Vision-Language Model Router">
             <option value="auto">Auto Router</option>
+            <option value="chrome-ai">Gemini Nano (Chrome Built-in AI)</option>
             <option value="openai-gpt4o">GPT-4o</option>
             <option value="openai-gpt4o-mini">GPT-4o mini</option>
             <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
@@ -183,6 +185,16 @@
             <label class="setting-label" for="input-gemini-key">Google Gemini API Key</label>
             <input type="password" id="input-gemini-key" class="setting-input" placeholder="AIzaSy..." autocomplete="off">
             <span class="setting-hint">Used for Gemini 2.0 Flash with automatic failover.</span>
+          </div>
+
+          <div class="setting-group on-device-ai-card" style="padding: 10px; background: rgba(0,0,0,0.03); border: 1px solid rgba(0,0,0,0.08); border-radius: 6px; margin-top: 10px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+              <span style="font-weight: 600; font-size: 12px; color: var(--text-primary, #1e293b);">Chrome Built-in AI (Gemini Nano)</span>
+              <span id="chrome-ai-status-badge" class="pill-badge pill-loading" style="font-size: 10px; padding: 2px 6px;">CHECKING</span>
+            </div>
+            <span id="chrome-ai-status-details" class="setting-hint" style="margin-top: 0; font-size: 11px;">
+              100% on-device Prompt API. Requires zero API keys and zero network data egress.
+            </span>
           </div>
 
           <div id="settings-status" class="settings-status-msg"></div>

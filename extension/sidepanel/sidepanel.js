@@ -56,6 +56,7 @@ const sanitizedPreviewCanvas = document.getElementById('sanitized-preview-canvas
 // State
 let runner = null;
 let vlmRouter = null;
+let chromeAIEngine = null;
 let isAgentRunning = false;
 let isStepExecuting = false;
 let currentAgentStep = 1;
@@ -80,6 +81,33 @@ async function loadSavedKeys() {
       });
     } else {
       vlmRouter = new (window.VLMRouter || globalThis.VLMRouter)();
+    }
+
+    // Initialize Chrome Built-in AI (Prompt API / Gemini Nano)
+    if (window.ChromeAIEngine || globalThis.ChromeAIEngine) {
+      const EngineClass = window.ChromeAIEngine || globalThis.ChromeAIEngine;
+      chromeAIEngine = new EngineClass();
+      chromeAIEngine.checkAvailability().then(status => {
+        const badge = document.getElementById('chrome-ai-status-badge');
+        const details = document.getElementById('chrome-ai-status-details');
+        if (badge) {
+          if (status.isReady) {
+            badge.className = 'pill-badge pill-webgpu';
+            badge.textContent = 'READY (LOCAL)';
+          } else if (status.available === 'after-download') {
+            badge.className = 'pill-badge pill-loading';
+            badge.textContent = 'DOWNLOADING';
+          } else {
+            badge.className = 'pill-badge pill-wasm';
+            badge.textContent = 'NOT DETECTED';
+          }
+        }
+        if (details && status.details) {
+          details.textContent = status.details;
+        }
+      }).catch(err => {
+        console.warn('Chrome AI availability check notice:', err);
+      });
     }
   } catch (err) {
     console.warn('Could not load storage keys:', err);
@@ -194,7 +222,9 @@ function updateProviderConfig() {
   const val = selectProvider.value;
   if (!vlmRouter) return;
 
-  if (val === 'auto') {
+  if (val === 'chrome-ai') {
+    vlmRouter.preferredProvider = 'chrome-ai';
+  } else if (val === 'auto') {
     vlmRouter.preferredProvider = 'auto';
     vlmRouter.openaiModel = 'gpt-4o';
     vlmRouter.geminiModel = 'gemini-2.0-flash';
@@ -215,22 +245,30 @@ function updateProviderConfig() {
 
 function validateProviderKeys() {
   updateProviderConfig();
+  if (selectProvider.value === 'chrome-ai') {
+    // Chrome Built-in AI runs 100% on-device and requires 0 external API keys
+    return true;
+  }
   if (!vlmRouter) {
     appendSystemMessage('VLM Router is not initialized.', true);
     return false;
   }
   if (vlmRouter.preferredProvider === 'openai' && !vlmRouter.openaiKey) {
-    appendSystemMessage('Please configure your OpenAI API Key in Settings (⚙️ top right).', true);
+    appendSystemMessage('Please configure your OpenAI API Key in Settings (⚙️ top right) or switch to Chrome Built-in AI.', true);
     settingsModal.style.display = 'flex';
     return false;
   }
   if (vlmRouter.preferredProvider === 'gemini' && !vlmRouter.geminiKey) {
-    appendSystemMessage('Please configure your Gemini API Key in Settings (⚙️ top right).', true);
+    appendSystemMessage('Please configure your Gemini API Key in Settings (⚙️ top right) or switch to Chrome Built-in AI.', true);
     settingsModal.style.display = 'flex';
     return false;
   }
   if (vlmRouter.preferredProvider === 'auto' && !vlmRouter.openaiKey && !vlmRouter.geminiKey) {
-    appendSystemMessage('Please configure at least one API Key (OpenAI or Gemini) in Settings.', true);
+    // If Chrome AI is present, auto-fallback works without keys
+    if (chromeAIEngine) {
+      return true;
+    }
+    appendSystemMessage('Please configure an API Key in Settings, or select Chrome Built-in AI (Gemini Nano).', true);
     settingsModal.style.display = 'flex';
     return false;
   }
@@ -556,9 +594,33 @@ async function executeSingleAgentStep(goal, step, maxSteps) {
     console.warn('Could not apply live blur overlays:', e);
   }
 
+  // Semantic Anchor Pruning via On-Device Chrome Built-in AI (Stagehand-style observe filter)
+  let activeAnchors = anchors;
+  if (chromeAIEngine && anchors.length > 5) {
+    try {
+      const pruned = await chromeAIEngine.pruneDOMAnchors(goal, anchors, 6);
+      if (pruned && pruned.selectedAnchors && pruned.selectedAnchors.length > 0) {
+        activeAnchors = pruned.selectedAnchors;
+      }
+    } catch (pruneErr) {
+      console.warn('Chrome AI anchor pruning notice:', pruneErr);
+    }
+  }
+
   // Query VLM or Smart Local Agent
   let decision = null;
   let providerUsed = 'WebGPU YOLO (On-Device)';
+
+  // Priority 1: Direct On-Device Chrome Built-in AI (Gemini Nano)
+  if (selectProvider.value === 'chrome-ai' && chromeAIEngine) {
+    showProgress(`Analyzing: Step ${step}/${maxSteps} - Running Chrome Gemini Nano (On-Device)...`);
+    try {
+      decision = await chromeAIEngine.decideLocalAction(goal, activeAnchors, step, agentHistory);
+      providerUsed = 'Chrome Built-in AI (Gemini Nano)';
+    } catch (cErr) {
+      console.warn('Chrome AI decision notice:', cErr);
+    }
+  }
 
   const hasKeys = vlmRouter && (
     (vlmRouter.preferredProvider === 'openai' && vlmRouter.openaiKey) ||
@@ -566,13 +628,14 @@ async function executeSingleAgentStep(goal, step, maxSteps) {
     (vlmRouter.preferredProvider === 'auto' && (vlmRouter.openaiKey || vlmRouter.geminiKey))
   );
 
-  if (hasKeys) {
+  // Priority 2: Cloud Multimodal VLM (OpenAI / Gemini Cloud)
+  if (!decision && hasKeys) {
     showProgress(`Analyzing: Step ${step}/${maxSteps} - Querying VLM (${vlmRouter.preferredProvider})...`);
     try {
       const vlmRes = await vlmRouter.decide(
         goal,
         sanitized.dataUrl,
-        anchors,
+        activeAnchors,
         step,
         agentHistory
       );
@@ -583,8 +646,17 @@ async function executeSingleAgentStep(goal, step, maxSteps) {
     }
   }
 
+  // Priority 3: Fallback to On-Device Chrome Built-in AI if available
+  if (!decision && chromeAIEngine) {
+    try {
+      decision = await chromeAIEngine.decideLocalAction(goal, activeAnchors, step, agentHistory);
+      providerUsed = 'Chrome Built-in AI (Gemini Nano)';
+    } catch (_) {}
+  }
+
+  // Priority 4: Deterministic Local Page Heuristics
   if (!decision) {
-    decision = inferDecisionFromPageContext(goal, anchors, pageState, step, agentHistory);
+    decision = inferDecisionFromPageContext(goal, activeAnchors, pageState, step, agentHistory);
     providerUsed = 'On-Device Zero-Egress Engine';
   }
 
