@@ -1,24 +1,20 @@
-import { scanDOM } from "../dom/scanner";
-import { scanVisibleText } from "../dom/textscanner";
-import { detectSensitiveData } from "../privacy/piiDetector";
-import { detectFinancialData } from "../privacy/financialdetector";
-// the Perception module is responsible for analyzing the DOM and visible text on a webpage to identify elements that may contain sensitive information. It scans the DOM for input fields and other relevant elements, checks for visible text that may contain personally identifiable information (PII), and detects financial data. The results are returned as a structured object containing the identified elements and a count of sensitive elements.
-export type PerceptionType =
-  | "button"
-  | "link"
-  | "input"
-  | "email"
-  | "password"
-  | "phone"
-  | "api_key"
-  | "token"
-  | "credit_card"
-  | "price"
-  | "balance"
-  | "currency";
-
+import { scanDOM } from "./scanner";
+import { scanDOMForPII } from "../privacy/piiDetector";
+import {
+  detectFinancialData,
+} from "../privacy/financialdetector";
+import {
+  scanVisibleText,
+} from "./textscanner";
+// this file contains the perception logic for the agent, which includes scanning the DOM for elements, detecting PII and financial data, and returning a structured perception result.
 export interface PerceptionElement {
-  type: PerceptionType;
+  type: string;
+
+  text?: string;
+
+  label?: string;
+
+  role?: string;
 
   bbox: {
     x: number;
@@ -29,93 +25,302 @@ export interface PerceptionElement {
 
   sensitive: boolean;
 }
+
 export interface PerceptionResult {
   elements: PerceptionElement[];
   sensitiveCount: number;
 }
+
 export function runPerception(): PerceptionResult {
+
+  console.log(
+    "Starting DOM perception...",
+  );
+
+  /* =====================================================
+     1. NORMAL DOM ELEMENTS
+     ===================================================== */
+
   const domElements = scanDOM();
-  const textBlocks = scanVisibleText();
 
-  const results: PerceptionElement[] = [];
+  console.log(
+    "DOM elements:",
+    domElements,
+  );
 
-  /*
-   * 1. Add relevant DOM elements
-   */
-  for (const element of domElements) {
-  const type = getDOMType(element);
+  const elements: PerceptionElement[] =
+    domElements.map((element: any) => ({
 
-  results.push({
-    type,
-    bbox: element.bbox,
-    sensitive:
-      type === "email" ||
-      type === "password" ||
-      type === "phone",
-  });
-}
+      type: element.type,
 
-  /*
-   * 2. Detect sensitive information from visible text
-   */
-  for (const block of textBlocks) {
-  const sensitiveMatches =
-    detectSensitiveData(block.text);
+      text:
+        element.text ??
+        element.innerText ??
+        undefined,
 
-  for (const match of sensitiveMatches) {
-    results.push({
-      type: match.type,
-      bbox: block.bbox,
+      label:
+        element.label ??
+        element.ariaLabel ??
+        element.placeholder ??
+        undefined,
+
+      role:
+        element.role ??
+        undefined,
+
+      bbox: element.bbox,
+
+      sensitive:
+        element.type === "password" ||
+        element.type === "email",
+
+    }));
+
+
+  /* =====================================================
+     2. PII DETECTION
+     ===================================================== */
+
+  console.log(
+    "Scanning page for PII...",
+  );
+
+  const piiRegions =
+    scanDOMForPII();
+
+  console.log(
+    "PII regions:",
+    piiRegions,
+  );
+
+  for (const region of piiRegions) {
+
+    elements.push({
+
+      type:
+        region.type.toLowerCase(),
+
+      text: undefined,
+
+      label: "Sensitive information",
+
+      role: "sensitive",
+
+      bbox: {
+
+        x: region.x,
+
+        y: region.y,
+
+        width: region.width,
+
+        height: region.height,
+
+      },
+
       sensitive: true,
+
     });
+
   }
-}
 
-  /*
-   * 3. Detect financial information
-   */
- const financialMatches =
-  detectFinancialData(textBlocks);
 
-for (const match of financialMatches) {
-  results.push({
-    type: match.type,
-    bbox: match.bbox,
-    sensitive: true,
-  });
-}
+  /* =====================================================
+     3. FINANCIAL DETECTION
+     ===================================================== */
+
+  console.log(
+    "Scanning page for financial data...",
+  );
+
+  const textBlocks =
+    scanVisibleText();
+
+  const financialMatches =
+    detectFinancialData(
+      textBlocks,
+    );
+
+  console.log(
+    "Financial detections:",
+    financialMatches,
+  );
+
+  for (
+    const financial of financialMatches
+  ) {
+
+    elements.push({
+
+      type:
+        financial.type,
+
+      /*
+       * DO NOT expose the actual
+       * financial value to the LLM.
+       */
+      text:
+        "[REDACTED FINANCIAL DATA]",
+
+      label:
+        financial.type === "balance"
+          ? "Account balance"
+          : "Financial data",
+
+      role: "sensitive",
+
+      bbox: {
+
+        x:
+          financial.bbox.x,
+
+        y:
+          financial.bbox.y,
+
+        width:
+          financial.bbox.width,
+
+        height:
+          financial.bbox.height,
+
+      },
+
+      sensitive: true,
+
+    });
+
+  }
+
+
+  /* =====================================================
+     4. REMOVE DUPLICATES
+     ===================================================== */
+
+  const deduplicated =
+    removeDuplicateElements(
+      elements,
+    );
+
+
+  /* =====================================================
+     5. COUNT SENSITIVE ELEMENTS
+     ===================================================== */
+
+  const sensitiveCount =
+    deduplicated.filter(
+      (element) =>
+        element.sensitive,
+    ).length;
+
+
+  console.log(
+    "Final DOM perception:",
+    deduplicated,
+  );
+
+  console.log(
+    "Sensitive count:",
+    sensitiveCount,
+  );
+
 
   return {
-  elements: results,
-  sensitiveCount: results.filter(
-    (element) => element.sensitive,
-  ).length,
-};
+
+    elements:
+      deduplicated,
+
+    sensitiveCount,
+
+  };
+
 }
 
-function getDOMType(
-  element: ReturnType<typeof scanDOM>[number],
-): PerceptionType {
-  if (
-    element.type === "input" &&
-    element.inputType === "email"
-  ) {
-    return "email";
+
+/* =======================================================
+   DUPLICATE DETECTION
+   ======================================================= */
+
+function removeDuplicateElements(
+  elements: PerceptionElement[],
+): PerceptionElement[] {
+
+  const result: PerceptionElement[] =
+    [];
+
+  for (const element of elements) {
+
+    const duplicate =
+      result.some(
+        (existing) => {
+
+          const sameType =
+            existing.type ===
+            element.type;
+
+
+          const samePosition =
+
+            Math.abs(
+              existing.bbox.x -
+              element.bbox.x,
+            ) < 3 &&
+
+            Math.abs(
+              existing.bbox.y -
+              element.bbox.y,
+            ) < 3;
+
+
+          const sameSize =
+
+            Math.abs(
+              existing.bbox.width -
+              element.bbox.width,
+            ) < 3 &&
+
+            Math.abs(
+              existing.bbox.height -
+              element.bbox.height,
+            ) < 3;
+
+
+          /*
+           * If semantic information
+           * is available, compare it too.
+           */
+
+          const sameText =
+            (existing.text ?? "") ===
+            (element.text ?? "");
+
+
+          return (
+
+            sameType &&
+
+            samePosition &&
+
+            sameSize &&
+
+            sameText
+
+          );
+
+        },
+      );
+
+
+    if (!duplicate) {
+
+      result.push(
+        element,
+      );
+
+    }
+
   }
 
-  if (
-    element.type === "input" &&
-    element.inputType === "password"
-  ) {
-    return "password";
-  }
 
-  if (
-    element.type === "input" &&
-    element.inputType === "tel"
-  ) {
-    return "phone";
-  }
+  return result;
 
-  return element.type;
 }

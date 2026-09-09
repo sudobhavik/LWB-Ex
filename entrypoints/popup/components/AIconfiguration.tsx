@@ -1,34 +1,69 @@
 
+
 import { useState } from "react";
 
-type AIProvider = "openai" | "gemini" | "local";
+type AIProvider = "openai";
 
 interface AIConfigurationProps {
   onBack: () => void;
-  onContinue: () => void;
+
+  onContinue: (
+    provider: AIProvider,
+    model: string,
+    apiKey: string,
+  ) => void;
 }
-// this is aI CONFIguration component from where we can select ai provider
+
 export default function AIConfiguration({
   onBack,
   onContinue,
 }: AIConfigurationProps) {
-  const [provider, setProvider] = useState<AIProvider>("openai");
-  const [model, setModel] = useState("");
-  const [apiKey, setApiKey] = useState("");
+ const [provider, setProvider] = useState<AIProvider>("openai");
+const [model, setModel] = useState("gpt-4o");
+  
+  const [apiKey, setApiKey] =
+    useState("");
 
   const canContinue =
-    model.trim() !== "" && apiKey.trim() !== "";
+    model.trim() !== "" &&
+    apiKey.trim() !== "";
+
+  const handleContinue = () => {
+    if (!canContinue) {
+      return;
+    }
+
+    console.log(
+      "[AI CONFIG] Configuration completed",
+    );
+
+    console.log(
+      "[AI CONFIG] Provider:",
+      provider,
+    );
+
+    console.log(
+      "[AI CONFIG] Model:",
+      model,
+    );
+
+    onContinue(
+      provider,
+      model.trim(),
+      apiKey.trim(),
+    );
+  };
 
   return (
     <main className="flex h-[560px] w-[420px] flex-col overflow-hidden bg-zinc-50">
       {/* Header */}
+
       <header className="flex h-14 shrink-0 items-center border-b border-zinc-200 bg-white px-5">
         <button
           type="button"
           onClick={onBack}
           className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm font-medium text-zinc-600 transition hover:bg-zinc-100 hover:text-zinc-900"
         >
-          {/* Back icon */}
           <svg
             width="16"
             height="16"
@@ -56,9 +91,11 @@ export default function AIConfiguration({
         </button>
       </header>
 
-      {/* Scrollable Content */}
+      {/* Content */}
+
       <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
         {/* Heading */}
+
         <div>
           <h1 className="text-lg font-semibold tracking-tight text-zinc-900">
             Choose AI Provider
@@ -69,81 +106,29 @@ export default function AIConfiguration({
           </p>
         </div>
 
-        {/* Providers */}
-        <div className="mt-5 space-y-2">
-          {/* OpenAI */}
+        {/* Provider */}
+
+        <div className="mt-5">
           <button
             type="button"
-            onClick={() => setProvider("openai")}
-            className={`flex w-full items-center gap-3 rounded-xl border px-3.5 py-3 text-left transition ${
-              provider === "openai"
-                ? "border-zinc-400 bg-zinc-50"
-                : "border-zinc-200 bg-white hover:border-zinc-300"
-            }`}
+            className="flex w-full items-center gap-3 rounded-xl border border-zinc-400 bg-zinc-50 px-3.5 py-3 text-left"
           >
-            <Radio selected={provider === "openai"} />
+            <Radio selected={true} />
 
             <div>
               <p className="text-sm font-medium text-zinc-800">
-                OpenAI
+                OpenRouter
               </p>
 
               <p className="mt-0.5 text-[11px] text-zinc-500">
-                Use OpenAI models
+                Access GPT-4o through OpenRouter
               </p>
-            </div>
-          </button>
-
-          {/* Gemini */}
-          <button
-            type="button"
-            onClick={() => setProvider("gemini")}
-            className={`flex w-full items-center gap-3 rounded-xl border px-3.5 py-3 text-left transition ${
-              provider === "gemini"
-                ? "border-zinc-400 bg-zinc-50"
-                : "border-zinc-200 bg-white hover:border-zinc-300"
-            }`}
-          >
-            <Radio selected={provider === "gemini"} />
-
-            <div>
-              <p className="text-sm font-medium text-zinc-800">
-                Gemini
-              </p>
-
-              <p className="mt-0.5 text-[11px] text-zinc-500">
-                Use Google Gemini models
-              </p>
-            </div>
-          </button>
-
-          {/* Local Model */}
-          <button
-            type="button"
-            disabled
-            className="flex w-full cursor-not-allowed items-center gap-3 rounded-xl border border-zinc-200 bg-white px-3.5 py-3 text-left opacity-50"
-          >
-            <Radio selected={false} />
-
-            <div className="flex min-w-0 flex-1 items-center justify-between gap-3">
-              <div>
-                <p className="text-sm font-medium text-zinc-800">
-                  Local Model
-                </p>
-
-                <p className="mt-0.5 text-[11px] text-zinc-500">
-                  Run AI locally on your device
-                </p>
-              </div>
-
-              <span className="shrink-0 rounded-md bg-zinc-100 px-2 py-1 text-[10px] font-medium text-zinc-500">
-                Coming Soon
-              </span>
             </div>
           </button>
         </div>
 
         {/* Model */}
+
         <div className="mt-5">
           <label
             htmlFor="model"
@@ -156,38 +141,48 @@ export default function AIConfiguration({
             id="model"
             type="text"
             value={model}
-            onChange={(e) => setModel(e.target.value)}
-            placeholder={
-              provider === "openai"
-                ? "e.g. gpt-4o"
-                : "e.g. gemini-2.5-flash"
+            onChange={(e) =>
+              setModel(e.target.value)
             }
+            placeholder="openai/gpt-4o"
             className="mt-2 h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm text-zinc-900 outline-none transition placeholder:text-zinc-400 focus:border-zinc-400 focus:ring-2 focus:ring-zinc-100"
           />
+
+          <p className="mt-1.5 text-[10px] text-zinc-400">
+            OpenRouter model ID
+          </p>
         </div>
 
         {/* API Key */}
+
         <div className="mt-4">
           <label
             htmlFor="api-key"
             className="block text-sm font-medium text-zinc-800"
           >
-            API Key
+            OpenRouter API Key
           </label>
 
           <input
             id="api-key"
             type="password"
             value={apiKey}
-            onChange={(e) => setApiKey(e.target.value)}
-            placeholder="Enter your API key"
+            onChange={(e) =>
+              setApiKey(e.target.value)
+            }
+            placeholder="sk-or-v1-..."
             className="mt-2 h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm text-zinc-900 outline-none transition placeholder:text-zinc-400 focus:border-zinc-400 focus:ring-2 focus:ring-zinc-100"
           />
+
+          <p className="mt-1.5 text-[10px] leading-4 text-zinc-400">
+            Used only for making requests to OpenRouter.
+            Never commit your key to GitHub.
+          </p>
         </div>
 
         {/* Privacy Notice */}
+
         <div className="mt-5 flex gap-3 rounded-xl border border-zinc-200 bg-white p-3.5">
-          {/* Shield Icon */}
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-zinc-100 text-zinc-700">
             <svg
               width="16"
@@ -213,30 +208,30 @@ export default function AIConfiguration({
             </svg>
           </div>
 
-          {/* Privacy Text */}
           <div>
             <p className="text-xs font-semibold text-zinc-800">
               Privacy protected
             </p>
 
             <p className="mt-0.5 text-[11px] leading-4 text-zinc-500">
-              Page data is sanitized before being sent to AI.
+              Page data is sanitized locally before
+              being sent to the AI model.
             </p>
           </div>
         </div>
       </div>
 
-      {/* Fixed Continue Section */}
+      {/* Continue */}
+
       <div className="shrink-0 border-t border-zinc-200 bg-white px-6 py-4">
         <button
           type="button"
           disabled={!canContinue}
-          onClick={onContinue}
+          onClick={handleContinue}
           className="flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-zinc-900 text-sm font-semibold text-white transition hover:bg-zinc-800 active:scale-[0.99] disabled:cursor-not-allowed disabled:bg-zinc-300"
         >
           <span>Continue</span>
 
-          {/* Arrow Icon */}
           <svg
             width="17"
             height="17"
@@ -265,12 +260,19 @@ export default function AIConfiguration({
   );
 }
 
-/* Radio Button */
-function Radio({ selected }: { selected: boolean }) {
+/* Radio */
+
+function Radio({
+  selected,
+}: {
+  selected: boolean;
+}) {
   return (
     <span
       className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border ${
-        selected ? "border-zinc-900" : "border-zinc-300"
+        selected
+          ? "border-zinc-900"
+          : "border-zinc-300"
       }`}
     >
       {selected && (
@@ -279,3 +281,5 @@ function Radio({ selected }: { selected: boolean }) {
     </span>
   );
 }
+
+

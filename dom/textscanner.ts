@@ -1,5 +1,11 @@
-// This module provides functionality to scan the visible text on a webpage and extract relevant information, such as the text content, bounding box coordinates, and tag names of the elements containing the text. It defines the TextBlock interface to represent the extracted information and includes utility functions for normalizing text, checking element visibility, and retrieving direct text from elements. The main function, scanVisibleText, iterates through all elements in the DOM, filters out invisible elements, and collects unique text blocks for further analysis.
-
+// ============================================================
+// TEXT SCANNER
+// Extracts visible, meaningful text from webpage elements.
+//
+// Used for:
+// 1. Privacy / PII detection
+// 2. Giving semantic information about the page to the agent
+// ============================================================
 
 export interface TextBlock {
   text: string;
@@ -12,12 +18,30 @@ export interface TextBlock {
   };
 
   tagName: string;
+
+  // Useful for agent navigation
+  role?: string;
+
+  // Whether this is an interactive element
+  interactive?: boolean;
 }
-// This function normalizes the input text by replacing multiple whitespace characters with a single space and trimming leading and trailing whitespace. It ensures that the text is in a consistent format for further processing.
+
+
+// ============================================================
+// NORMALIZE TEXT
+// ============================================================
+
 function normalizeText(text: string): string {
-  return text.replace(/\s+/g, " ").trim();
+  return text
+    .replace(/\s+/g, " ")
+    .trim();
 }
-// This function checks if a given HTML element is visible on the page by examining its computed styles and bounding box dimensions. It returns true if the element is visible and false otherwise.
+
+
+// ============================================================
+// CHECK VISIBILITY
+// ============================================================
+
 function isVisible(element: HTMLElement): boolean {
   const style = window.getComputedStyle(element);
 
@@ -31,50 +55,287 @@ function isVisible(element: HTMLElement): boolean {
 
   const rect = element.getBoundingClientRect();
 
-  return rect.width > 0 && rect.height > 0;
-}
-// This function retrieves the direct text content of a given HTML element by iterating through its child nodes and concatenating the text from text nodes. It ignores any nested elements and returns the normalized text.
-function getDirectText(element: HTMLElement): string {
-  let text = "";
+  if (
+    rect.width <= 0 ||
+    rect.height <= 0
+  ) {
+    return false;
+  }
 
-  for (const node of element.childNodes) {
-    if (node.nodeType === Node.TEXT_NODE) {
-      text += ` ${node.textContent ?? ""}`;
+  // Ignore elements completely outside viewport
+  if (
+    rect.bottom < 0 ||
+    rect.right < 0 ||
+    rect.top > window.innerHeight ||
+    rect.left > window.innerWidth
+  ) {
+    return false;
+  }
+
+  return true;
+}
+
+
+// ============================================================
+// GET MEANINGFUL TEXT
+// ============================================================
+
+function getElementText(
+  element: HTMLElement,
+): string {
+
+  // ----------------------------------------------------------
+  // Priority 1: aria-label
+  // ----------------------------------------------------------
+
+  const ariaLabel =
+    element.getAttribute("aria-label");
+
+  if (ariaLabel) {
+    return normalizeText(ariaLabel);
+  }
+
+
+  // ----------------------------------------------------------
+  // Priority 2: input placeholder
+  // ----------------------------------------------------------
+
+  if (
+    element instanceof HTMLInputElement ||
+    element instanceof HTMLTextAreaElement
+  ) {
+    const placeholder =
+      element.getAttribute("placeholder");
+
+    if (placeholder) {
+      return normalizeText(placeholder);
+    }
+
+    const value = element.value;
+
+    if (value) {
+      return normalizeText(value);
     }
   }
 
+
+  // ----------------------------------------------------------
+  // Priority 3: visible text content
+  // ----------------------------------------------------------
+
+  const text =
+    element.innerText ||
+    element.textContent ||
+    "";
+
   return normalizeText(text);
 }
-// This function scans the visible text on a webpage by iterating through all elements in the DOM, filtering out invisible elements, and collecting unique text blocks. It returns an array of TextBlock objects containing the text content, bounding box coordinates, and tag names of the elements containing the text.
-export function scanVisibleText(): TextBlock[] {
-  const elements = Array.from(
-    document.querySelectorAll<HTMLElement>("*"),
+
+
+// ============================================================
+// DETECT INTERACTIVE ELEMENTS
+// ============================================================
+
+function isInteractive(
+  element: HTMLElement,
+): boolean {
+
+  const tag =
+    element.tagName.toLowerCase();
+
+  if (
+    tag === "button" ||
+    tag === "a" ||
+    tag === "input" ||
+    tag === "textarea" ||
+    tag === "select"
+  ) {
+    return true;
+  }
+
+
+  const role =
+    element.getAttribute("role");
+
+  if (
+    role === "button" ||
+    role === "link" ||
+    role === "textbox" ||
+    role === "menuitem"
+  ) {
+    return true;
+  }
+
+
+  if (
+    element.hasAttribute("onclick")
+  ) {
+    return true;
+  }
+
+
+  return false;
+}
+
+
+// ============================================================
+// GET ELEMENT ROLE
+// ============================================================
+
+function getElementRole(
+  element: HTMLElement,
+): string {
+
+  const explicitRole =
+    element.getAttribute("role");
+
+  if (explicitRole) {
+    return explicitRole;
+  }
+
+  const tag =
+    element.tagName.toLowerCase();
+
+  switch (tag) {
+    case "button":
+      return "button";
+
+    case "a":
+      return "link";
+
+    case "input":
+      return "input";
+
+    case "textarea":
+      return "textarea";
+
+    case "select":
+      return "select";
+
+    default:
+      return tag;
+  }
+}
+
+
+// ============================================================
+// IMPORTANT:
+// CHECK IF ELEMENT IS A MEANINGFUL TEXT CONTAINER
+// ============================================================
+
+function isMeaningfulElement(
+  element: HTMLElement,
+): boolean {
+
+  const tag =
+    element.tagName.toLowerCase();
+
+  const meaningfulTags = new Set([
+    "button",
+    "a",
+    "input",
+    "textarea",
+    "select",
+    "label",
+    "p",
+    "span",
+    "h1",
+    "h2",
+    "h3",
+    "h4",
+    "h5",
+    "h6",
+    "li",
+  ]);
+
+  return (
+    meaningfulTags.has(tag) ||
+    isInteractive(element)
   );
+}
+
+
+// ============================================================
+// MAIN SCANNER
+// ============================================================
+
+export function scanVisibleText(): TextBlock[] {
+
+  const elements =
+    Array.from(
+      document.querySelectorAll<HTMLElement>("*"),
+    );
 
   const textBlocks: TextBlock[] = [];
 
   const seen = new Set<string>();
 
+
   for (const element of elements) {
+
+    // --------------------------------------------------------
+    // 1. Skip invisible elements
+    // --------------------------------------------------------
+
     if (!isVisible(element)) {
       continue;
     }
 
-    const text = getDirectText(element);
+
+    // --------------------------------------------------------
+    // 2. Skip meaningless containers
+    // --------------------------------------------------------
+
+    if (!isMeaningfulElement(element)) {
+      continue;
+    }
+
+
+    // --------------------------------------------------------
+    // 3. Extract text
+    // --------------------------------------------------------
+
+    const text =
+      getElementText(element);
 
     if (!text) {
       continue;
     }
 
-    const rect = element.getBoundingClientRect();
+
+    // Avoid giant text containers
+    if (text.length > 300) {
+      continue;
+    }
+
+
+    // --------------------------------------------------------
+    // 4. Bounding box
+    // --------------------------------------------------------
+
+    const rect =
+      element.getBoundingClientRect();
+
+    const bbox = {
+      x: rect.x,
+      y: rect.y,
+      width: rect.width,
+      height: rect.height,
+    };
+
+
+    // --------------------------------------------------------
+    // 5. Create duplicate key
+    // --------------------------------------------------------
 
     const key = [
       text,
-      Math.round(rect.x),
-      Math.round(rect.y),
-      Math.round(rect.width),
-      Math.round(rect.height),
-    ].join("-");
+      Math.round(bbox.x),
+      Math.round(bbox.y),
+      Math.round(bbox.width),
+      Math.round(bbox.height),
+    ].join("|");
+
 
     if (seen.has(key)) {
       continue;
@@ -82,17 +343,30 @@ export function scanVisibleText(): TextBlock[] {
 
     seen.add(key);
 
+
+    // --------------------------------------------------------
+    // 6. Store text block
+    // --------------------------------------------------------
+
     textBlocks.push({
       text,
-      bbox: {
-        x: rect.x,
-        y: rect.y,
-        width: rect.width,
-        height: rect.height,
-      },
-      tagName: element.tagName.toLowerCase(),
+      bbox,
+      tagName:
+        element.tagName.toLowerCase(),
+
+      role:
+        getElementRole(element),
+
+      interactive:
+        isInteractive(element),
     });
   }
+
+
+  console.log(
+    "[TEXT SCANNER] Visible text blocks:",
+    textBlocks,
+  );
 
   return textBlocks;
 }
