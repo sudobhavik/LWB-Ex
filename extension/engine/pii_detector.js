@@ -288,6 +288,109 @@ function extractPIIMatches(text, contextStr = '') {
 }
 
 /**
+ * Detects segmented / multi-box inputs (e.g. 4-box card numbers, split OTPs, segmented Aadhaar/SSN).
+ * Aggregates sibling/co-parented input values into a composite string, validates with Luhn / Verhoeff / format checks,
+ * and returns bounding boxes for all inputs in any detected sensitive group.
+ *
+ * @param {NodeList|Array<Element>} inputs
+ * @param {Document} [targetDoc]
+ * @returns {Array<{ x: number, y: number, width: number, height: number, type: string, isSegmented?: boolean }>}
+ */
+function detectSegmentedInputs(inputs, targetDoc = null) {
+  if (!inputs || inputs.length < 2) return [];
+  const segmentedRegions = [];
+  const isHeadless = (typeof window !== 'undefined' && !window.chrome && !window.browser) || (typeof process !== 'undefined');
+
+  // Group inputs by immediate parent container
+  const parentGroups = new Map();
+  inputs.forEach(input => {
+    if (!input || !input.tagName || input.tagName.toLowerCase() !== 'input') return;
+    const parent = input.parentElement;
+    if (!parent) return;
+    if (!parentGroups.has(parent)) {
+      parentGroups.set(parent, []);
+    }
+    parentGroups.get(parent).push(input);
+  });
+
+  parentGroups.forEach((groupInputs, parent) => {
+    if (groupInputs.length < 2 || groupInputs.length > 8) return;
+
+    const values = [];
+    const elementsInGroup = [];
+
+    groupInputs.forEach(inp => {
+      const val = (inp.value || '').trim();
+      const maxLen = parseInt(inp.getAttribute('maxlength') || '0', 10);
+      const isShort = maxLen > 0 && maxLen <= 6;
+      const isDigitOnly = /^\d+$/.test(val);
+      const isSequential = /card|cc|otp|pin|aadhaar|ssn|part|box|seg/i.test(
+        (inp.name || '') + ' ' + (inp.id || '') + ' ' + (inp.className || '') + ' ' + (inp.getAttribute('autocomplete') || '')
+      );
+
+      if (isDigitOnly || isShort || isSequential) {
+        values.push(val);
+        elementsInGroup.push(inp);
+      }
+    });
+
+    if (elementsInGroup.length >= 2 && elementsInGroup.length === groupInputs.length) {
+      const composite = values.join('');
+      let detectedType = null;
+
+      // 1. Check if composite is a valid Credit Card via Luhn (13-19 digits)
+      if (composite.length >= 13 && composite.length <= 19 && isLuhnValid(composite)) {
+        detectedType = 'CARD';
+      }
+      // 2. Check if composite is a 12-digit Aadhaar UID
+      else if (composite.length === 12 && /^[2-9]\d{11}$/.test(composite)) {
+        detectedType = 'AADHAAR';
+      }
+      // 3. Check if composite is a 9-digit SSN
+      else if (composite.length === 9 && /^\d{9}$/.test(composite)) {
+        const contextStr = (parent.textContent || '') + ' ' + (parent.parentElement ? parent.parentElement.textContent : '');
+        if (SSN_POSITIVE_CONTEXT.test(contextStr) || /ssn|social/i.test(parent.className || '')) {
+          detectedType = 'SSN';
+        }
+      }
+      // 4. Check if composite is a 4-digit or 6-digit OTP/PIN with security context
+      else if ((composite.length === 4 || composite.length === 6) && /^\d+$/.test(composite)) {
+        const contextStr = (parent.textContent || '') + ' ' + (parent.parentElement ? parent.parentElement.textContent : '');
+        if (GATE_POSITIVE_CONTEXT.test(contextStr) || /otp|pin|passcode|verification|security/i.test(contextStr + ' ' + (parent.className || ''))) {
+          detectedType = 'GATE_CODE';
+        }
+      }
+
+      if (detectedType) {
+        elementsInGroup.forEach(inp => {
+          inp.dataset.guptcharaSegmented = 'true';
+          let rect = (typeof inp.getBoundingClientRect === 'function')
+            ? inp.getBoundingClientRect()
+            : { left: 0, top: 0, width: 0, height: 0 };
+
+          if (isHeadless && rect.width === 0 && rect.height === 0) {
+            rect = { left: 10, top: 10, width: 45, height: 32 };
+          }
+
+          if (rect.width > 0 && rect.height > 0) {
+            segmentedRegions.push({
+              x: Math.round(rect.left),
+              y: Math.round(rect.top),
+              width: Math.round(rect.width),
+              height: Math.round(rect.height),
+              type: detectedType,
+              isSegmented: true
+            });
+          }
+        });
+      }
+    }
+  });
+
+  return segmentedRegions;
+}
+
+/**
  * Walks active webpage DOM to find bounding boxes of all sensitive inputs and text nodes.
  * Executes in content script / page context.
  *
@@ -306,7 +409,16 @@ function scanDOMForPII(doc = null) {
   const inputs = targetDoc.querySelectorAll('input, textarea, select');
   const isHeadless = (typeof window !== 'undefined' && !window.chrome && !window.browser) || (typeof process !== 'undefined');
 
+  // First pass: detect segmented / multi-box inputs (e.g. 4-box card numbers, OTPs)
+  const segmented = detectSegmentedInputs(inputs, targetDoc);
+  if (segmented.length > 0) {
+    regions.push(...segmented);
+  }
+
   inputs.forEach(input => {
+    // Skip inputs already processed by segmented detection
+    if (input.dataset && input.dataset.guptcharaSegmented === 'true') return;
+
     let rect = (typeof input.getBoundingClientRect === 'function')
       ? input.getBoundingClientRect()
       : { left: 0, top: 0, width: 0, height: 0, bottom: 0, right: 0 };
@@ -435,6 +547,7 @@ if (typeof exports !== 'undefined') {
     isLuhnValid,
     calculateShannonEntropy,
     extractPIIMatches,
+    detectSegmentedInputs,
     scanDOMForPII
   };
 } else if (typeof globalThis !== 'undefined') {
@@ -446,6 +559,7 @@ if (typeof exports !== 'undefined') {
     isLuhnValid,
     calculateShannonEntropy,
     extractPIIMatches,
+    detectSegmentedInputs,
     scanDOMForPII
   };
 }

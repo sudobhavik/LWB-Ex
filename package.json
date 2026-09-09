@@ -24,6 +24,7 @@
   "devDependencies": {
     "jsdom": "^26.0.0",
     "onnxruntime-web": "^1.22.0",
+    "puppeteer-core": "^24.43.1",
     "vitest": "^3.0.7"
   }
 }

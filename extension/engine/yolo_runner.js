@@ -52,6 +52,10 @@ class YoloWebGPURunner {
       throw new Error('ONNX Runtime Web library (ort) is not available');
     }
 
+    if (ortInstance.env) {
+      ortInstance.env.logLevel = 'error';
+    }
+
     // Configure WASM asset location for MV3 CSP compatibility
     if (wasmDir && ortInstance.env && ortInstance.env.wasm) {
       ortInstance.env.wasm.wasmPaths = wasmDir.endsWith('/') ? wasmDir : `${wasmDir}/`;
@@ -84,12 +88,14 @@ class YoloWebGPURunner {
               name: 'webgpu',
               deviceType: 'gpu',
               powerPreference: 'high-performance'
-            }]
+            }],
+            logSeverityLevel: 3
           });
         } catch (optsErr) {
           console.log('[YoloRunner] Trying standard executionProviders array:', optsErr.message);
           session = await ortInstance.InferenceSession.create(modelUrl, {
-            executionProviders: ['webgpu']
+            executionProviders: ['webgpu'],
+            logSeverityLevel: 3
           });
         }
 
@@ -107,7 +113,8 @@ class YoloWebGPURunner {
       try {
         console.log('[YoloRunner] Initializing with WASM provider...');
         session = await ortInstance.InferenceSession.create(modelUrl, {
-          executionProviders: ['wasm']
+          executionProviders: ['wasm'],
+          logSeverityLevel: 3
         });
         provider = 'wasm';
         console.log('[YoloRunner] WASM session initialized successfully.');

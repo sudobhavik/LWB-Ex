@@ -47,7 +47,7 @@ function letterboxImage(imageSource, targetWidth = 640, targetHeight = 640, crea
     throw new Error('Canvas creation not supported in this environment');
   }
 
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d', { willReadFrequently: true }) || canvas.getContext('2d');
   // Fill background with neutral gray (YOLO standard letterbox color)
   ctx.fillStyle = '#727272'; // rgb(114, 114, 114)
   ctx.fillRect(0, 0, targetWidth, targetHeight);
@@ -74,7 +74,7 @@ function letterboxImage(imageSource, targetWidth = 640, targetHeight = 640, crea
  * @returns {Float32Array}
  */
 function canvasToNCHW(canvas, width = 640, height = 640) {
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d', { willReadFrequently: true }) || canvas.getContext('2d');
   const imgData = ctx.getImageData(0, 0, width, height).data;
   const totalPixels = width * height;
   const tensorData = new Float32Array(3 * totalPixels);
@@ -229,9 +229,10 @@ function decodeYoloOutput(tensorData, options = {}) {
     const width = Math.max(0, x2 - x1);
     const height = Math.max(0, y2 - y1);
 
+    const names = options.classNames || CLASS_NAMES;
     return {
       classId: item.classId,
-      className: CLASS_NAMES[item.classId] || `class_${item.classId}`,
+      className: names[item.classId] || `class_${item.classId}`,
       score: parseFloat(item.score.toFixed(4)),
       x: Math.round(x1),
       y: Math.round(y1),
@@ -272,7 +273,7 @@ function isHumanFace(detection, sourceCanvasOrImage = null) {
   // 4. Skin chrominance test if canvas or image context is available
   if (sourceCanvasOrImage && typeof sourceCanvasOrImage.getContext === 'function') {
     try {
-      const ctx = sourceCanvasOrImage.getContext('2d');
+      const ctx = sourceCanvasOrImage.getContext('2d', { willReadFrequently: true }) || sourceCanvasOrImage.getContext('2d');
       let sx, sy, sw, sh;
 
       // If sourceCanvasOrImage is the 640x640 letterbox canvas, use letterboxBox coordinates

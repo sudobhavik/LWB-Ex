@@ -2,13 +2,25 @@ import { describe, it, expect, beforeEach } from 'vitest';
 const fs = require('fs');
 const path = require('path');
 const { JSDOM } = require('jsdom');
+
+let memoryStore = {};
+const mockStorage = {
+  getItem: (k) => (k in memoryStore ? memoryStore[k] : null),
+  setItem: (k, v) => { memoryStore[k] = String(v); },
+  removeItem: (k) => { delete memoryStore[k]; },
+  clear: () => { memoryStore = {}; }
+};
+Object.defineProperty(globalThis, 'localStorage', {
+  value: mockStorage,
+  writable: true,
+  configurable: true
+});
+
 const { PRODUCTS, CartManager, CART_STORAGE_KEY } = require('../demo/cart.js');
 
 describe('E-Commerce Product Catalog & Cart Tests', () => {
   beforeEach(() => {
-    if (typeof localStorage !== 'undefined' && localStorage.clear) {
-      localStorage.clear();
-    }
+    mockStorage.clear();
   });
 
   describe('Product Catalog Integrity', () => {

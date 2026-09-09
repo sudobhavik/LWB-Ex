@@ -276,7 +276,7 @@ Respond ONLY in strict JSON format:
         reasoning: parsed.reasoning || 'Semantic relevance match via Gemini Nano'
       };
     } catch (err) {
-      console.warn('On-device anchor pruning fallback to heuristic:', err.message);
+      console.log('On-device anchor pruning fallback to heuristic:', err.message);
       const fallbackList = this.heuristicAnchorFallback(goal, anchors, maxCandidates);
       return {
         selectedAnchors: fallbackList,
@@ -465,7 +465,7 @@ Respond ONLY in strict JSON:
         answer: parsed.answer || parsed.thought || ''
       };
     } catch (err) {
-      console.warn('Local AI decision error, falling back to deterministic heuristic:', err.message);
+      console.log('Local AI decision notice, falling back to deterministic heuristic:', err.message);
       return this.heuristicDecisionFallback(goal, anchors, step, history);
     }
   }

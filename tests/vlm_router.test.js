@@ -56,6 +56,21 @@ describe('Dual VLM Router Tests', () => {
       expect(decision.thought).toBe('Finish purchase');
       expect(decision.action).toBe('finish');
     });
+
+    it('should extract target index and click action from raw reasoning stream when JSON is missing', () => {
+      const rawReasoning = `o, let's see. The user's goal is to buy headphones. Looking at the current screen, there's a Sony WH-1000XM5 Noise Canceling Headphones listed with a "Buy Now" button. The visible interactive anchors include the Sony headphones with a "Buy Now" button. The target index for this should be [Index 5] since it's the third product in the list.`;
+      const decision = router.parseDecision(rawReasoning);
+      expect(decision.action).toBe('click');
+      expect(decision.target_index).toBe(5);
+    });
+
+    it('should strip chain-of-thought monologue prefixes from natural answers', () => {
+      const reasoningWithAnswer = `Okay, let's see. The user is asking for the price of headphones. Therefore, the price is ₹29,990.00`;
+      const decision = router.parseDecision(reasoningWithAnswer);
+      expect(decision.action).toBe('finish');
+      expect(decision.answer).toContain('₹29,990.00');
+      expect(decision.answer).not.toContain("Okay, let's see");
+    });
   });
 
   describe('error handling', () => {

@@ -4,7 +4,18 @@ const { sanitizeScreenshot } = require('../extension/engine/canvas_redactor.js')
 describe('Canvas Redactor Tests', () => {
   it('should calculate sanitized regions and total count for faces and PII', () => {
     const mockImage = { width: 1280, height: 720 };
+    let recordedFills = [];
     const mockCtx = {
+      set fillStyle(val) { recordedFills.push(val); },
+      get fillStyle() { return recordedFills[recordedFills.length - 1] || ''; },
+      set strokeStyle(val) {},
+      get strokeStyle() { return ''; },
+      set filter(val) {},
+      get filter() { return ''; },
+      set font(val) {},
+      get font() { return ''; },
+      set lineWidth(val) {},
+      get lineWidth() { return 1; },
       drawImage: () => {},
       beginPath: () => {},
       rect: () => {},
@@ -35,5 +46,7 @@ describe('Canvas Redactor Tests', () => {
     expect(result.regions.some(r => r.label === 'REDACTED_CARD')).toBe(true);
     expect(result.regions.some(r => r.label === 'REDACTED_PASSWORD')).toBe(true);
     expect(result.dataUrl).toBe('data:image/jpeg;base64,sampleSanitizedData');
+    // Confirm solid opaque blackout was applied (no translucent alpha bleed)
+    expect(recordedFills).toContain('#131921');
   });
 });

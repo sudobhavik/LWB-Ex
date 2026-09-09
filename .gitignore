@@ -2,3 +2,10 @@ node_modules/
 dist/
 .DS_Store
 /tmp/
+/benchmark_charts/
+/runs_benchmark/
+/presentation_assets/
+*.pdf
+/models/
+_metadata/
+extension/_metadata/

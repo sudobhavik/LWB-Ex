@@ -66,5 +66,16 @@ browserAPI.runtime?.onMessage?.addListener((message, sender, sendResponse) => {
     sendResponse({ status: 'PONG' });
     return true;
   }
+  if (message.action === 'CAPTURE_VISIBLE_TAB') {
+    const targetWindowId = typeof message.windowId === 'number' ? message.windowId : null;
+    browserAPI.tabs.captureVisibleTab(targetWindowId, { format: 'png' })
+      .then(dataUrl => sendResponse({ dataUrl }))
+      .catch(err => {
+        browserAPI.tabs.captureVisibleTab(null, { format: 'png' })
+          .then(dataUrl => sendResponse({ dataUrl }))
+          .catch(err2 => sendResponse({ error: err2?.message || err?.message }));
+      });
+    return true;
+  }
   return false;
 });

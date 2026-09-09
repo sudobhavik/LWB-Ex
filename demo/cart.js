@@ -221,7 +221,6 @@ const CartManager = {
       }
     } catch (_) {}
     // First time setup with realistic default items
-    this.saveRawCart(DEFAULT_INITIAL_CART);
     return [...DEFAULT_INITIAL_CART];
   },
 
@@ -229,8 +228,12 @@ const CartManager = {
     try {
       localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
     } catch (_) {}
-    this.updateHeaderBadge();
-    window.dispatchEvent(new CustomEvent('cart-updated', { detail: { cart } }));
+    if (typeof document !== 'undefined') {
+      this.updateHeaderBadge();
+    }
+    if (typeof window !== 'undefined' && window.dispatchEvent) {
+      window.dispatchEvent(new CustomEvent('cart-updated', { detail: { cart } }));
+    }
   },
 
   getDetailedCart() {

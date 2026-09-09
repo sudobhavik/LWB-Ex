@@ -6,15 +6,64 @@
  */
 
 /**
+ * Computes adaptive padding for a redaction region to prevent overlapping
+ * immediately adjacent interactive buttons/links while keeping full interior coverage.
+ *
+ * @param {{ x: number, y: number, width: number, height: number }} region
+ * @param {Array<{ x: number, y: number, width: number, height: number }>} [interactiveAnchors=[]]
+ * @param {number} [defaultPad=4]
+ * @returns {{ padLeft: number, padRight: number, padTop: number, padBottom: number }}
+ */
+function calculateAdaptivePadding(region, interactiveAnchors = [], defaultPad = 4) {
+  let padLeft = defaultPad;
+  let padRight = defaultPad;
+  let padTop = defaultPad;
+  let padBottom = defaultPad;
+
+  if (!interactiveAnchors || interactiveAnchors.length === 0) {
+    return { padLeft, padRight, padTop, padBottom };
+  }
+
+  for (const anchor of interactiveAnchors) {
+    if (!anchor || anchor.width <= 0 || anchor.height <= 0) continue;
+
+    // Check vertical overlap (shares horizontal band)
+    const vOverlap = (region.y < anchor.y + anchor.height) && (region.y + region.height > anchor.y);
+    // Check horizontal overlap (shares vertical band)
+    const hOverlap = (region.x < anchor.x + anchor.width) && (region.x + region.width > anchor.x);
+
+    // Anchor is directly to the RIGHT
+    if (vOverlap && anchor.x >= region.x + region.width && anchor.x < region.x + region.width + padRight) {
+      padRight = Math.max(0, anchor.x - (region.x + region.width));
+    }
+    // Anchor is directly to the LEFT
+    if (vOverlap && anchor.x + anchor.width <= region.x && anchor.x + anchor.width > region.x - padLeft) {
+      padLeft = Math.max(0, region.x - (anchor.x + anchor.width));
+    }
+    // Anchor is directly BELOW
+    if (hOverlap && anchor.y >= region.y + region.height && anchor.y < region.y + region.height + padBottom) {
+      padBottom = Math.max(0, anchor.y - (region.y + region.height));
+    }
+    // Anchor is directly ABOVE
+    if (hOverlap && anchor.y + anchor.height <= region.y && anchor.y + anchor.height > region.y - padTop) {
+      padTop = Math.max(0, region.y - (anchor.y + anchor.height));
+    }
+  }
+
+  return { padLeft, padRight, padTop, padBottom };
+}
+
+/**
  * Sanitizes an image canvas by blurring sensitive regions and applying badges.
  *
  * @param {HTMLImageElement|HTMLCanvasElement|ImageBitmap} sourceImage
  * @param {Array<{ x: number, y: number, width: number, height: number, className?: string }>} faceRegions
  * @param {Array<{ x: number, y: number, width: number, height: number, type?: string }>} piiRegions
  * @param {Function} [createCanvasFn]
- * @returns {{ canvas: HTMLCanvasElement, dataUrl: string, totalRedacted: number }}
+ * @param {Array<{ x: number, y: number, width: number, height: number }>} [interactiveAnchors=[]]
+ * @returns {{ canvas: HTMLCanvasElement, dataUrl: string, totalRedacted: number, regions: Array<Object> }}
  */
-function sanitizeScreenshot(sourceImage, faceRegions = [], piiRegions = [], createCanvasFn = null) {
+function sanitizeScreenshot(sourceImage, faceRegions = [], piiRegions = [], createCanvasFn = null, interactiveAnchors = []) {
   const width = sourceImage.naturalWidth || sourceImage.width;
   const height = sourceImage.naturalHeight || sourceImage.height;
 
@@ -31,7 +80,7 @@ function sanitizeScreenshot(sourceImage, faceRegions = [], piiRegions = [], crea
     throw new Error('No canvas context available for screenshot sanitization');
   }
 
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d', { willReadFrequently: true }) || canvas.getContext('2d');
   // 1. Draw base screenshot
   ctx.drawImage(sourceImage, 0, 0, width, height);
 
@@ -59,18 +108,18 @@ function sanitizeScreenshot(sourceImage, faceRegions = [], piiRegions = [], crea
     });
   });
 
-  // 2. Apply multi-pass heavy box blur and badges
+  // 2. Apply multi-pass heavy box blur and badges with adaptive padding
   allRegions.forEach(region => {
     if (region.width <= 0 || region.height <= 0) return;
 
-    // Expand region slightly for complete coverage
-    const pad = 4;
-    const rx = Math.max(0, region.x - pad);
-    const ry = Math.max(0, region.y - pad);
-    const rw = Math.min(width - rx, region.width + pad * 2);
-    const rh = Math.min(height - ry, region.height + pad * 2);
+    // Adaptive padding: clamp cushion to prevent overlapping neighboring clickable buttons
+    const { padLeft, padRight, padTop, padBottom } = calculateAdaptivePadding(region, interactiveAnchors, 4);
+    const rx = Math.max(0, region.x - padLeft);
+    const ry = Math.max(0, region.y - padTop);
+    const rw = Math.min(width - rx, region.width + padLeft + padRight);
+    const rh = Math.min(height - ry, region.height + padTop + padBottom);
 
-    // Multi-pass blur
+    // Multi-pass blur and total entropy destruction
     ctx.save();
     ctx.beginPath();
     ctx.rect(rx, ry, rw, rh);
@@ -82,14 +131,14 @@ function sanitizeScreenshot(sourceImage, faceRegions = [], piiRegions = [], crea
     // Pass 2: Secondary blur pass for total entropy destruction
     ctx.drawImage(canvas, 0, 0);
 
-    // Semi-opaque neutral dark overlay
-    ctx.fillStyle = 'rgba(26, 26, 26, 0.45)';
+    // Total Entropy Destruction: 100% OPAQUE Solid Fill (Zero Sensitive Pixels Egress)
+    ctx.fillStyle = '#131921';
     ctx.fillRect(rx, ry, rw, rh);
     ctx.restore();
 
-    // 3. Render High-Contrast Semantic Badge
+    // 3. Render High-Contrast Semantic Security Badge
     ctx.save();
-    ctx.strokeStyle = '#1A1A1A';
+    ctx.strokeStyle = '#FF9900';
     ctx.lineWidth = 2;
     ctx.strokeRect(rx, ry, rw, rh);
 
@@ -99,14 +148,16 @@ function sanitizeScreenshot(sourceImage, faceRegions = [], piiRegions = [], crea
     const badgeW = textMetrics.width + 10;
     const badgeH = 16;
 
-    // Position badge
-    const bx = rx;
-    const by = ry >= badgeH ? ry - badgeH : ry;
+    // Center badge cleanly within or above the redacted box
+    const bx = rx + Math.max(0, (rw - badgeW) / 2);
+    const by = rh >= badgeH + 6 ? (ry + (rh - badgeH) / 2) : (ry >= badgeH ? ry - badgeH : ry);
 
-    ctx.fillStyle = '#1A1A1A';
+    ctx.fillStyle = '#131921';
     ctx.fillRect(bx, by, badgeW, badgeH);
+    ctx.strokeStyle = '#FF9900';
+    ctx.strokeRect(bx, by, badgeW, badgeH);
 
-    ctx.fillStyle = '#F7F7F5';
+    ctx.fillStyle = '#FFD814';
     ctx.fillText(badgeText, bx + 5, by + 12);
     ctx.restore();
   });
@@ -122,7 +173,7 @@ function sanitizeScreenshot(sourceImage, faceRegions = [], piiRegions = [], crea
 }
 
 if (typeof exports !== 'undefined') {
-  module.exports = { sanitizeScreenshot };
+  module.exports = { sanitizeScreenshot, calculateAdaptivePadding };
 } else if (typeof globalThis !== 'undefined') {
-  globalThis.CanvasRedactor = { sanitizeScreenshot };
+  globalThis.CanvasRedactor = { sanitizeScreenshot, calculateAdaptivePadding };
 }

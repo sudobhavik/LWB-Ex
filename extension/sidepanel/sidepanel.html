@@ -13,6 +13,8 @@
   <script src="../engine/canvas_redactor.js"></script>
   <script src="../engine/vlm_router.js"></script>
   <script src="../engine/chrome_ai_engine.js"></script>
+  <script src="../engine/omniparser_detector.js"></script>
+  <script src="../engine/anchor_fuser.js"></script>
 </head>
 <body>
   <div class="app-layout">
@@ -125,10 +127,15 @@
             <span>Reset</span>
           </button>
         </div>
-
         <div class="controls-right">
+          <select id="select-grounding" class="model-select" title="Perception & Grounding Engine" style="max-width: 155px;">
+            <option value="fused">Hybrid (DOM + Vision + Canvas)</option>
+            <option value="omniparser">OmniParser (Zero DOM)</option>
+            <option value="dom">DOM Only</option>
+          </select>
           <select id="select-provider" class="model-select" title="Vision-Language Model Router">
-            <option value="auto">Auto Router</option>
+            <option value="auto">Auto Router (Cloud + Local Fallback)</option>
+            <option value="ollama">Ollama Qwen3-VL (Offline Local Server)</option>
             <option value="chrome-ai">Gemini Nano (Chrome Built-in AI)</option>
             <option value="openai-gpt4o">GPT-4o</option>
             <option value="openai-gpt4o-mini">GPT-4o mini</option>
@@ -194,6 +201,26 @@
             </div>
             <span id="chrome-ai-status-details" class="setting-hint" style="margin-top: 0; font-size: 11px;">
               100% on-device Prompt API. Requires zero API keys and zero network data egress.
+            </span>
+          </div>
+
+          <div class="setting-group ollama-ai-card" style="padding: 10px; background: rgba(0,0,0,0.03); border: 1px solid rgba(0,0,0,0.08); border-radius: 6px; margin-top: 10px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+              <span style="font-weight: 600; font-size: 12px; color: var(--text-primary, #1e293b);">Offline Local VLM (Ollama Server)</span>
+              <span id="ollama-status-badge" class="pill-badge pill-loading" style="font-size: 10px; padding: 2px 6px;">CHECKING</span>
+            </div>
+            <div style="display: flex; gap: 8px; margin-bottom: 6px;">
+              <div style="flex: 2;">
+                <label class="setting-label" for="input-ollama-endpoint" style="font-size: 10px; margin-bottom: 2px;">Endpoint URL</label>
+                <input type="text" id="input-ollama-endpoint" class="setting-input" value="http://localhost:11434" placeholder="http://localhost:11434" style="font-size: 11px; padding: 4px 6px;">
+              </div>
+              <div style="flex: 2;">
+                <label class="setting-label" for="input-ollama-model" style="font-size: 10px; margin-bottom: 2px;">Model</label>
+                <input type="text" id="input-ollama-model" class="setting-input" value="qwen3-vl:2b" placeholder="qwen3-vl:2b" style="font-size: 11px; padding: 4px 6px;">
+              </div>
+            </div>
+            <span id="ollama-status-details" class="setting-hint" style="margin-top: 0; font-size: 11px;">
+              Alibaba 2026 Qwen3-VL (2B). Fits 100% inside 4GB GPU VRAM. Satisfies offline open-weight server requirement.
             </span>
           </div>
 

@@ -689,6 +689,7 @@ html, body {
   align-items: center;
   gap: 6px;
   width: 100%;
+  flex-wrap: wrap;
 }
 
 .model-select {

@@ -10,6 +10,7 @@
 (() => {
   const OVERLAY_CONTAINER_ID = 'yolo-agent-overlay-container';
   window.__AGENT_ANCHORS__ = {};
+  window.__AGENT_ANCHOR_META__ = {};
 
   function getOverlayContainer() {
     let container = document.getElementById(OVERLAY_CONTAINER_ID);
@@ -85,7 +86,36 @@
   }
 
   /**
+   * OmniParser-style visual icon classifier.
+   * Infers visual icon semantics from SVGs, ARIA tags, class names, and button paths.
+   */
+  function detectVisualIcon(el) {
+    if (!el) return null;
+    const textToCheck = [
+      el.className || '',
+      el.getAttribute('aria-label') || '',
+      el.id || '',
+      el.title || '',
+      el.getAttribute('data-icon') || '',
+      el.innerHTML ? el.innerHTML.slice(0, 300) : ''
+    ].join(' ').toLowerCase();
+
+    if (/cart|basket|shopping-bag|checkout-btn/i.test(textToCheck)) return 'shopping_cart';
+    if (/search|magnif|find-btn/i.test(textToCheck)) return 'search';
+    if (/user|profile|account|avatar|person/i.test(textToCheck)) return 'user_profile';
+    if (/menu|hamburger|navbar-toggler/i.test(textToCheck)) return 'hamburger_menu';
+    if (/filter|funnel|sort/i.test(textToCheck)) return 'filter';
+    if (/close|dismiss|cancel|clear|cross/i.test(textToCheck)) return 'close';
+    if (/heart|wishlist|fav/i.test(textToCheck)) return 'heart_wishlist';
+    if (/chevron|arrow|caret/i.test(textToCheck)) return 'chevron_nav';
+    if (/trash|delete|remove/i.test(textToCheck)) return 'trash_delete';
+    if (/edit|pencil|modify/i.test(textToCheck)) return 'edit';
+    return null;
+  }
+
+  /**
    * Enumerates all visible, interactive anchors on the page for VLM grounding.
+   * Enriches elements with OmniParser-style visual icons, roles, and normalized coordinates.
    */
   function extractInteractiveAnchors() {
     window.__AGENT_ANCHORS__ = {};
@@ -105,16 +135,36 @@
       const style = window.getComputedStyle(el);
       if (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0') continue;
 
+      const iconType = detectVisualIcon(el);
+      const role = el.getAttribute('role') || (el.tagName.toLowerCase() === 'a' ? 'link' : el.tagName.toLowerCase());
+
       let label = '';
       if (el.tagName.toLowerCase() === 'input' || el.tagName.toLowerCase() === 'textarea') {
-        label = el.placeholder || el.value || el.name || el.id || el.type;
+        const isSecret = el.type === 'password' || /password|card|cvv|secret|token|ssn|aadhaar|pan/i.test(
+          (el.id || '') + ' ' + (el.name || '') + ' ' + (el.autocomplete || '') + ' ' + (el.placeholder || '')
+        );
+        label = isSecret ? '[REDACTED_SECURE_FIELD]' : (el.placeholder || el.value || el.name || el.id || el.type);
       } else if (el.tagName.toLowerCase() === 'select') {
         label = el.name || el.id || 'select dropdown';
       } else {
         label = (el.innerText || el.textContent || '').trim() || el.getAttribute('aria-label') || el.title || el.className || '';
       }
       label = label.replace(/\s+/g, ' ').trim().slice(0, 45);
-      if (!label) label = `${el.tagName.toLowerCase()}_${counter}`;
+
+      // Check if text itself contains sensitive PII (credit cards, Aadhaar, PAN)
+      const piiDetectorInst = typeof PIIDetector !== 'undefined' ? PIIDetector : (typeof globalThis.PIIDetector !== 'undefined' ? globalThis.PIIDetector : null);
+      if (piiDetectorInst && piiDetectorInst.extractPIIMatches && label !== '[REDACTED_SECURE_FIELD]') {
+        const matches = piiDetectorInst.extractPIIMatches(label);
+        if (matches && matches.length > 0) {
+          label = `[REDACTED_${matches[0].type}]`;
+        }
+      }
+
+      if (!label) {
+        label = iconType ? `[ICON: ${iconType}]` : `${el.tagName.toLowerCase()}_${counter}`;
+      } else if (iconType && !label.toLowerCase().includes(iconType.replace('_', ' '))) {
+        label = `[ICON: ${iconType}] ${label}`;
+      }
 
       const centerX = rect.left + rect.width / 2;
       const centerY = rect.top + rect.height / 2;
@@ -128,6 +178,8 @@
         index,
         label,
         tag: el.tagName.toLowerCase(),
+        role,
+        iconType,
         normX,
         normY,
         x: Math.round(rect.left),
@@ -162,35 +214,54 @@
    */
   async function executeAgentAction(action, targetIndex, coordinates, text) {
     let targetEl = null;
+    const meta = window.__AGENT_ANCHOR_META__ ? window.__AGENT_ANCHOR_META__[targetIndex] : null;
 
     if (targetIndex && window.__AGENT_ANCHORS__[targetIndex]) {
       targetEl = window.__AGENT_ANCHORS__[targetIndex];
     }
 
-    if (!targetEl && coordinates && Array.isArray(coordinates) && coordinates.length === 2) {
-      const [nx, ny] = coordinates;
-      const viewportW = window.innerWidth;
-      const viewportH = window.innerHeight;
-      let minDistance = 0.12;
+    // Calculate exact viewport client coordinate
+    const winW = window.innerWidth || document.documentElement?.clientWidth || 1920;
+    const winH = window.innerHeight || document.documentElement?.clientHeight || 1080;
 
-      for (const idx in window.__AGENT_ANCHORS__) {
-        const el = window.__AGENT_ANCHORS__[idx];
-        const rect = el.getBoundingClientRect();
-        const candNx = (rect.left + rect.width / 2) / viewportW;
-        const candNy = (rect.top + rect.height / 2) / viewportH;
-        const dist = Math.hypot(candNx - nx, candNy - ny);
+    let clickClientX, clickClientY;
+    if (coordinates && Array.isArray(coordinates) && coordinates.length === 2) {
+      clickClientX = coordinates[0] * winW;
+      clickClientY = coordinates[1] * winH;
+    } else if (meta && meta.normX !== undefined && meta.normY !== undefined) {
+      clickClientX = meta.normX * winW;
+      clickClientY = meta.normY * winH;
+    } else if (meta && meta.x !== undefined && meta.width !== undefined) {
+      clickClientX = meta.x + meta.width / 2;
+      clickClientY = meta.y + meta.height / 2;
+    } else if (targetEl && typeof targetEl.getBoundingClientRect === 'function') {
+      const rect = targetEl.getBoundingClientRect();
+      clickClientX = rect.left + rect.width / 2;
+      clickClientY = rect.top + rect.height / 2;
+    } else {
+      clickClientX = winW / 2;
+      clickClientY = winH / 2;
+    }
 
-        if (dist < minDistance) {
-          minDistance = dist;
-          targetEl = el;
-        }
+    if (!targetEl && typeof document.elementFromPoint === 'function') {
+      targetEl = document.elementFromPoint(clickClientX, clickClientY);
+    }
+
+    // If targetEl is a text node, resolve parent element
+    if (targetEl && targetEl.nodeType === 3) {
+      targetEl = targetEl.parentElement;
+    }
+
+    // If targetEl is inside a clickable container (button, link, input, role=button), select the interactive container
+    if (targetEl && typeof targetEl.closest === 'function') {
+      const clickableParent = targetEl.closest('button, a, input, select, textarea, [role="button"], [onclick], [tabindex="0"]');
+      if (clickableParent) {
+        targetEl = clickableParent;
       }
     }
 
-    if (!targetEl && coordinates) {
-      const px = coordinates[0] * window.innerWidth;
-      const py = coordinates[1] * window.innerHeight;
-      targetEl = document.elementFromPoint(px, py);
+    if (!targetEl && document.body) {
+      targetEl = document.body;
     }
 
     const scrollX = window.scrollX || window.pageXOffset || 0;
@@ -198,47 +269,68 @@
 
     if (action === 'click') {
       if (!targetEl) throw new Error(`Click target not found (index: ${targetIndex})`);
-      const rect = targetEl.getBoundingClientRect();
-      const clickX = rect.left + rect.width / 2 + scrollX;
-      const clickY = rect.top + rect.height / 2 + scrollY;
 
-      showActionRipple(clickX, clickY);
+      const isCanvas = (meta && meta.isCanvas) || (targetEl.tagName && targetEl.tagName.toLowerCase() === 'canvas');
+      showActionRipple(clickClientX + scrollX, clickClientY + scrollY);
 
-      if (typeof targetEl.scrollIntoView === 'function') {
-        targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      // Check if target is currently visible in viewport; only scroll if necessary
+      if (typeof targetEl.getBoundingClientRect === 'function') {
+        const rect = targetEl.getBoundingClientRect();
+        const inView = rect.top >= 0 && rect.bottom <= winH && rect.left >= 0 && rect.right <= winW;
+        if (!inView && typeof targetEl.scrollIntoView === 'function') {
+          targetEl.scrollIntoView({ behavior: 'instant', block: 'nearest' });
+          const updatedRect = targetEl.getBoundingClientRect();
+          clickClientX = updatedRect.left + updatedRect.width / 2;
+          clickClientY = updatedRect.top + updatedRect.height / 2;
+        }
       }
-      targetEl.focus();
 
-      ['mousedown', 'mouseup', 'click'].forEach(evtType => {
-        const evt = new MouseEvent(evtType, {
+      if (typeof targetEl.focus === 'function') {
+        targetEl.focus();
+      }
+
+      // Dispatch PointerEvents and MouseEvents for Canvas and DOM compatibility
+      ['pointerdown', 'mousedown', 'pointerup', 'mouseup', 'click'].forEach(evtType => {
+        const EventCtor = (evtType.startsWith('pointer') && typeof PointerEvent !== 'undefined') ? PointerEvent : MouseEvent;
+        const evt = new EventCtor(evtType, {
           bubbles: true,
           cancelable: true,
-          clientX: rect.left + rect.width / 2,
-          clientY: rect.top + rect.height / 2
+          composed: true,
+          clientX: clickClientX,
+          clientY: clickClientY
         });
         targetEl.dispatchEvent(evt);
       });
 
-      if (typeof targetEl.click === 'function') {
+      if (typeof targetEl.click === 'function' && !isCanvas) {
         targetEl.click();
       }
 
-      return { success: true, target: targetEl.tagName };
+      return { success: true, target: targetEl.tagName || 'ELEMENT', isCanvas };
     }
 
     if (action === 'type') {
       if (!targetEl) throw new Error(`Type target not found (index: ${targetIndex})`);
-      const rect = targetEl.getBoundingClientRect();
-      showActionRipple(rect.left + rect.width / 2 + scrollX, rect.top + rect.height / 2 + scrollY);
+      showActionRipple(clickClientX + scrollX, clickClientY + scrollY);
 
-      targetEl.focus();
-      targetEl.value = text;
+      if (typeof targetEl.focus === 'function') {
+        targetEl.focus();
+      }
 
-      ['input', 'change'].forEach(evtType => {
-        targetEl.dispatchEvent(new Event(evtType, { bubbles: true }));
-      });
+      if ('value' in targetEl) {
+        targetEl.value = text;
+        ['input', 'change'].forEach(evtType => {
+          targetEl.dispatchEvent(new Event(evtType, { bubbles: true }));
+        });
+      } else {
+        // Canvas or custom UI: dispatch keyboard input events
+        for (const char of text) {
+          const keyEvt = new KeyboardEvent('keydown', { key: char, bubbles: true });
+          targetEl.dispatchEvent(keyEvt);
+        }
+      }
 
-      return { success: true, target: targetEl.tagName, typed: text };
+      return { success: true, target: targetEl.tagName || 'ELEMENT', typed: text };
     }
 
     if (action === 'scroll') {
@@ -294,14 +386,19 @@
             faces = window.__CANVAS_FACE_REGIONS__;
           }
 
+          // Calculate internal canvas coordinate to CSS viewport pixel scale factor
+          const isCanvasEl = el.tagName && el.tagName.toLowerCase() === 'canvas';
+          const canvasScaleX = (isCanvasEl && el.width) ? (rect.width / el.width) : 1;
+          const canvasScaleY = (isCanvasEl && el.height) ? (rect.height / el.height) : 1;
+
           regions.forEach(item => {
             const matches = piiDetector ? piiDetector.extractPIIMatches(item.text, item.context || '') : [];
             matches.forEach(m => {
               piiRegions.push({
-                x: Math.round(rect.left + (item.x || 0)),
-                y: Math.round(rect.top + (item.y || 0)),
-                width: Math.round(item.width || 120),
-                height: Math.round(item.height || 28),
+                x: Math.round(rect.left + ((item.x || 0) * canvasScaleX)),
+                y: Math.round(rect.top + ((item.y || 0) * canvasScaleY)),
+                width: Math.round((item.width || 120) * canvasScaleX),
+                height: Math.round((item.height || 28) * canvasScaleY),
                 type: m.type,
                 matchText: m.text
               });
@@ -310,10 +407,10 @@
 
           faces.forEach(f => {
             piiRegions.push({
-              x: Math.round(rect.left + (f.x || 0)),
-              y: Math.round(rect.top + (f.y || 0)),
-              width: Math.round(f.width || 120),
-              height: Math.round(f.height || 140),
+              x: Math.round(rect.left + ((f.x || 0) * canvasScaleX)),
+              y: Math.round(rect.top + ((f.y || 0) * canvasScaleY)),
+              width: Math.round((f.width || 120) * canvasScaleX),
+              height: Math.round((f.height || 140) * canvasScaleY),
               type: 'FACE',
               matchText: 'BIOMETRIC_FACE'
             });
@@ -321,12 +418,25 @@
         });
 
         const anchors = extractInteractiveAnchors();
+        const canvasRects = Array.from(document.querySelectorAll('canvas')).map(c => {
+          const r = c.getBoundingClientRect();
+          return {
+            x: Math.round(r.left),
+            y: Math.round(r.top),
+            width: Math.round(r.width),
+            height: Math.round(r.height)
+          };
+        });
 
         sendResponse({
           piiRegions,
           anchors,
+          canvasRects,
           title: document.title,
-          url: window.location.href
+          url: window.location.href,
+          devicePixelRatio: window.devicePixelRatio || 1,
+          viewportWidth: window.innerWidth || document.documentElement.clientWidth || 1920,
+          viewportHeight: window.innerHeight || document.documentElement.clientHeight || 1080
         });
         return true;
       }
@@ -335,6 +445,35 @@
         executeAgentAction(message.agentAction, message.targetIndex, message.coordinates, message.text)
           .then(res => sendResponse(res))
           .catch(err => sendResponse({ success: false, error: err.message }));
+        return true;
+      }
+
+      if (message.action === 'SET_FUSED_ANCHORS' || message.action === 'SET_VISION_ANCHORS') {
+        window.__AGENT_ANCHORS__ = {};
+        window.__AGENT_ANCHOR_META__ = {};
+        const elements = message.anchors || message.elements || [];
+        const winW = window.innerWidth || document.documentElement?.clientWidth || 1920;
+        const winH = window.innerHeight || document.documentElement?.clientHeight || 1080;
+        elements.forEach(el => {
+          window.__AGENT_ANCHOR_META__[el.index] = el;
+          let px, py;
+          if (el.normX !== undefined && el.normY !== undefined) {
+            px = el.normX * winW;
+            py = el.normY * winH;
+          } else {
+            px = el.x + el.width / 2;
+            py = el.y + el.height / 2;
+          }
+          let target = typeof document.elementFromPoint === 'function' ? document.elementFromPoint(px, py) : null;
+          if (target && typeof target.closest === 'function') {
+            const clickable = target.closest('button, a, input, select, textarea, [role="button"], [onclick], [tabindex="0"]');
+            if (clickable) target = clickable;
+          }
+          if (target) {
+            window.__AGENT_ANCHORS__[el.index] = target;
+          }
+        });
+        sendResponse({ success: true, count: Object.keys(window.__AGENT_ANCHORS__).length });
         return true;
       }
 

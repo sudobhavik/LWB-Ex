@@ -36,6 +36,7 @@ const btnStartAgent = document.getElementById('btn-start-agent');
 const btnStopAgent = document.getElementById('btn-stop-agent');
 const btnResetAgent = document.getElementById('btn-reset-agent');
 const selectProvider = document.getElementById('select-provider');
+const selectGrounding = document.getElementById('select-grounding');
 const maxStepsInput = document.getElementById('max-steps');
 
 // DOM Elements - Chat Input
@@ -47,6 +48,10 @@ const settingsModal = document.getElementById('settings-modal');
 const btnCloseSettings = document.getElementById('btn-close-settings');
 const inputOpenAIKey = document.getElementById('input-openai-key');
 const inputGeminiKey = document.getElementById('input-gemini-key');
+const inputOllamaEndpoint = document.getElementById('input-ollama-endpoint');
+const inputOllamaModel = document.getElementById('input-ollama-model');
+const ollamaStatusBadge = document.getElementById('ollama-status-badge');
+const ollamaStatusDetails = document.getElementById('ollama-status-details');
 const btnSaveKeys = document.getElementById('btn-save-keys');
 const settingsStatus = document.getElementById('settings-status');
 
@@ -57,6 +62,7 @@ const sanitizedPreviewCanvas = document.getElementById('sanitized-preview-canvas
 let runner = null;
 let vlmRouter = null;
 let chromeAIEngine = null;
+let omniParserDetector = null;
 let isAgentRunning = false;
 let isStepExecuting = false;
 let currentAgentStep = 1;
@@ -70,17 +76,53 @@ let agentHistory = [];
 async function loadSavedKeys() {
   try {
     if (browserAPI.storage && browserAPI.storage.local) {
-      const stored = await browserAPI.storage.local.get(['openaiKey', 'geminiKey', 'preferredProvider']);
+      const stored = await browserAPI.storage.local.get([
+        'openaiKey',
+        'geminiKey',
+        'ollamaEndpoint',
+        'ollamaModel',
+        'preferredProvider'
+      ]);
       if (stored.openaiKey) inputOpenAIKey.value = stored.openaiKey;
       if (stored.geminiKey) inputGeminiKey.value = stored.geminiKey;
+      if (stored.ollamaEndpoint && inputOllamaEndpoint) inputOllamaEndpoint.value = stored.ollamaEndpoint;
+      if (stored.ollamaModel && inputOllamaModel) inputOllamaModel.value = stored.ollamaModel;
       if (stored.preferredProvider) selectProvider.value = stored.preferredProvider;
 
       vlmRouter = new (window.VLMRouter || globalThis.VLMRouter)({
         openaiKey: stored.openaiKey || '',
-        geminiKey: stored.geminiKey || ''
+        geminiKey: stored.geminiKey || '',
+        ollamaEndpoint: stored.ollamaEndpoint || 'http://localhost:11434',
+        ollamaModel: stored.ollamaModel || 'qwen3-vl:2b',
+        preferredProvider: stored.preferredProvider || 'auto'
       });
     } else {
       vlmRouter = new (window.VLMRouter || globalThis.VLMRouter)();
+    }
+
+    // Probe Ollama local server daemon
+    if (vlmRouter && vlmRouter.checkOllamaStatus) {
+      vlmRouter.checkOllamaStatus().then(status => {
+        if (ollamaStatusBadge) {
+          if (status.online) {
+            ollamaStatusBadge.className = 'pill-badge pill-webgpu';
+            ollamaStatusBadge.textContent = 'ONLINE (LOCAL)';
+          } else {
+            ollamaStatusBadge.className = 'pill-badge pill-wasm';
+            ollamaStatusBadge.textContent = 'OFFLINE';
+          }
+        }
+        if (ollamaStatusDetails) {
+          if (status.online) {
+            const list = status.models.length > 0 ? status.models.join(', ') : 'None yet (pull qwen3-vl:2b)';
+            ollamaStatusDetails.textContent = `Online on ${vlmRouter.ollamaEndpoint}. Available models: ${list}`;
+          } else {
+            ollamaStatusDetails.textContent = `Daemon offline at ${vlmRouter.ollamaEndpoint}. Run 'ollama serve' in terminal.`;
+          }
+        }
+      }).catch(err => {
+        console.warn('Ollama status check notice:', err);
+      });
     }
 
     // Initialize Chrome Built-in AI (Prompt API / Gemini Nano)
@@ -117,6 +159,14 @@ async function loadSavedKeys() {
 
 btnOpenSettings.addEventListener('click', () => {
   settingsModal.style.display = 'flex';
+  if (vlmRouter && vlmRouter.checkOllamaStatus) {
+    vlmRouter.checkOllamaStatus().then(status => {
+      if (ollamaStatusBadge) {
+        ollamaStatusBadge.className = status.online ? 'pill-badge pill-webgpu' : 'pill-badge pill-wasm';
+        ollamaStatusBadge.textContent = status.online ? 'ONLINE (LOCAL)' : 'OFFLINE';
+      }
+    }).catch(() => {});
+  }
 });
 
 btnCloseSettings.addEventListener('click', () => {
@@ -132,16 +182,21 @@ settingsModal.addEventListener('click', (e) => {
 btnSaveKeys.addEventListener('click', async () => {
   const oKey = inputOpenAIKey.value.trim();
   const gKey = inputGeminiKey.value.trim();
+  const oEndpoint = inputOllamaEndpoint ? inputOllamaEndpoint.value.trim() : 'http://localhost:11434';
+  const oModel = inputOllamaModel ? inputOllamaModel.value.trim() : 'qwen3-vl:2b';
   const prov = selectProvider.value;
 
   if (vlmRouter) {
     vlmRouter.setKeys(oKey, gKey);
+    vlmRouter.setOllamaConfig(oEndpoint, oModel);
   }
 
   if (browserAPI.storage && browserAPI.storage.local) {
     await browserAPI.storage.local.set({
       openaiKey: oKey,
       geminiKey: gKey,
+      ollamaEndpoint: oEndpoint,
+      ollamaModel: oModel,
       preferredProvider: prov
     });
   }
@@ -179,6 +234,19 @@ async function initializeModel() {
       providerBadge.textContent = 'WASM FALLBACK';
       footerStatusText.textContent = 'Zero-Egress Active • Running on WASM CPU';
     }
+
+    // Initialize OmniParser On-Device UI Element Detector
+    try {
+      const omniClass = window.OmniParserDetector || globalThis.OmniParserDetector;
+      if (omniClass) {
+        omniParserDetector = new omniClass();
+        const omniModelUrl = browserAPI.runtime.getURL('models/omniparser_icon_detect.onnx');
+        await omniParserDetector.loadModel(omniModelUrl, wasmDir);
+        console.log('[OmniParser] On-device pure vision UI detector initialized.');
+      }
+    } catch (omniErr) {
+      console.warn('[OmniParser] Optional detector init notice:', omniErr.message);
+    }
   } catch (err) {
     console.error('Failed to initialize model:', err);
     providerBadge.className = 'pill-badge pill-error';
@@ -187,10 +255,35 @@ async function initializeModel() {
   }
 }
 
-// Active Tab Helper
+// Restricted URL Checker (Chrome blocks extensions on internal browser schemes)
+function isRestrictedUrl(url) {
+  if (!url || typeof url !== 'string') return false;
+  return (
+    url.startsWith('chrome://') ||
+    url.startsWith('chrome-extension://') ||
+    url.startsWith('chrome-untrusted://') ||
+    url.startsWith('edge://') ||
+    url.startsWith('about:') ||
+    url.startsWith('devtools://') ||
+    url.startsWith('view-source:') ||
+    url.includes('chromewebstore.google.com') ||
+    url.includes('chrome.google.com/webstore')
+  );
+}
+
+// Active Tab Helper (queries lastFocusedWindow first for reliable Side Panel tab detection)
 async function getActiveTab() {
-  const tabs = await browserAPI.tabs.query({ active: true, currentWindow: true });
-  return tabs && tabs.length > 0 ? tabs[0] : null;
+  try {
+    const tabs = await browserAPI.tabs.query({ active: true, lastFocusedWindow: true });
+    if (tabs && tabs.length > 0 && tabs[0].id) return tabs[0];
+  } catch (_) {}
+
+  try {
+    const tabs = await browserAPI.tabs.query({ active: true, currentWindow: true });
+    if (tabs && tabs.length > 0 && tabs[0].id) return tabs[0];
+  } catch (_) {}
+
+  return null;
 }
 
 // Ensure Content Script is Injected
@@ -224,6 +317,8 @@ function updateProviderConfig() {
 
   if (val === 'chrome-ai') {
     vlmRouter.preferredProvider = 'chrome-ai';
+  } else if (val === 'ollama') {
+    vlmRouter.preferredProvider = 'ollama';
   } else if (val === 'auto') {
     vlmRouter.preferredProvider = 'auto';
     vlmRouter.openaiModel = 'gpt-4o';
@@ -245,8 +340,8 @@ function updateProviderConfig() {
 
 function validateProviderKeys() {
   updateProviderConfig();
-  if (selectProvider.value === 'chrome-ai') {
-    // Chrome Built-in AI runs 100% on-device and requires 0 external API keys
+  if (selectProvider.value === 'chrome-ai' || selectProvider.value === 'ollama') {
+    // Both Chrome Built-in AI and local Ollama run 100% locally and require zero cloud API keys
     return true;
   }
   if (!vlmRouter) {
@@ -254,23 +349,18 @@ function validateProviderKeys() {
     return false;
   }
   if (vlmRouter.preferredProvider === 'openai' && !vlmRouter.openaiKey) {
-    appendSystemMessage('Please configure your OpenAI API Key in Settings (⚙️ top right) or switch to Chrome Built-in AI.', true);
+    appendSystemMessage('Please configure your OpenAI API Key in Settings (⚙️ top right) or switch to Ollama / Chrome AI.', true);
     settingsModal.style.display = 'flex';
     return false;
   }
   if (vlmRouter.preferredProvider === 'gemini' && !vlmRouter.geminiKey) {
-    appendSystemMessage('Please configure your Gemini API Key in Settings (⚙️ top right) or switch to Chrome Built-in AI.', true);
+    appendSystemMessage('Please configure your Gemini API Key in Settings (⚙️ top right) or switch to Ollama / Chrome AI.', true);
     settingsModal.style.display = 'flex';
     return false;
   }
   if (vlmRouter.preferredProvider === 'auto' && !vlmRouter.openaiKey && !vlmRouter.geminiKey) {
-    // If Chrome AI is present, auto-fallback works without keys
-    if (chromeAIEngine) {
-      return true;
-    }
-    appendSystemMessage('Please configure an API Key in Settings, or select Chrome Built-in AI (Gemini Nano).', true);
-    settingsModal.style.display = 'flex';
-    return false;
+    // Auto-fallback works offline via Ollama or Chrome AI without external keys
+    return true;
   }
   return true;
 }
@@ -520,12 +610,57 @@ async function executeSingleAgentStep(goal, step, maxSteps) {
 
   const activeTab = await getActiveTab();
   if (!activeTab || !activeTab.id) {
-    throw new Error('No active browser tab detected.');
+    throw new Error('No active browser tab detected. Please make sure a browser tab is open.');
+  }
+
+  // Check for Chrome-internal restricted schemes where extensions are blocked by design
+  if (isRestrictedUrl(activeTab.url)) {
+    throw new Error(
+      `Cannot run on internal browser page (${activeTab.url || 'new tab'}). ` +
+      `Chrome security disallows extensions from interacting with internal pages like chrome://newtab or Chrome Web Store. ` +
+      `Please navigate your tab to any normal website (such as http://localhost:3000, https://wikipedia.org, or any shop) and click Run again.`
+    );
   }
 
   await ensureContentScriptInjected(activeTab.id);
 
-  const dataUrl = await browserAPI.tabs.captureVisibleTab(null, { format: 'png' });
+  let dataUrl = null;
+  const targetWindowId = typeof activeTab.windowId === 'number' ? activeTab.windowId : null;
+
+  // Strategy 1: Capture by target windowId
+  try {
+    dataUrl = await browserAPI.tabs.captureVisibleTab(targetWindowId, { format: 'png' });
+  } catch (err1) {
+    // Strategy 2: Capture by null windowId
+    try {
+      dataUrl = await browserAPI.tabs.captureVisibleTab(null, { format: 'png' });
+    } catch (err2) {
+      // Strategy 3: Relay capture via background service worker
+      try {
+        const relayRes = await browserAPI.runtime.sendMessage({
+          action: 'CAPTURE_VISIBLE_TAB',
+          windowId: targetWindowId
+        });
+        if (relayRes && relayRes.dataUrl) {
+          dataUrl = relayRes.dataUrl;
+        } else {
+          throw new Error(relayRes?.error || 'Background relay capture returned empty');
+        }
+      } catch (err3) {
+        const finalMsg = err3?.message || err2?.message || err1?.message || '';
+        if (finalMsg.includes('activeTab') || finalMsg.includes('invoked') || finalMsg.includes('permission')) {
+          throw new Error(
+            `Site access required for "${activeTab.url}". ` +
+            `Chrome requires permission to inspect external websites. ` +
+            `Please click the GUPTCHARA extension icon in your Chrome toolbar once on this tab to grant access, ` +
+            `or open chrome://extensions -> GUPTCHARA Details -> set "Site access" to "On all sites".`
+          );
+        }
+        throw new Error(`Viewport capture error: ${finalMsg}`);
+      }
+    }
+  }
+
   const img = new Image();
   await new Promise((res, rej) => {
     img.onload = res;
@@ -539,10 +674,68 @@ async function executeSingleAgentStep(goal, step, maxSteps) {
   try {
     pageState = await browserAPI.tabs.sendMessage(activeTab.id, { action: 'GET_PAGE_STATE' });
   } catch (err) {
-    console.warn('Could not retrieve page state:', err);
+    console.log('Could not retrieve page state notice:', err);
   }
 
-  const anchors = pageState?.anchors || [];
+  // Normalize coordinate scaling between viewport CSS pixels and captured screenshot bitmap
+  const viewportW = pageState?.viewportWidth || activeTab.width || img.naturalWidth || img.width;
+  const viewportH = pageState?.viewportHeight || activeTab.height || img.naturalHeight || img.height;
+  const scaleX = (img.naturalWidth || img.width) / viewportW;
+  const scaleY = (img.naturalHeight || img.height) / viewportH;
+
+  const groundingMode = selectGrounding ? selectGrounding.value : 'fused';
+  let domAnchors = pageState?.anchors || [];
+  let canvasRects = pageState?.canvasRects || [];
+  let visionElements = [];
+
+  // Run OmniParser Vision Model if mode is 'fused' or 'omniparser'
+  if ((groundingMode === 'fused' || groundingMode === 'omniparser') && omniParserDetector && omniParserDetector.isReady) {
+    showProgress(`Perception: Step ${step}/${maxSteps} - Running OmniParser WebGPU UI Detection...`);
+    try {
+      const omniRes = await omniParserDetector.detectUIElements(img, { confidenceThreshold: 0.15 });
+      const rawElements = omniRes.elements || [];
+      visionElements = rawElements.map(el => ({
+        ...el,
+        x: scaleX ? Math.round(el.x / scaleX) : el.x,
+        y: scaleY ? Math.round(el.y / scaleY) : el.y,
+        width: scaleX ? Math.round(el.width / scaleX) : el.width,
+        height: scaleY ? Math.round(el.height / scaleY) : el.height,
+        normX: el.normX !== undefined ? el.normX : parseFloat(((el.x + el.width / 2) / (img.naturalWidth || img.width)).toFixed(3)),
+        normY: el.normY !== undefined ? el.normY : parseFloat(((el.y + el.height / 2) / (img.naturalHeight || img.height)).toFixed(3))
+      }));
+    } catch (omniErr) {
+      console.log('OmniParser vision detection notice:', omniErr);
+    }
+  }
+
+  let anchors = [];
+  if (groundingMode === 'omniparser') {
+    anchors = visionElements.length > 0 ? visionElements : domAnchors;
+  } else if (groundingMode === 'dom') {
+    anchors = domAnchors;
+  } else {
+    // Hybrid Fused Mode: DOM + OmniParser Vision + Canvas
+    const fuser = window.fuseVisualAndDOMAnchors || globalThis.fuseVisualAndDOMAnchors;
+    if (fuser && visionElements.length > 0) {
+      anchors = fuser(domAnchors, visionElements, {
+        viewportWidth: viewportW,
+        viewportHeight: viewportH,
+        iouThreshold: 0.25,
+        canvasRects: canvasRects
+      });
+    } else {
+      anchors = domAnchors;
+    }
+  }
+
+  // Register the unified anchors with the content script for click & typing execution
+  try {
+    await browserAPI.tabs.sendMessage(activeTab.id, {
+      action: 'SET_FUSED_ANCHORS',
+      anchors
+    });
+  } catch (_) {}
+
   let piiRegions = pageState?.piiRegions || [];
 
   let faceRegions = [];
@@ -567,21 +760,49 @@ async function executeSingleAgentStep(goal, step, maxSteps) {
           }
         }
       } catch (ocrErr) {
-        console.warn('Visual OCR failover notice:', ocrErr);
+        console.log('Visual OCR failover notice:', ocrErr);
       }
     }
   }
 
-  // Zero-Egress On-Device Sanitization (Blur Faces + PII)
+
+  // Scale DOM & Canvas PII regions from CSS viewport coordinates to bitmap pixels
+  const scaledPIIRegions = (piiRegions || []).map(p => ({
+    ...p,
+    x: Math.round(p.x * scaleX),
+    y: Math.round(p.y * scaleY),
+    width: Math.round(p.width * scaleX),
+    height: Math.round(p.height * scaleY)
+  }));
+
+  // Scale interactive anchors to bitmap pixels for adaptive cushion checking
+  const scaledAnchors = (anchors || []).map(a => ({
+    ...a,
+    x: Math.round(a.x * scaleX),
+    y: Math.round(a.y * scaleY),
+    width: Math.round(a.width * scaleX),
+    height: Math.round(a.height * scaleY)
+  }));
+
+  // Zero-Egress On-Device Sanitization (Blur Faces + PII with Adaptive Cushion)
   const sanitized = (window.CanvasRedactor || globalThis.CanvasRedactor).sanitizeScreenshot(
     img,
     faceRegions,
-    piiRegions
+    scaledPIIRegions,
+    null,
+    scaledAnchors
   );
 
-  // Apply live blur overlays directly on main screen
+  // Apply live blur overlays directly on main screen (in CSS pixels for DOM layer)
   const liveOverlays = [
-    ...faceRegions.map(f => ({ ...f, className: 'FACE' })),
+    ...faceRegions.map(f => ({
+      ...f,
+      x: Math.round(f.x / scaleX),
+      y: Math.round(f.y / scaleY),
+      width: Math.round(f.width / scaleX),
+      height: Math.round(f.height / scaleY),
+      className: 'FACE'
+    })),
     ...piiRegions.map(p => ({ ...p, className: p.type || 'PII' }))
   ];
   try {
@@ -618,7 +839,26 @@ async function executeSingleAgentStep(goal, step, maxSteps) {
       decision = await chromeAIEngine.decideLocalAction(goal, activeAnchors, step, agentHistory);
       providerUsed = 'Chrome Built-in AI (Gemini Nano)';
     } catch (cErr) {
-      console.warn('Chrome AI decision notice:', cErr);
+      console.log('Chrome AI decision notice:', cErr);
+    }
+  }
+
+  // Priority 2: Direct Local Offline VLM (Ollama Server - Qwen3-VL)
+  if (!decision && selectProvider.value === 'ollama' && vlmRouter) {
+    showProgress(`Analyzing: Step ${step}/${maxSteps} - Running Local Ollama (${vlmRouter.ollamaModel})...`);
+    try {
+      const vlmRes = await vlmRouter.decide(
+        goal,
+        sanitized.dataUrl,
+        activeAnchors,
+        step,
+        agentHistory
+      );
+      decision = vlmRes.decision;
+      providerUsed = vlmRes.providerUsed;
+    } catch (ollamaErr) {
+      console.log('Local Ollama VLM notice:', ollamaErr);
+      appendSystemMessage(`Ollama Error: ${ollamaErr.message}`, true);
     }
   }
 
@@ -628,8 +868,8 @@ async function executeSingleAgentStep(goal, step, maxSteps) {
     (vlmRouter.preferredProvider === 'auto' && (vlmRouter.openaiKey || vlmRouter.geminiKey))
   );
 
-  // Priority 2: Cloud Multimodal VLM (OpenAI / Gemini Cloud)
-  if (!decision && hasKeys) {
+  // Priority 3: Multimodal VLM (Cloud OpenAI / Gemini or Auto Router)
+  if (!decision && vlmRouter && (hasKeys || vlmRouter.preferredProvider === 'auto')) {
     showProgress(`Analyzing: Step ${step}/${maxSteps} - Querying VLM (${vlmRouter.preferredProvider})...`);
     try {
       const vlmRes = await vlmRouter.decide(
@@ -642,7 +882,7 @@ async function executeSingleAgentStep(goal, step, maxSteps) {
       decision = vlmRes.decision;
       providerUsed = vlmRes.providerUsed;
     } catch (vlmErr) {
-      console.warn('Cloud VLM query notice, using local engine:', vlmErr);
+      console.log('VLM query notice, using local fallbacks:', vlmErr);
     }
   }
 
@@ -681,13 +921,20 @@ async function executeSingleAgentStep(goal, step, maxSteps) {
   // Grounded Execution on Page (Intermediate step - DO NOT post to chat)
   showProgress(`Controlling page: Step ${step}/${maxSteps} - [${decision.action.toUpperCase()}] ${decision.thought || ''}`);
 
-  await browserAPI.tabs.sendMessage(activeTab.id, {
-    action: 'EXECUTE_ACTION',
-    agentAction: decision.action,
-    targetIndex: decision.target_index,
-    coordinates: decision.coordinates,
-    text: decision.text
-  });
+  try {
+    const execRes = await browserAPI.tabs.sendMessage(activeTab.id, {
+      action: 'EXECUTE_ACTION',
+      agentAction: decision.action,
+      targetIndex: decision.target_index,
+      coordinates: decision.coordinates,
+      text: decision.text
+    });
+    if (execRes && !execRes.success) {
+      console.warn('Action execution issue:', execRes.error);
+    }
+  } catch (actErr) {
+    console.warn('Could not dispatch action to content script:', actErr);
+  }
 
   agentHistory.push({
     action: decision.action,
