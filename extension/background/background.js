@@ -24,12 +24,15 @@ if (sidePanelAPI && typeof sidePanelAPI.setPanelBehavior === 'function') {
   } catch (_) {}
 }
 
-// Automatically open the side panel interface upon first installation so it is immediately visible
-browserAPI.runtime?.onInstalled?.addListener((details) => {
+// Automatically open the native side panel interface upon first installation without opening a full tab
+browserAPI.runtime?.onInstalled?.addListener(async (details) => {
   if (details.reason === 'install') {
     try {
-      if (browserAPI.tabs && browserAPI.tabs.create) {
-        browserAPI.tabs.create({ url: 'sidepanel/sidepanel.html' });
+      if (sidePanelAPI && typeof sidePanelAPI.open === 'function') {
+        const windows = await (browserAPI.windows?.getAll ? browserAPI.windows.getAll({ populate: false }) : []);
+        if (windows && windows.length > 0) {
+          await sidePanelAPI.open({ windowId: windows[0].id });
+        }
       }
     } catch (_) {}
   }

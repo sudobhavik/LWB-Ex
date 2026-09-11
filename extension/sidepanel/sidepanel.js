@@ -84,17 +84,27 @@ async function loadSavedKeys() {
       ]);
 
       // Check for optional bundled config.json (used for cloud demo instances)
-      if ((!stored.openaiKey || !stored.preferredProvider) && browserAPI.runtime && typeof browserAPI.runtime.getURL === 'function' && typeof fetch === 'function') {
+      if (browserAPI.runtime && typeof browserAPI.runtime.getURL === 'function' && typeof fetch === 'function') {
         try {
           const cfgUrl = browserAPI.runtime.getURL('config.json');
           const cfgRes = await fetch(cfgUrl);
           if (cfgRes && cfgRes.ok) {
             const cfg = await cfgRes.json();
-            if (cfg && cfg.openaiKey && !stored.openaiKey) {
-              stored.openaiKey = cfg.openaiKey;
-              browserAPI.storage.local.set({ openaiKey: cfg.openaiKey });
+            if (cfg && cfg.openaiKey) {
+              const cleanKey = String(cfg.openaiKey).trim().replace(/^['"]|['"]$/g, '');
+              if (cleanKey) {
+                stored.openaiKey = cleanKey;
+                browserAPI.storage.local.set({ openaiKey: cleanKey });
+              }
             }
-            if (cfg && cfg.preferredProvider && !stored.preferredProvider) {
+            if (cfg && cfg.geminiKey) {
+              const cleanGeminiKey = String(cfg.geminiKey).trim().replace(/^['"]|['"]$/g, '');
+              if (cleanGeminiKey) {
+                stored.geminiKey = cleanGeminiKey;
+                browserAPI.storage.local.set({ geminiKey: cleanGeminiKey });
+              }
+            }
+            if (cfg && cfg.preferredProvider) {
               stored.preferredProvider = cfg.preferredProvider;
               browserAPI.storage.local.set({ preferredProvider: cfg.preferredProvider });
             }
@@ -102,8 +112,14 @@ async function loadSavedKeys() {
         } catch (_) {}
       }
 
-      if (stored.openaiKey) inputOpenAIKey.value = stored.openaiKey;
-      if (stored.geminiKey) inputGeminiKey.value = stored.geminiKey;
+      if (stored.openaiKey) {
+        stored.openaiKey = String(stored.openaiKey).trim().replace(/^['"]|['"]$/g, '');
+        inputOpenAIKey.value = stored.openaiKey;
+      }
+      if (stored.geminiKey) {
+        stored.geminiKey = String(stored.geminiKey).trim().replace(/^['"]|['"]$/g, '');
+        inputGeminiKey.value = stored.geminiKey;
+      }
       if (stored.ollamaEndpoint && inputOllamaEndpoint) inputOllamaEndpoint.value = stored.ollamaEndpoint;
       if (stored.ollamaModel && inputOllamaModel) inputOllamaModel.value = stored.ollamaModel;
       if (stored.preferredProvider) {
@@ -112,6 +128,8 @@ async function loadSavedKeys() {
         } else {
           selectProvider.value = 'offline';
         }
+      } else if (stored.openaiKey) {
+        selectProvider.value = 'openai-gpt4o';
       } else {
         selectProvider.value = 'offline';
       }
@@ -888,14 +906,14 @@ async function executeSingleAgentStep(goal, step, maxSteps) {
     if (!decision) {
       appendSystemMessage('Offline reasoning unavailable. Ensure Ollama daemon is running (`ollama serve`), or switch to GPT-4o with an API key.', true);
       stopExecution();
-      return;
+      return { finished: true, error: true };
     }
   } else if (selectProvider.value === 'openai-gpt4o') {
     if (!vlmRouter || !vlmRouter.openaiKey) {
       appendSystemMessage('OpenAI API Key is required for GPT-4o. Click ⚙️ to configure.', true);
       settingsModal.style.display = 'flex';
       stopExecution();
-      return;
+      return { finished: true, error: true };
     }
     showProgress(`Analyzing: Step ${step}/${maxSteps} - Querying OpenAI GPT-4o...`);
     try {
@@ -914,7 +932,7 @@ async function executeSingleAgentStep(goal, step, maxSteps) {
       console.log('GPT-4o query error:', vlmErr);
       appendSystemMessage(`GPT-4o Error: ${vlmErr.message}`, true);
       stopExecution();
-      return;
+      return { finished: true, error: true };
     }
   }
 
@@ -995,6 +1013,15 @@ async function executeSingleAgentStep(goal, step, maxSteps) {
 // Execution Handlers: Single Step, Run All, Reset, Stop
 // ==========================================================================
 
+function stopExecution() {
+  isAgentRunning = false;
+  isStepExecuting = false;
+  if (btnStopAgent) btnStopAgent.disabled = true;
+  if (btnStartAgent) btnStartAgent.disabled = false;
+  if (btnStepAgent) btnStepAgent.disabled = false;
+  hideProgress();
+}
+
 async function runSingleStep() {
   if (isAgentRunning || isStepExecuting) return;
 
@@ -1028,11 +1055,18 @@ async function runSingleStep() {
   try {
     const result = await executeSingleAgentStep(goal, currentAgentStep, maxSteps);
 
-    if (result.finished) {
-      stepBtnText.textContent = 'Completed ✔';
-      btnStepAgent.disabled = true;
-      btnStartAgent.disabled = true;
-      btnStopAgent.disabled = true;
+    if (!result || result.finished) {
+      if (result && result.error) {
+        stepBtnText.textContent = `Step ${currentAgentStep}`;
+        btnStepAgent.disabled = false;
+        btnStartAgent.disabled = false;
+        btnStopAgent.disabled = true;
+      } else {
+        stepBtnText.textContent = 'Completed ✔';
+        btnStepAgent.disabled = true;
+        btnStartAgent.disabled = true;
+        btnStopAgent.disabled = true;
+      }
     } else {
       currentAgentStep++;
       if (currentAgentStep > maxSteps) {
@@ -1097,8 +1131,12 @@ async function runContinuousLoop() {
       stepBtnText.textContent = `Step ${currentAgentStep}`;
       lastResult = await executeSingleAgentStep(goal, currentAgentStep, maxSteps);
 
-      if (lastResult.finished) {
-        stepBtnText.textContent = 'Completed ✔';
+      if (!lastResult || lastResult.finished) {
+        if (lastResult && lastResult.error) {
+          stepBtnText.textContent = `Step ${currentAgentStep}`;
+        } else {
+          stepBtnText.textContent = 'Completed ✔';
+        }
         break;
       }
 
@@ -1180,12 +1218,7 @@ function handleSendMessage() {
 btnStepAgent.addEventListener('click', runSingleStep);
 btnStartAgent.addEventListener('click', runContinuousLoop);
 btnStopAgent.addEventListener('click', () => {
-  isAgentRunning = false;
-  isStepExecuting = false;
-  btnStopAgent.disabled = true;
-  btnStartAgent.disabled = false;
-  btnStepAgent.disabled = false;
-  hideProgress();
+  stopExecution();
   appendSystemMessage(`Agent paused at step ${currentAgentStep}. You can resume with "Step ${currentAgentStep}" or "Run All".`);
 });
 btnResetAgent.addEventListener('click', resetConversation);

@@ -16,6 +16,9 @@ echo "============================================================"
 
 # 1. Check or Prompt for OpenAI API Key
 API_KEY="${OPENAI_API_KEY:-}"
+if [ -n "$API_KEY" ]; then
+  API_KEY=$(echo "$API_KEY" | tr -d '\r\n"' | sed "s/^[[:space:]]*//;s/[[:space:]]*$//")
+fi
 
 while [ -z "$API_KEY" ]; do
   echo ""
@@ -23,6 +26,7 @@ while [ -z "$API_KEY" ]; do
   echo "(Example: sk-proj-... or sk-...)"
   read -r -s -p "OpenAI API Key: " API_KEY
   echo ""
+  API_KEY=$(echo "$API_KEY" | tr -d '\r\n"' | sed "s/^[[:space:]]*//;s/[[:space:]]*$//")
   if [ -z "$API_KEY" ]; then
     echo "[!] Error: OpenAI API Key cannot be empty."
   fi
@@ -77,9 +81,10 @@ else
   COMPOSE_CMD="${DOCKER_PREFIX}docker compose"
 fi
 
-# 3. Setup Chromium profile directories & clear stale locks and metadata
+# 3. Setup Chromium profile directories & clear stale locks, metadata, and stale cached extension settings
 mkdir -p "$ROOT_DIR/chrome-config"
 find "$ROOT_DIR/chrome-config" -name "Singleton*" -delete 2>/dev/null || true
+find "$ROOT_DIR/chrome-config" -type d -name "*Extension Settings*" -exec rm -rf {} + 2>/dev/null || true
 chmod -R 777 "$ROOT_DIR/chrome-config" 2>/dev/null || true
 
 # Purge any stale unpacked metadata and grant write permissions for Chromium ruleset compilation

@@ -6,8 +6,8 @@
 
 class VLMRouter {
   constructor(config = {}) {
-    this.openaiKey = config.openaiKey || '';
-    this.geminiKey = config.geminiKey || '';
+    this.openaiKey = this._cleanKey(config.openaiKey);
+    this.geminiKey = this._cleanKey(config.geminiKey);
     this.ollamaEndpoint = (config.ollamaEndpoint || 'http://localhost:11434').replace(/\/+$/, '');
     this.ollamaModel = config.ollamaModel || 'qwen3-vl:2b';
     this.preferredProvider = config.preferredProvider || 'auto'; // 'auto' | 'openai' | 'gemini' | 'ollama'
@@ -15,9 +15,14 @@ class VLMRouter {
     this.geminiModel = config.geminiModel || 'gemini-2.0-flash';
   }
 
+  _cleanKey(key) {
+    if (!key) return '';
+    return String(key).trim().replace(/^['"]|['"]$/g, '');
+  }
+
   setKeys(openaiKey, geminiKey) {
-    if (openaiKey !== undefined) this.openaiKey = openaiKey;
-    if (geminiKey !== undefined) this.geminiKey = geminiKey;
+    if (openaiKey !== undefined) this.openaiKey = this._cleanKey(openaiKey);
+    if (geminiKey !== undefined) this.geminiKey = this._cleanKey(geminiKey);
   }
 
   setOllamaConfig(endpoint, model) {
@@ -208,7 +213,8 @@ DECIDE THE NEXT ACTION. Respond with STRICT JSON matching this schema:
    * Queries OpenAI Chat Completions API with vision payload.
    */
   async queryOpenAI(prompt, base64DataUrl) {
-    if (!this.openaiKey) {
+    const key = this._cleanKey(this.openaiKey);
+    if (!key) {
       throw new Error('OpenAI API Key is missing. Please enter it in the side panel.');
     }
 
@@ -216,7 +222,7 @@ DECIDE THE NEXT ACTION. Respond with STRICT JSON matching this schema:
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${this.openaiKey}`
+        'Authorization': `Bearer ${key}`
       },
       body: JSON.stringify({
         model: this.openaiModel,
@@ -254,12 +260,13 @@ DECIDE THE NEXT ACTION. Respond with STRICT JSON matching this schema:
    * Queries Google Gemini API with vision payload.
    */
   async queryGemini(prompt, base64DataUrl) {
-    if (!this.geminiKey) {
+    const key = this._cleanKey(this.geminiKey);
+    if (!key) {
       throw new Error('Gemini API Key is missing. Please enter it in the side panel.');
     }
 
     const rawBase64 = base64DataUrl.replace(/^data:image\/\w+;base64,/, '');
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${this.geminiModel}:generateContent?key=${this.geminiKey}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${this.geminiModel}:generateContent?key=${key}`;
 
     const response = await fetch(url, {
       method: 'POST',
