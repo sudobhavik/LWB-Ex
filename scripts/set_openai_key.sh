@@ -66,18 +66,22 @@ else
   COMPOSE_CMD="${DOCKER_PREFIX}docker compose"
 fi
 
-# Stop running browser to release file locks on chrome-config
-echo "==> Stopping browser to release storage locks..."
-$COMPOSE_CMD -f docker-compose.azure.yml stop guptchara-browser 2>/dev/null || true
+# Stop running browsers to release file locks on chrome-config
+echo "==> Stopping browsers to release storage locks..."
+$COMPOSE_CMD -f docker-compose.azure.yml stop guptchara-browser guptchara-browser-2 2>/dev/null || true
 
-echo "==> Purging stale extension storage caches..."
-sudo find "$ROOT_DIR/chrome-config" -name "Singleton*" -delete 2>/dev/null || find "$ROOT_DIR/chrome-config" -name "Singleton*" -delete 2>/dev/null || true
-sudo find "$ROOT_DIR/chrome-config" -type d -name "*Extension Settings*" -exec rm -rf {} + 2>/dev/null || find "$ROOT_DIR/chrome-config" -type d -name "*Extension Settings*" -exec rm -rf {} + 2>/dev/null || true
-sudo find "$ROOT_DIR/chrome-config" -type d -name "*Sync Extension Settings*" -exec rm -rf {} + 2>/dev/null || find "$ROOT_DIR/chrome-config" -type d -name "*Sync Extension Settings*" -exec rm -rf {} + 2>/dev/null || true
-sudo find "$ROOT_DIR/chrome-config" -type d -name "*IndexedDB*" -exec rm -rf {} + 2>/dev/null || find "$ROOT_DIR/chrome-config" -type d -name "*IndexedDB*" -exec rm -rf {} + 2>/dev/null || true
+echo "==> Purging stale extension storage caches for both slots..."
+for DIR in "$ROOT_DIR/chrome-config" "$ROOT_DIR/chrome-config-2"; do
+  mkdir -p "$DIR"
+  sudo find "$DIR" -name "Singleton*" -delete 2>/dev/null || find "$DIR" -name "Singleton*" -delete 2>/dev/null || true
+  sudo find "$DIR" -type d -name "*Extension Settings*" -exec rm -rf {} + 2>/dev/null || find "$DIR" -type d -name "*Extension Settings*" -exec rm -rf {} + 2>/dev/null || true
+  sudo find "$DIR" -type d -name "*Sync Extension Settings*" -exec rm -rf {} + 2>/dev/null || find "$DIR" -type d -name "*Sync Extension Settings*" -exec rm -rf {} + 2>/dev/null || true
+  sudo find "$DIR" -type d -name "*IndexedDB*" -exec rm -rf {} + 2>/dev/null || find "$DIR" -type d -name "*IndexedDB*" -exec rm -rf {} + 2>/dev/null || true
+  chmod -R 777 "$DIR" 2>/dev/null || true
+done
 
-echo "==> Restarting Chromium container..."
-$COMPOSE_CMD -f docker-compose.azure.yml up -d --force-recreate guptchara-browser
+echo "==> Restarting both Chromium containers..."
+$COMPOSE_CMD -f docker-compose.azure.yml up -d --force-recreate guptchara-browser guptchara-browser-2 caddy
 
 DOMAIN="${AZURE_DOMAIN:-guptchara-demo.malaysiawest.cloudapp.azure.com}"
 if [ -f "$ROOT_DIR/.env" ] && grep -q "AZURE_DOMAIN=" "$ROOT_DIR/.env"; then
@@ -85,6 +89,7 @@ if [ -f "$ROOT_DIR/.env" ] && grep -q "AZURE_DOMAIN=" "$ROOT_DIR/.env"; then
 fi
 
 echo "============================================================"
-echo "    [+] OpenAI API Key configured and active!               "
-echo "    Access your deployment at: https://${DOMAIN}"
+echo "    [+] OpenAI API Key configured and active on both slots! "
+echo "    Slot 1 (Evaluator 1): https://${DOMAIN}"
+echo "    Slot 2 (Evaluator 2): https://${DOMAIN}:8443"
 echo "============================================================"

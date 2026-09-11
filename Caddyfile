@@ -2,6 +2,7 @@
     email namdeoshreyas@gmail.com
 }
 
+# Slot 1: Primary Evaluator (Default HTTPS Port 443)
 {$AZURE_DOMAIN:guptchara-demo.malaysiawest.cloudapp.azure.com} {
     {$CADDY_TLS_DIRECTIVE}
     reverse_proxy guptchara-browser:3000 {
@@ -10,5 +11,17 @@
         header_up X-Forwarded-For {remote_host}
         header_up X-Forwarded-Proto https
         header_up X-Forwarded-Port 443
+    }
+}
+
+# Slot 2: Secondary Evaluator (HTTPS Port 8443)
+{$AZURE_DOMAIN:guptchara-demo.malaysiawest.cloudapp.azure.com}:8443 {
+    {$CADDY_TLS_DIRECTIVE}
+    reverse_proxy guptchara-browser-2:3000 {
+        header_up Host {host}
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto https
+        header_up X-Forwarded-Port 8443
     }
 }

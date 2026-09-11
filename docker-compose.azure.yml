@@ -31,7 +31,31 @@ services:
     ports:
       - "3000:3000"
       - "3001:3001"
-    shm_size: "2gb"
+    shm_size: "1gb"
+    restart: unless-stopped
+    networks:
+      - guptchara-net
+
+  guptchara-browser-2:
+    image: lscr.io/linuxserver/chromium:latest
+    container_name: guptchara-streamed-browser-2
+    depends_on:
+      - demo-site
+    security_opt:
+      - seccomp:unconfined
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+      # Launch Chromium with GUPTCHARA extension and navigate to demo site (Slot 2)
+      - CHROME_CLI=--no-sandbox --disable-gpu --disable-dev-shm-usage --start-maximized --no-first-run --no-default-browser-check --load-extension=/app/extension --disable-extensions-except=/app/extension http://demo-site:8080/index.html
+    volumes:
+      - ./extension:/app/extension:rw
+      - ./chrome-config-2:/config
+    ports:
+      - "3002:3000"
+      - "3003:3001"
+    shm_size: "1gb"
     restart: unless-stopped
     networks:
       - guptchara-net
@@ -42,9 +66,11 @@ services:
     restart: unless-stopped
     depends_on:
       - guptchara-browser
+      - guptchara-browser-2
     ports:
       - "80:80"
       - "443:443"
+      - "8443:8443"
     environment:
       - AZURE_DOMAIN=${AZURE_DOMAIN:-guptchara-demo.malaysiawest.cloudapp.azure.com}
       - CADDY_TLS_DIRECTIVE=${CADDY_TLS_DIRECTIVE:-}

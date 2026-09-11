@@ -104,17 +104,19 @@ else
 fi
 
 # 3. Stop running browser containers first to avoid writing cached storage back to disk on shutdown
-echo "==> Stopping running browser container to purge stale SQLite caches..."
-$COMPOSE_CMD -f docker-compose.azure.yml stop guptchara-browser caddy 2>/dev/null || true
-$COMPOSE_CMD -f docker-compose.azure.yml rm -f guptchara-browser caddy 2>/dev/null || true
+echo "==> Stopping running browser containers to purge stale SQLite caches..."
+$COMPOSE_CMD -f docker-compose.azure.yml stop guptchara-browser guptchara-browser-2 caddy 2>/dev/null || true
+$COMPOSE_CMD -f docker-compose.azure.yml rm -f guptchara-browser guptchara-browser-2 caddy 2>/dev/null || true
 
-# Clear stale locks, metadata, and cached extension settings
-mkdir -p "$ROOT_DIR/chrome-config"
-find "$ROOT_DIR/chrome-config" -name "Singleton*" -delete 2>/dev/null || true
-find "$ROOT_DIR/chrome-config" -type d -name "*Extension Settings*" -exec rm -rf {} + 2>/dev/null || true
-find "$ROOT_DIR/chrome-config" -type d -name "*Sync Extension Settings*" -exec rm -rf {} + 2>/dev/null || true
-find "$ROOT_DIR/chrome-config" -type d -name "*IndexedDB*" -exec rm -rf {} + 2>/dev/null || true
-chmod -R 777 "$ROOT_DIR/chrome-config" 2>/dev/null || true
+# Clear stale locks, metadata, and cached extension settings for both isolated slots
+for DIR in "$ROOT_DIR/chrome-config" "$ROOT_DIR/chrome-config-2"; do
+  mkdir -p "$DIR"
+  sudo find "$DIR" -name "Singleton*" -delete 2>/dev/null || find "$DIR" -name "Singleton*" -delete 2>/dev/null || true
+  sudo find "$DIR" -type d -name "*Extension Settings*" -exec rm -rf {} + 2>/dev/null || find "$DIR" -type d -name "*Extension Settings*" -exec rm -rf {} + 2>/dev/null || true
+  sudo find "$DIR" -type d -name "*Sync Extension Settings*" -exec rm -rf {} + 2>/dev/null || find "$DIR" -type d -name "*Sync Extension Settings*" -exec rm -rf {} + 2>/dev/null || true
+  sudo find "$DIR" -type d -name "*IndexedDB*" -exec rm -rf {} + 2>/dev/null || find "$DIR" -type d -name "*IndexedDB*" -exec rm -rf {} + 2>/dev/null || true
+  chmod -R 777 "$DIR" 2>/dev/null || true
+done
 
 # Purge any stale unpacked metadata and grant write permissions for Chromium ruleset compilation
 rm -rf "$ROOT_DIR/extension/_metadata" 2>/dev/null || true
@@ -202,28 +204,27 @@ echo "============================================================"
 echo "    GUPTCHARA CLOUD INSTANCE SUCCESSFULLY DEPLOYED!         "
 echo "============================================================"
 echo ""
-echo "⭐ PERMANENT OFFICIAL HTTPS URL (PUT THIS IN YOUR PPT):"
+echo "⭐ DUAL ISOLATED EVALUATOR SLOTS (PUT THESE IN YOUR PPT):"
 echo "------------------------------------------------------------"
-echo "Official Trusted HTTPS : https://${AZURE_FQDN}"
-echo ""
-echo "Alternative Fallbacks:"
-echo "Direct HTTPS (Port 3001): https://${AZURE_FQDN}:3001"
-echo "Direct HTTP  (Port 3000): http://${AZURE_FQDN}:3000"
+echo "Slot 1 (Evaluator 1) : https://${AZURE_FQDN}"
+echo "Slot 2 (Evaluator 2) : https://${AZURE_FQDN}:8443"
 echo "------------------------------------------------------------"
 echo ""
-echo "Important: Ensure Port 443 (HTTPS) is opened in Azure NSG:"
+echo "Important: Ensure both Port 443 & 8443 are opened in Azure NSG:"
 echo "  1. Azure Portal -> VM 'guptchara-vm' -> 'Networking'"
-echo "  2. Add inbound port rule: Service 'HTTPS' (Port 443) -> Add"
+echo "  2. Add inbound rule: Service 'HTTPS' (Port 443) -> Add"
+echo "  3. Add inbound rule: Port '8443', Protocol 'TCP' -> Add"
 echo ""
-echo "What judges see when opening the link:"
-echo "1. Valid SSL padlock (encrypted & trusted connection)."
-echo "2. Full Chromium desktop streaming live directly in their browser."
+echo "What judges see when opening either link:"
+echo "1. 100% independent isolated session (separate cursor, cart, and agent loop)."
+echo "2. Valid SSL padlock (encrypted & trusted connection)."
 echo "3. The GUPTCHARA e-commerce demo testbed loads immediately."
 echo "4. The GUPTCHARA extension is loaded with GPT-4o pre-configured."
 echo ""
 echo "Useful Commands:"
-echo "  Check Status   : ./scripts/check_status.sh"
-echo "  View Caddy Logs: ${COMPOSE_CMD} -f docker-compose.azure.yml logs -f caddy"
-echo "  View Live Logs : ${COMPOSE_CMD} -f docker-compose.azure.yml logs -f"
-echo "  Restart Stack  : ${COMPOSE_CMD} -f docker-compose.azure.yml restart"
+echo "  Reset Demo Sessions: ./scripts/reset_demo_session.sh"
+echo "  Check Status       : ./scripts/check_status.sh"
+echo "  View Caddy Logs    : ${COMPOSE_CMD} -f docker-compose.azure.yml logs -f caddy"
+echo "  View Live Logs     : ${COMPOSE_CMD} -f docker-compose.azure.yml logs -f"
+echo "  Restart Stack      : ${COMPOSE_CMD} -f docker-compose.azure.yml restart"
 echo "============================================================"
