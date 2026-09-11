@@ -124,14 +124,16 @@ function findChromiumBinary(preferred = 'chrome') {
     return findInPath(['google-chrome', 'chromium', 'brave-browser']);
   }
 
-  // Linux
+  // Linux: Prioritize open Chromium builds (chromium, brave) which permit automated --load-extension.
+  // Note: Official Google Chrome 137+ explicitly ignores --load-extension from the CLI for security.
   return findInPath([
-    'google-chrome-stable',
-    'google-chrome',
     'chromium',
     'chromium-browser',
+    'brave',
     'brave-browser',
-    'microsoft-edge'
+    'microsoft-edge',
+    'google-chrome-stable',
+    'google-chrome'
   ]);
 }
 
@@ -232,6 +234,12 @@ async function launchChromium(preferred = 'chrome') {
   }
 
   console.log(`==> Detected browser: ${binaryPath}`);
+  if (binaryPath.includes('google-chrome')) {
+    console.log('    [!] Notice: Official Google Chrome 137+ restricts command-line "--load-extension".');
+    console.log('    [!] For automatic loading, install Chromium: sudo apt install chromium-browser (or pacman -S chromium)');
+    console.log('    [!] In Google Chrome: Open chrome://extensions -> toggle Developer mode -> click "Load unpacked" -> select extension folder.');
+  }
+
   const tempProfileDir = path.join(os.tmpdir(), `guptchara_profile_${Date.now()}`);
   fs.mkdirSync(path.join(tempProfileDir, 'Default'), { recursive: true });
 
@@ -239,6 +247,9 @@ async function launchChromium(preferred = 'chrome') {
     const extId = 'idladkdajgfkeeleaghkjojnpdicnblm';
     const prefs = {
       extensions: {
+        ui: {
+          developer_mode: true
+        },
         pinned_extensions: [extId]
       }
     };
@@ -253,7 +264,6 @@ async function launchChromium(preferred = 'chrome') {
 
   const args = [
     `--load-extension=${EXT_DIR}`,
-    `--disable-extensions-except=${EXT_DIR}`,
     `--user-data-dir=${tempProfileDir}`,
     '--no-first-run',
     '--no-default-browser-check',
@@ -261,13 +271,25 @@ async function launchChromium(preferred = 'chrome') {
     '--enable-unsafe-webgpu',
     '--ignore-gpu-blocklist',
     '--enable-gpu-rasterization',
-    '--enable-zero-copy',
-    DEMO_URL
+    '--enable-zero-copy'
   ];
 
   if (process.platform === 'win32') {
     args.push('--disable-features=RendererCodeIntegrity');
   }
+
+  if (process.platform === 'linux') {
+    if (process.env.WAYLAND_DISPLAY) {
+      args.push('--ozone-platform-hint=auto', '--ozone-platform=wayland');
+    }
+    args.push(
+      '--use-gl=angle',
+      '--use-angle=gl',
+      '--disable-features=Vulkan,VulkanFromANGLE,DefaultANGLEVulkan'
+    );
+  }
+
+  args.push(DEMO_URL);
 
   console.log(`==> Launching browser with GUPTCHARA extension...`);
   console.log(`    Extension Path: ${EXT_DIR}`);
