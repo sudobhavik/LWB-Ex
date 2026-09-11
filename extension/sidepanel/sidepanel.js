@@ -456,7 +456,7 @@ function validateProviderKeys() {
     return false;
   }
   if (selectProvider.value === 'openai-gpt4o' && !vlmRouter.openaiKey) {
-    appendSystemMessage('Please configure your OpenAI API Key in Settings (⚙️ top right) to use GPT-4o.', true);
+    appendSystemMessage('Please configure your OpenAI API Key in Settings (top right) to use GPT-4o.', true);
     settingsModal.style.display = 'flex';
     return false;
   }
@@ -555,7 +555,7 @@ function appendAssistantResponse({
     proofCard.innerHTML = `
       <div class="shield-header">
         <div class="shield-summary">
-          <span class="shield-summary-icon">🛡️</span>
+          <span class="shield-summary-icon" style="font-weight:700; color:#FF9900;">[SHIELD]</span>
           <span>Zero-Egress Visual Context</span>
         </div>
         <span class="shield-badge-tag">${totalRedacted} items blurred</span>
@@ -563,7 +563,7 @@ function appendAssistantResponse({
       <div class="shield-preview-wrapper">
         <img src="${sanitizedCanvas.toDataURL('image/jpeg', 0.85)}" alt="On-Device Sanitized Viewport" />
         <div class="shield-overlay-tag">
-          <span>🔒 On-Device Redacted</span>
+          <span>[On-Device Redacted]</span>
         </div>
       </div>
       <div class="shield-footer-note">
@@ -1040,7 +1040,7 @@ async function executeSingleAgentStep(goal, step, maxSteps) {
       }
     }
     if (!vlmRouter || !vlmRouter.openaiKey) {
-      appendSystemMessage('OpenAI API Key is required for GPT-4o. Click ⚙️ to configure.', true);
+      appendSystemMessage('OpenAI API Key is required for GPT-4o. Click Settings icon to configure.', true);
       settingsModal.style.display = 'flex';
       stopExecution();
       return { finished: true, error: true };
@@ -1193,7 +1193,7 @@ async function runSingleStep() {
         btnStartAgent.disabled = false;
         btnStopAgent.disabled = true;
       } else {
-        stepBtnText.textContent = 'Completed ✔';
+        stepBtnText.textContent = 'Completed';
         btnStepAgent.disabled = true;
         btnStartAgent.disabled = true;
         btnStopAgent.disabled = true;
@@ -1266,7 +1266,7 @@ async function runContinuousLoop() {
         if (lastResult && lastResult.error) {
           stepBtnText.textContent = `Step ${currentAgentStep}`;
         } else {
-          stepBtnText.textContent = 'Completed ✔';
+          stepBtnText.textContent = 'Completed';
         }
         break;
       }
@@ -1296,7 +1296,7 @@ async function runContinuousLoop() {
     btnStartAgent.disabled = false;
     btnStepAgent.disabled = currentAgentStep > maxSteps;
     btnStopAgent.disabled = true;
-    if (currentAgentStep <= maxSteps && stepBtnText.textContent !== 'Completed ✔') {
+    if (currentAgentStep <= maxSteps && stepBtnText.textContent !== 'Completed') {
       stepBtnText.textContent = `Step ${currentAgentStep}`;
     }
   }

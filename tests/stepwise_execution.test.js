@@ -130,13 +130,13 @@ describe('Step-Wise Execution & Stepper Pipeline', () => {
       const mockDecision = { action: 'finish', thought: 'Item added to cart successfully' };
       if (mockDecision.action === 'finish') {
         statusBadge = 'COMPLETED';
-        buttonText = 'COMPLETED ✔';
+        buttonText = 'COMPLETED';
         isStepBtnDisabled = true;
         setStepperPhase(5, phases);
       }
 
       expect(statusBadge).toBe('COMPLETED');
-      expect(buttonText).toBe('COMPLETED ✔');
+      expect(buttonText).toBe('COMPLETED');
       expect(isStepBtnDisabled).toBe(true);
       expect(phases['phase-4'].className).toBe('stepper-phase phase-done');
     });

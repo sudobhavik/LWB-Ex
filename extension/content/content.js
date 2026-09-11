@@ -40,12 +40,12 @@
       const pill = document.createElement('div');
       pill.id = 'yolo-live-privacy-pill';
       if (!detections || detections.length === 0) {
-        pill.innerHTML = `<span>&#10003;</span> GUPTCHARA LIVE PRIVACY SHIELD: <strong>0 SENSITIVE ITEMS (PAGE SAFE)</strong>`;
+        pill.innerHTML = `<span class="pill-badge-icon" style="font-weight:700; margin-right:4px;">[SAFE]</span> GUPTCHARA LIVE PRIVACY SHIELD: <strong>0 SENSITIVE ITEMS (PAGE SAFE)</strong>`;
         pill.style.borderColor = '#007600';
       } else {
         const categories = [...new Set(detections.map(d => (d.className || d.type || 'SENSITIVE').toUpperCase()))];
         const catList = categories.slice(0, 4).join(', ') + (categories.length > 4 ? ` +${categories.length - 4} more` : '');
-        pill.innerHTML = `<span>&#128737;</span> GUPTCHARA LIVE PRIVACY SHIELD: <strong>${detections.length} SENSITIVE AREAS BLURRED</strong> <span class="pill-categories" style="opacity:0.85; font-size:11px; margin-left:4px; font-weight:600;">(${catList})</span>`;
+        pill.innerHTML = `<span class="pill-badge-icon" style="font-weight:700; margin-right:4px;">[SHIELD]</span> GUPTCHARA LIVE PRIVACY SHIELD: <strong>${detections.length} SENSITIVE AREAS BLURRED</strong> <span class="pill-categories" style="opacity:0.85; font-size:11px; margin-left:4px; font-weight:600;">(${catList})</span>`;
         pill.style.borderColor = '#FF9900';
       }
       container.appendChild(pill);
@@ -140,7 +140,7 @@
 
       let label = '';
       if (el.tagName.toLowerCase() === 'input' || el.tagName.toLowerCase() === 'textarea') {
-        const isSecret = el.type === 'password' || /password|card|cvv|secret|token|ssn|aadhaar|pan/i.test(
+        const isSecret = el.type === 'password' || /password|card|cvv|secret|token|ssn|aadhaar|pan|address|street|pincode|postal|zip/i.test(
           (el.id || '') + ' ' + (el.name || '') + ' ' + (el.autocomplete || '') + ' ' + (el.placeholder || '')
         );
         label = isSecret ? '[REDACTED_SECURE_FIELD]' : (el.placeholder || el.value || el.name || el.id || el.type);

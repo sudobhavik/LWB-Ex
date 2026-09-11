@@ -119,9 +119,23 @@ describe('PII & Sensitive Pattern Detector Tests (Presidio-Grade)', () => {
       const authSecrets = matches.filter(m => m.type === 'AUTH_SECRET');
       expect(authSecrets.length).toBe(2);
     });
+
+    it('should detect physical and shipping addresses (Indian and International)', () => {
+      const addr1 = 'Delivery Destination: Flat 402, Nilgiri Apartments, Barakhamba Road, Connaught Place, New Delhi 110001, India.';
+      const addr2 = 'Shipping Address: 482 Orchard Way, Apt 4B, Palo Alto, CA 94301, United States.';
+      const addr3 = 'Office: Cyber City Tower 10, DLF Phase 2, Gurugram, Haryana 122002, India.';
+
+      const m1 = extractPIIMatches(addr1);
+      const m2 = extractPIIMatches(addr2);
+      const m3 = extractPIIMatches(addr3);
+
+      expect(m1.some(m => m.type === 'ADDRESS')).toBe(true);
+      expect(m2.some(m => m.type === 'ADDRESS')).toBe(true);
+      expect(m3.some(m => m.type === 'ADDRESS')).toBe(true);
+    });
   });
 
-  describe('Full DOM Scans: Product Showcase vs Profile Vault', () => {
+  describe('Full DOM Scans: Product Showcase vs Profile Vault vs Checkout', () => {
     it('should detect ZERO PII on pure product showcase (demo/index.html)', () => {
       const indexPath = path.join(__dirname, '../demo/index.html');
       const html = fs.readFileSync(indexPath, 'utf8');
@@ -131,7 +145,7 @@ describe('PII & Sensitive Pattern Detector Tests (Presidio-Grade)', () => {
       expect(regions).toHaveLength(0);
     });
 
-    it('should detect all critical secrets on identity vault (demo/profile.html)', () => {
+    it('should detect all critical secrets including ADDRESS on identity vault (demo/profile.html)', () => {
       const profilePath = path.join(__dirname, '../demo/profile.html');
       const html = fs.readFileSync(profilePath, 'utf8');
       const dom = new JSDOM(html);
@@ -145,6 +159,19 @@ describe('PII & Sensitive Pattern Detector Tests (Presidio-Grade)', () => {
       expect(types).toContain('PAN');
       expect(types).toContain('API_KEY');
       expect(types).toContain('PASSWORD');
+      expect(types).toContain('ADDRESS');
+    });
+
+    it('should detect shipping address and payment credentials on checkout page (demo/checkout.html)', () => {
+      const checkoutPath = path.join(__dirname, '../demo/checkout.html');
+      const html = fs.readFileSync(checkoutPath, 'utf8');
+      const dom = new JSDOM(html);
+      const regions = scanDOMForPII(dom.window.document);
+
+      expect(regions.length).toBeGreaterThanOrEqual(5);
+      const types = regions.map(r => r.type);
+      expect(types).toContain('ADDRESS');
+      expect(types).toContain('CARD');
     });
   });
 });

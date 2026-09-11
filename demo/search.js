@@ -33,7 +33,7 @@
       noResultsBox.className = 'no-results-card';
       noResultsBox.style.display = 'none';
       noResultsBox.innerHTML = `
-        <div class="no-results-icon">&#128269;</div>
+        <div class="no-results-icon">[Search]</div>
         <h3>No matching products found</h3>
         <p>We couldn't find any products matching your search. Try checking your spelling or explore popular categories:</p>
         <div class="suggestion-chips">

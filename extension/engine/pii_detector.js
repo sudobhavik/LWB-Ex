@@ -19,6 +19,7 @@ const SSN_POSITIVE_CONTEXT = /\b(ssn|social\s*security|ss#|national\s*id)\b/i;
 const AUTH_SECRET_POSITIVE_CONTEXT = /\b(authenticator|seed|secret|totp|2fa|backup|recovery|code)\b/i;
 const AWS_SECRET_POSITIVE_CONTEXT = /\b(aws|secret|access\s*key|developer|secret\s*key)\b/i;
 const NAME_POSITIVE_CONTEXT = /\b(name|full\s*name|account\s*holder|cardholder|customer|patient|subscriber|deliver\s*to|holder)\b/i;
+const ADDRESS_POSITIVE_CONTEXT = /\b(address|deliver(?:y| to)?|shipping|destination|residential|home\s*address|office\s*address|saved\s*address|billing\s*address|premises|location|pincode|pin\s*code|postal\s*code|zip\s*code)\b/i;
 
 const PII_PATTERNS = {
   // 12-digit Indian Aadhaar UID
@@ -32,7 +33,9 @@ const PII_PATTERNS = {
   // High-entropy developer secrets (OpenAI, AWS, Webhooks, JWT, Payment tokens)
   API_KEY: /\b(?:sk-[a-zA-Z0-9_\-]{20,}|AKIA[0-9A-Z]{16}|whsec_[a-zA-Z0-9]{20,}|amzn_pay_[a-zA-Z0-9_]{15,}|pk_live_[a-zA-Z0-9_]{15,}|sk_live_[a-zA-Z0-9_]{15,}|eyJ[a-zA-Z0-9_-]{10,}\.[a-zA-Z0-9_-]{10,}\.[a-zA-Z0-9_-]{10,})\b/g,
   // Currency balances (Context-gated: USD $, INR ₹, Rs, etc.)
-  BALANCE: /(?:[\$₹]|Rs\.?|INR)\s*\d{1,3}(?:,\d{2,3})*(?:\.\d{2})?\b/g
+  BALANCE: /(?:[\$₹]|Rs\.?|INR)\s*\d{1,3}(?:,\d{2,3})*(?:\.\d{2})?\b/g,
+  // Postal & PIN codes
+  POSTAL_CODE: /\b(?:[1-9][0-9]{2}\s?[0-9]{3}|\d{5}(?:-\d{4})?)\b/g
 };
 
 /**
@@ -284,6 +287,43 @@ function extractPIIMatches(text, contextStr = '') {
     }
   }
 
+  // 11. Physical & Delivery / Shipping Addresses (Indian and International)
+  if (!COMMERCE_NEGATIVE_CONTEXT.test(fullContext) || ADDRESS_POSITIVE_CONTEXT.test(fullContext)) {
+    const hasAddressContext = ADDRESS_POSITIVE_CONTEXT.test(fullContext);
+    const premisePattern = /\b(?:flat|apt|apartment|suite|plot|house|building|tower|sector|phase|block|floor|room|shop)\b/i;
+    const streetPattern = /\b(?:road|rd|marg|street|st|lane|avenue|ave|way|boulevard|blvd|drive|dr|court|ct|chowk|colony|enclave|nagar|vihar|society)\b/i;
+    const postalPattern = /\b(?:[1-9][0-9]{2}\s?[0-9]{3}|\d{5}(?:-\d{4})?)\b/;
+    const cityStatePattern = /\b(?:new delhi|delhi|mumbai|bengaluru|bangalore|kolkata|chennai|hyderabad|pune|gurugram|gurgaon|noida|ahmedabad|jaipur|palo alto|san francisco|new york|california|maharashtra|karnataka|haryana|india|united states|usa)\b/i;
+
+    const isHardwareOrSpec = HARDWARE_SPEC_NEGATIVE_CONTEXT.test(text);
+
+    if (!isHardwareOrSpec) {
+      const hasPremise = premisePattern.test(text);
+      const hasStreet = streetPattern.test(text);
+      const hasPostal = postalPattern.test(text);
+      const hasCity = cityStatePattern.test(text);
+
+      const hasPremiseOrStreet = hasPremise || hasStreet;
+      const hasLocation = hasPostal || hasCity;
+
+      if ((hasPremiseOrStreet && hasLocation) || (hasPremise && hasStreet)) {
+        const trimmed = text.trim();
+        if (trimmed.length >= 8 && !/virtual\s*payment\s*address|upi\s*id/i.test(trimmed)) {
+          const index = text.indexOf(trimmed);
+          const alreadyMatched = matches.some(m => (m.type === 'CARD' || m.type === 'AADHAAR' || m.type === 'PHONE' || m.type === 'SSN') && m.text === trimmed);
+          if (!alreadyMatched) {
+            matches.push({
+              type: 'ADDRESS',
+              text: trimmed,
+              index: index >= 0 ? index : 0,
+              length: trimmed.length
+            });
+          }
+        }
+      }
+    }
+  }
+
   return matches;
 }
 
@@ -431,15 +471,19 @@ function scanDOMForPII(doc = null) {
     if (rect.bottom < 0 || rect.top > viewportHeight || rect.right < 0 || rect.left > viewportWidth) return;
 
     const isPassword = input.type === 'password';
+    const isAddressAttr = /address|street|pincode|postal|zip/i.test(
+      (input.id || '') + ' ' + (input.name || '') + ' ' + (input.autocomplete || '') + ' ' + (input.placeholder || '')
+    );
     const isSensitiveAttr = /password|card|cvv|secret|token|ssn|aadhaar|pan/i.test(
       (input.id || '') + ' ' + (input.name || '') + ' ' + (input.autocomplete || '') + ' ' + (input.placeholder || '')
     );
     const valueMatches = extractPIIMatches(input.value || '');
 
-    if (isPassword || isSensitiveAttr || valueMatches.length > 0) {
+    if (isPassword || isSensitiveAttr || isAddressAttr || valueMatches.length > 0) {
       let type = 'PASSWORD';
       if (valueMatches.length > 0) type = valueMatches[0].type;
       else if (/card|cvv/i.test((input.id || '') + (input.name || ''))) type = 'CARD';
+      else if (isAddressAttr) type = 'ADDRESS';
 
       regions.push({
         x: Math.round(rect.left),
@@ -535,6 +579,45 @@ function scanDOMForPII(doc = null) {
     }
   });
 
+  // 4. Scan Address Containers & Highlight Blocks
+  const addressContainers = targetDoc.querySelectorAll('address, .address, .shipping-address, .delivery-address, .order-address, [data-address], [itemprop="address"], .secret-highlight-large');
+  addressContainers.forEach(container => {
+    const text = (container.textContent || '').trim().replace(/\s+/g, ' ');
+    if (!text || text.length < 10) return;
+    if (/virtual\s*payment\s*address|upi\s*id/i.test(text) && !/\b(?:flat|apt|apartment|suite|plot|house|building|tower|sector|phase|road|rd|marg|street|lane)\b/i.test(text)) return;
+
+    const sectionParent = (typeof container.closest === 'function' ? container.closest('section, .card, form') : null) || container.parentElement?.parentElement || container.parentElement;
+    const parentText = (sectionParent ? sectionParent.textContent : '') + ' ' + text;
+    const hasPremiseOrStreet = /\b(?:flat|apt|apartment|suite|plot|house|building|tower|sector|phase|block|floor|room|road|rd|marg|street|st|lane|avenue|ave|way|chowk|colony|enclave|nagar|vihar)\b/i.test(text);
+    const hasPostalOrCity = /\b(?:[1-9][0-9]{2}\s?[0-9]{3}|\d{5}(?:-\d{4})?|delhi|mumbai|bengaluru|gurugram|palo alto|california|india|united states)\b/i.test(text);
+
+    const isExplicitContainer = container.tagName.toLowerCase() === 'address' || /address|destination/i.test(container.className || '') || /address|destination/i.test(container.id || '');
+    const hasAddressContext = ADDRESS_POSITIVE_CONTEXT.test(parentText);
+
+    if ((hasPremiseOrStreet && hasPostalOrCity) || (hasAddressContext && (hasPremiseOrStreet || hasPostalOrCity)) || isExplicitContainer) {
+      let rect = (typeof container.getBoundingClientRect === 'function')
+        ? container.getBoundingClientRect()
+        : { left: 0, top: 0, width: 0, height: 0 };
+      if (isHeadless && rect.width === 0 && rect.height === 0) {
+        rect = { left: 20, top: 20, width: Math.max(120, Math.min(400, text.length * 6)), height: 45 };
+      }
+      if (rect.width > 0 && rect.height > 0) {
+        // Avoid duplicate regions if already matched
+        const alreadyMatched = regions.some(r => r.type === 'ADDRESS' && Math.abs(r.x - rect.left) < 10 && Math.abs(r.y - rect.top) < 10);
+        if (!alreadyMatched) {
+          const pad = 4;
+          regions.push({
+            x: Math.max(0, Math.round(rect.left - pad)),
+            y: Math.max(0, Math.round(rect.top - pad)),
+            width: Math.round(rect.width + pad * 2),
+            height: Math.round(rect.height + pad * 2),
+            type: 'ADDRESS'
+          });
+        }
+      }
+    }
+  });
+
   return regions;
 }
 
@@ -544,6 +627,7 @@ if (typeof exports !== 'undefined') {
     BANKING_POSITIVE_CONTEXT,
     COMMERCE_NEGATIVE_CONTEXT,
     HARDWARE_SPEC_NEGATIVE_CONTEXT,
+    ADDRESS_POSITIVE_CONTEXT,
     isLuhnValid,
     calculateShannonEntropy,
     extractPIIMatches,
@@ -556,6 +640,7 @@ if (typeof exports !== 'undefined') {
     BANKING_POSITIVE_CONTEXT,
     COMMERCE_NEGATIVE_CONTEXT,
     HARDWARE_SPEC_NEGATIVE_CONTEXT,
+    ADDRESS_POSITIVE_CONTEXT,
     isLuhnValid,
     calculateShannonEntropy,
     extractPIIMatches,

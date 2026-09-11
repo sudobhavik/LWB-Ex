@@ -280,7 +280,7 @@ DECIDE THE NEXT ACTION. Respond with STRICT JSON matching this schema:
       const errBody = await response.text();
       let msg = `OpenAI API Error (${response.status}): ${errBody}`;
       if (response.status === 401) {
-        msg = `OpenAI Authentication Failed (401): Invalid or incorrect API key. Please check your key in Settings (⚙️). Error details: ${errBody}`;
+        msg = `OpenAI Authentication Failed (401): Invalid or incorrect API key. Please check your key in Settings. Error details: ${errBody}`;
       }
       throw new Error(msg);
     }
