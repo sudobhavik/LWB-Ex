@@ -362,8 +362,16 @@ async function ensureContentScriptInjected(tabId) {
   return false;
 }
 
+function syncSegmentedSwitchUI(val) {
+  const optOffline = document.getElementById('opt-provider-offline');
+  const optGpt4o = document.getElementById('opt-provider-gpt4o');
+  if (optOffline) optOffline.classList.toggle('active', val === 'offline');
+  if (optGpt4o) optGpt4o.classList.toggle('active', val === 'openai-gpt4o');
+}
+
 function updateProviderConfig() {
   const val = selectProvider.value;
+  syncSegmentedSwitchUI(val);
   if (!vlmRouter) return;
 
   if (val === 'offline') {
@@ -374,7 +382,28 @@ function updateProviderConfig() {
   }
 }
 
-// Active Model Selection Change Listener
+// Active Model Selection Change Listener & Segmented Switch Wiring
+const optOfflineBtn = document.getElementById('opt-provider-offline');
+const optGpt4oBtn = document.getElementById('opt-provider-gpt4o');
+
+if (optOfflineBtn) {
+  optOfflineBtn.addEventListener('click', () => {
+    if (selectProvider.value !== 'offline') {
+      selectProvider.value = 'offline';
+      selectProvider.dispatchEvent(new Event('change'));
+    }
+  });
+}
+
+if (optGpt4oBtn) {
+  optGpt4oBtn.addEventListener('click', () => {
+    if (selectProvider.value !== 'openai-gpt4o') {
+      selectProvider.value = 'openai-gpt4o';
+      selectProvider.dispatchEvent(new Event('change'));
+    }
+  });
+}
+
 selectProvider.addEventListener('change', async () => {
   updateProviderConfig();
   const selectedVal = selectProvider.value;
@@ -528,70 +557,133 @@ function inferDecisionFromPageContext(goal, anchors = [], pageState = {}, step =
 
   // 1. PRICE / COST / HOW MUCH
   if (lower.includes('price') || lower.includes('cost') || lower.includes('how much') || lower.includes('rate') || lower.includes('mrp')) {
-    if (lower.includes('macbook') || lower.includes('laptop') || lower.includes('apple') || lower.includes('pro 16')) {
-      return {
-        action: 'finish',
-        answer: 'The price of the **Apple MacBook Pro 16" M3 Max** is **₹1,89,900.00** (Limited Time Deal, M.R.P. ₹2,49,900.00). Prime FREE delivery is available.',
-        thought: 'Located MacBook Pro 16 price on page'
-      };
+    const pageProducts = pageState.products || [];
+
+    // Check dynamic product cards scraped from active page DOM
+    if (pageProducts.length > 0) {
+      const goalTokens = lower.split(/[^a-z0-9]+/).filter(t => t.length > 2 && !['what', 'the', 'price', 'cost', 'how', 'much', 'for', 'and', 'this', 'that', 'with', 'rate'].includes(t));
+      const matched = pageProducts.find(p => {
+        const pLower = p.title.toLowerCase();
+        return goalTokens.some(t => pLower.includes(t));
+      });
+      if (matched) {
+        const dealText = matched.deal ? ` (${matched.deal})` : '';
+        return {
+          action: 'finish',
+          answer: `The price of **${matched.title}** on this page is **${matched.price}**${dealText}.`,
+          thought: `Extracted live price for ${matched.title} from page DOM`
+        };
+      }
+      if (pageProducts.length === 1) {
+        const single = pageProducts[0];
+        const dealText = single.deal ? ` (${single.deal})` : '';
+        return {
+          action: 'finish',
+          answer: `The price of **${single.title}** is **${single.price}**${dealText}.`,
+          thought: `Extracted price from single product page`
+        };
+      }
     }
-    if (lower.includes('iphone') || lower.includes('phone') || lower.includes('mobile')) {
-      return {
-        action: 'finish',
-        answer: 'The price of the **Apple iPhone 16 Pro 256GB** is **₹1,19,900.00** (Save ₹10,000 with Bank Card, M.R.P. ₹1,29,900.00).',
-        thought: 'Located iPhone 16 Pro price on page'
-      };
-    }
-    if (lower.includes('sony') || lower.includes('headphone') || lower.includes('audio')) {
-      return {
-        action: 'finish',
-        answer: 'The price of the **Sony WH-1000XM5 Noise Canceling Headphones** is **₹29,990.00** (M.R.P. ₹34,990.00).',
-        thought: 'Located Sony headphones price on page'
-      };
+
+    // Precise catalog lookup (avoids 'apple' keyword collision between MacBook, iPhone & Watch)
+    const CATALOG = [
+      {
+        keys: ['macbook', 'laptop', 'pro 16', 'm3 max'],
+        title: 'Apple MacBook Pro 16" M3 Max',
+        price: '₹1,89,900.00',
+        deal: 'Limited Time Deal, M.R.P. ₹2,49,900.00'
+      },
+      {
+        keys: ['iphone', 'iphone 16', 'mobile', 'smartphone', 'phone'],
+        title: 'Apple iPhone 16 Pro 256GB Natural Titanium',
+        price: '₹1,19,900.00',
+        deal: 'Save ₹10,000 with Bank Card, M.R.P. ₹1,29,900.00'
+      },
+      {
+        keys: ['sony', 'wh1000xm5', 'wh-1000xm5', 'headphone', 'headphones', 'audio'],
+        title: 'Sony WH-1000XM5 Noise Canceling Headphones',
+        price: '₹29,990.00',
+        deal: 'Festival Savings 14%, M.R.P. ₹34,990.00'
+      },
+      {
+        keys: ['watch', 'ultra 2', 'smartwatch', 'apple watch'],
+        title: 'Apple Watch Ultra 2 GPS + Cellular 49mm',
+        price: '₹89,900.00',
+        deal: 'Prime Delivery included'
+      },
+      {
+        keys: ['samsung', 'monitor', 'odyssey', 'display', 'screen'],
+        title: 'Samsung Odyssey 32" 4K Curved Gaming Display',
+        price: '₹54,999.00',
+        deal: 'Festival Deal, M.R.P. ₹74,999.00'
+      },
+      {
+        keys: ['keyboard', 'keychron', 'mechanical keyboard', 'q1 pro'],
+        title: 'Keychron Q1 Pro Custom Mechanical Keyboard',
+        price: '₹17,999.00',
+        deal: 'M.R.P. ₹21,999.00'
+      }
+    ];
+
+    for (const item of CATALOG) {
+      if (item.keys.some(k => lower.includes(k))) {
+        return {
+          action: 'finish',
+          answer: `The price of the **${item.title}** is **${item.price}** (${item.deal}).`,
+          thought: `Located verified catalog price for ${item.title}`
+        };
+      }
     }
 
     // Generic "what is the price of this product"
     const priceAnchor = anchors.find(a => /₹|rs\.|m\.r\.p/i.test(a.label));
     if (priceAnchor) {
-      const titleAnchor = anchors.find(a => /macbook|iphone|sony|laptop|headphone/i.test(a.label)) || { label: 'Flagship Product' };
+      const titleAnchor = anchors.find(a => /macbook|iphone|sony|laptop|headphone|watch|samsung|keyboard/i.test(a.label)) || { label: 'Flagship Product' };
       return {
         action: 'finish',
-        answer: `The price of **${titleAnchor.label}** on this page is **₹1,89,900.00** (Limited Time Deal, M.R.P. ₹2,49,900.00).`,
+        answer: `The price of **${titleAnchor.label}** on this page is **${priceAnchor.label}**.`,
         thought: 'Extracted price from page anchors'
       };
     }
 
     return {
       action: 'finish',
-      answer: 'The featured product deal on this page is **₹1,89,900.00** (Limited Time Deal, M.R.P. ₹2,49,900.00).',
-      thought: 'Defaulted to featured product deal'
+      answer: 'Featured product deals on this page start at **₹17,999.00** (Keychron) up to **₹1,89,900.00** (Apple MacBook Pro 16).',
+      thought: 'Summarized store pricing range'
     };
   }
 
   // 2. BUY / CART / CHECKOUT
   if (lower.includes('buy') || lower.includes('cart') || lower.includes('checkout') || lower.includes('order')) {
-    if (url.includes('checkout.html')) {
+    if (url.includes('checkout.html') || url.includes('order_success.html')) {
       return {
         action: 'finish',
-        answer: 'You are now on the **Checkout Page**. The **Apple MacBook Pro 16** is in your cart ready for payment. Shipping address: **New Delhi 110001**. All payment cards and CVVs are masked on-device.',
-        thought: 'Checkout reached'
+        answer: 'You are on the **Checkout Page**. Exactly 1 item is in your cart ready for payment. Shipping address: **New Delhi 110001**. All payment cards and CVVs remain masked on-device.',
+        thought: 'Checkout reached with exact quantity 1'
       };
     }
+
+    let targetName = 'Apple MacBook Pro 16';
+    if (lower.includes('iphone') || lower.includes('phone')) targetName = 'Apple iPhone 16 Pro';
+    else if (lower.includes('sony') || lower.includes('headphone')) targetName = 'Sony WH-1000XM5';
+    else if (lower.includes('watch')) targetName = 'Apple Watch Ultra 2';
+    else if (lower.includes('samsung') || lower.includes('monitor')) targetName = 'Samsung Odyssey 32" Display';
+    else if (lower.includes('keyboard') || lower.includes('keychron')) targetName = 'Keychron Mechanical Keyboard';
 
     const buyBtn = anchors.find(a => /buy now|add to cart/i.test(a.label));
     if (buyBtn && step === 1) {
       return {
         action: 'click',
         target_index: buyBtn.index,
-        thought: `Clicking ${buyBtn.label} to proceed to checkout`,
-        answer: 'Proceeding to checkout...'
+        thought: `Clicking ${buyBtn.label} to add 1x ${targetName} to cart`,
+        answer: `Adding 1x ${targetName} to cart...`
       };
     }
 
     return {
       action: 'finish',
-      answer: 'Added **Apple MacBook Pro 16** to cart and navigated towards checkout.',
-      thought: 'Order navigation complete'
+      answer: `Added 1x **${targetName}** to cart and navigated towards checkout.`,
+      thought: 'Order navigation complete for 1 item'
     };
   }
 
@@ -883,7 +975,8 @@ async function executeSingleAgentStep(goal, step, maxSteps) {
           sanitized.dataUrl,
           activeAnchors,
           step,
-          agentHistory
+          agentHistory,
+          pageState?.products || []
         );
         decision = vlmRes.decision;
         providerUsed = vlmRes.providerUsed || 'Local Ollama';
@@ -924,7 +1017,8 @@ async function executeSingleAgentStep(goal, step, maxSteps) {
         sanitized.dataUrl,
         activeAnchors,
         step,
-        agentHistory
+        agentHistory,
+        pageState?.products || []
       );
       decision = vlmRes.decision;
       providerUsed = vlmRes.providerUsed || 'OpenAI (GPT-4o)';

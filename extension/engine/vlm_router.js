@@ -55,7 +55,7 @@ class VLMRouter {
    * Generates formatted grounding prompt with visible interactive anchors.
    * Enriches elements with OmniParser-style visual icon badges and roles.
    */
-  buildPrompt(goal, anchors = [], stepIndex = 1, history = []) {
+  buildPrompt(goal, anchors = [], stepIndex = 1, history = [], pageProducts = []) {
     let anchorListStr = '';
     if (anchors.length > 0) {
       anchorListStr = anchors.map(a => {
@@ -69,6 +69,12 @@ class VLMRouter {
       anchorListStr = 'No distinct interactive anchors detected in viewport.';
     }
 
+    let productsStr = '';
+    if (pageProducts && pageProducts.length > 0) {
+      productsStr = `\nVISIBLE PRODUCTS & EXACT PRICES ON THIS SCREEN:\n` +
+        pageProducts.map(p => `- "${p.title}": Price: ${p.price}${p.deal ? ` [${p.deal}]` : ''}`).join('\n') + '\n';
+    }
+
     const historyStr = history.length > 0
       ? history.map((h, i) => `Step ${i + 1}: ${h.action} (${h.thought})`).join('\n')
       : 'None (initial step)';
@@ -79,7 +85,7 @@ GOAL: "${goal}"
 CURRENT STEP: #${stepIndex}
 PREVIOUS ACTIONS:
 ${historyStr}
-
+${productsStr}
 VISIBLE INTERACTIVE ANCHORS DETECTED ON THIS SCREEN:
 ${anchorListStr}
 
@@ -90,12 +96,12 @@ All faces, credit cards, bank accounts, Aadhaar, PAN, CVV, passwords, and identi
 - Never guess, attempt to decipher, or output sensitive credentials.
 
 TASK:
-- If the user is asking a non-sensitive question (e.g. "what is the price of...", "what are the reviews", "what is on this page") and the answer is visible on this page:
-  Set "action": "finish" and provide the direct, concise answer in "answer" (e.g. "The price of the Apple MacBook Pro 16 is ₹1,89,900.00").
+- If the user is asking about the price, specifications, or details of a product (e.g. "what is the price of iPhone", "how much is MacBook", "what is on this page"):
+  Use the EXACT product price from the visible products on this page. Set "action": "finish" and provide the direct, concise answer in "answer".
+- If the user gave a purchase goal (e.g. "buy this product", "add to cart", "buy macbook"):
+  Click the "Buy Now" or "Add to Cart" button ONCE for quantity 1. Once added or when checkout is reached, set "action": "finish" with the order summary. Do NOT repeatedly click "Add to Cart" if already added.
 - If you need to navigate, click, or scroll to find the requested product or answer:
   Set "action": "click" | "type" | "scroll" and target the relevant element.
-- If the user gave an action goal (e.g. "buy this product", "add to cart", "checkout"):
-  Execute the required clicks and typing, and when the goal is achieved, set "action": "finish" with the summary in "answer".
 
 DECIDE THE NEXT ACTION. Respond with STRICT JSON matching this schema:
 {
@@ -235,7 +241,7 @@ DECIDE THE NEXT ACTION. Respond with STRICT JSON matching this schema:
                 type: 'image_url',
                 image_url: {
                   url: base64DataUrl,
-                  detail: 'low'
+                  detail: 'high'
                 }
               }
             ]
@@ -361,8 +367,8 @@ DECIDE THE NEXT ACTION. Respond with STRICT JSON matching this schema:
   /**
    * Dispatches vision request using preferred provider with automatic failover.
    */
-  async decide(goal, base64DataUrl, anchors = [], stepIndex = 1, history = []) {
-    const prompt = this.buildPrompt(goal, anchors, stepIndex, history);
+  async decide(goal, base64DataUrl, anchors = [], stepIndex = 1, history = [], pageProducts = []) {
+    const prompt = this.buildPrompt(goal, anchors, stepIndex, history, pageProducts);
     const provider = this.preferredProvider;
 
     // Direct Single Provider Execution

@@ -51,11 +51,11 @@ describe('E-Commerce Product Catalog & Cart Tests', () => {
   });
 
   describe('CartManager Core Logic', () => {
-    it('should initialize with default items when storage is empty', () => {
+    it('should initialize with clean cart when storage is empty', () => {
       localStorage.clear();
       const cart = CartManager.getRawCart();
-      expect(cart.length).toBeGreaterThan(0);
-      expect(CartManager.getItemCount()).toBe(3);
+      expect(cart).toHaveLength(0);
+      expect(CartManager.getItemCount()).toBe(0);
     });
 
     it('should add new product to cart and update counts', () => {

@@ -701,32 +701,60 @@ html, body {
 .controls-right {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   width: 100%;
-  flex-wrap: wrap;
 }
 
-.model-select {
+.model-segmented-switch {
   flex: 1;
   min-width: 0;
+  display: flex;
   background-color: var(--bg-surface);
   border: 1px solid var(--border-interactive);
-  color: var(--text-primary);
-  font-size: 11px;
-  padding: 5px 8px;
   border-radius: var(--radius-sm);
-  outline: none;
-  cursor: pointer;
-  font-family: var(--sans-font);
+  padding: 2px;
+  gap: 2px;
 }
 
-.model-select option {
-  background-color: var(--bg-surface);
+.switch-opt {
+  flex: 1;
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-family: var(--sans-font);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 5px 6px;
+  border-radius: calc(var(--radius-sm) - 2px);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.switch-opt .switch-icon {
+  font-size: 11px;
+  line-height: 1;
+}
+
+.switch-opt:hover:not(.active) {
+  background-color: var(--bg-surface-hover);
   color: var(--text-primary);
 }
 
-.model-select:focus {
-  border-color: var(--terracotta);
+.switch-opt.active {
+  background-color: var(--terracotta);
+  color: #FFFFFF;
+  box-shadow: 0 1px 4px rgba(204, 120, 92, 0.35);
+}
+
+.model-select-hidden {
+  display: none !important;
 }
 
 .step-limit-wrapper {
@@ -736,7 +764,9 @@ html, body {
   background-color: var(--bg-surface);
   border: 1px solid var(--border-interactive);
   border-radius: var(--radius-sm);
-  padding: 3px 8px;
+  padding: 4px 8px;
+  height: 30px;
+  box-sizing: border-box;
   flex-shrink: 0;
 }
 

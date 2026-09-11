@@ -101,7 +101,17 @@
           </button>
         </div>
         <div class="controls-right">
-          <select id="select-provider" class="model-select" title="Reasoning Model">
+          <div class="model-segmented-switch" id="model-segmented-switch" role="radiogroup" aria-label="Reasoning Model">
+            <button type="button" class="switch-opt active" id="opt-provider-offline" data-val="offline" title="Offline on-device reasoning (Local Ollama / Gemini Nano)">
+              <span class="switch-icon">&#9889;</span>
+              <span>Offline</span>
+            </button>
+            <button type="button" class="switch-opt" id="opt-provider-gpt4o" data-val="openai-gpt4o" title="Cloud visual reasoning via OpenAI GPT-4o">
+              <span class="switch-icon">&#10024;</span>
+              <span>GPT-4o</span>
+            </button>
+          </div>
+          <select id="select-provider" class="model-select-hidden" style="display: none;" title="Reasoning Model">
             <option value="offline">Offline</option>
             <option value="openai-gpt4o">GPT-4o</option>
           </select>

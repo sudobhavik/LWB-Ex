@@ -290,7 +290,7 @@
       }
 
       // Dispatch PointerEvents and MouseEvents for Canvas and DOM compatibility
-      ['pointerdown', 'mousedown', 'pointerup', 'mouseup', 'click'].forEach(evtType => {
+      ['pointerdown', 'mousedown', 'pointerup'].forEach(evtType => {
         const EventCtor = (evtType.startsWith('pointer') && typeof PointerEvent !== 'undefined') ? PointerEvent : MouseEvent;
         const evt = new EventCtor(evtType, {
           bubbles: true,
@@ -304,6 +304,15 @@
 
       if (typeof targetEl.click === 'function' && !isCanvas) {
         targetEl.click();
+      } else {
+        const clickEvt = new MouseEvent('click', {
+          bubbles: true,
+          cancelable: true,
+          composed: true,
+          clientX: clickClientX,
+          clientY: clickClientY
+        });
+        targetEl.dispatchEvent(clickEvt);
       }
 
       return { success: true, target: targetEl.tagName || 'ELEMENT', isCanvas };
@@ -428,9 +437,41 @@
           };
         });
 
+        // Extract visible product cards, titles, prices, and deal tags for exact agent ground truth
+        const products = [];
+        const cards = Array.from(document.querySelectorAll('.showcase-card, .s-result-item, [data-component-type="s-search-result"], .product-card, .product-item, article'));
+        cards.forEach(card => {
+          const titleEl = card.querySelector('h1, h2, h3, .product-title, [class*="title"], .a-text-normal');
+          const priceEl = card.querySelector('.card-price, .product-price, .price, [class*="price"], .a-price');
+          const dealEl = card.querySelector('.card-deal-tag, .deal-tag, [class*="deal"], .badge');
+          if (titleEl && priceEl) {
+            const title = (titleEl.innerText || titleEl.textContent || '').trim().replace(/\s+/g, ' ');
+            const price = (priceEl.innerText || priceEl.textContent || '').trim().replace(/\s+/g, ' ');
+            const deal = dealEl ? (dealEl.innerText || dealEl.textContent || '').trim() : '';
+            if (title && price && !products.some(p => p.title === title)) {
+              products.push({ title, price, deal });
+            }
+          }
+        });
+
+        if (products.length === 0) {
+          const mainTitle = document.querySelector('h1, #productTitle, .product-title-heading, [class*="product-title"]');
+          const mainPrice = document.querySelector('.card-price, .product-price, .price, [class*="price"], #priceblock_ourprice, .a-price');
+          const dealEl = document.querySelector('.card-deal-tag, .deal-tag, [class*="deal"], .badge');
+          if (mainTitle && mainPrice) {
+            const title = (mainTitle.innerText || mainTitle.textContent || '').trim().replace(/\s+/g, ' ');
+            const price = (mainPrice.innerText || mainPrice.textContent || '').trim().replace(/\s+/g, ' ');
+            const deal = dealEl ? (dealEl.innerText || dealEl.textContent || '').trim() : '';
+            if (title && price) {
+              products.push({ title, price, deal });
+            }
+          }
+        }
+
         sendResponse({
           piiRegions,
           anchors,
+          products,
           canvasRects,
           title: document.title,
           url: window.location.href,

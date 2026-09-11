@@ -187,11 +187,7 @@ const PRODUCTS = {
 };
 
 const CART_STORAGE_KEY = 'guptchara_amz_cart';
-const DEFAULT_INITIAL_CART = [
-  { id: 'macbook-pro-16', qty: 1 },
-  { id: 'sony-wh1000xm5', qty: 1 },
-  { id: 'keychron-q1-pro', qty: 1 }
-];
+const DEFAULT_INITIAL_CART = [];
 
 /**
  * Cart Manager API
