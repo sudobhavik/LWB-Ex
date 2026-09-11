@@ -6,10 +6,15 @@
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",
-    "start": "./scripts/start_browsers.sh all",
-    "start:chrome": "./scripts/start_browsers.sh chrome",
-    "start:firefox": "./scripts/start_browsers.sh firefox",
-    "start:demo": "./scripts/start_browsers.sh demo",
+    "start": "node scripts/launch_demo.js chrome",
+    "start:chrome": "node scripts/launch_demo.js chrome",
+    "start:firefox": "node scripts/launch_demo.js firefox",
+    "start:demo": "node scripts/serve_demo.js",
+    "demo": "node scripts/launch_demo.js chrome",
+    "demo:chrome": "node scripts/launch_demo.js chrome",
+    "demo:edge": "node scripts/launch_demo.js edge",
+    "demo:firefox": "node scripts/launch_demo.js firefox",
+    "demo:server": "node scripts/serve_demo.js",
     "package": "./scripts/package_extension.sh"
   },
   "keywords": [
