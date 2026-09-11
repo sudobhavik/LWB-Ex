@@ -9,3 +9,7 @@ dist/
 /models/
 _metadata/
 extension/_metadata/
+extension/config.json
+chrome-config/
+.env
+

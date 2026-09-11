@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>GUPTCHARA - Feasibility & Viability Slide</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    }
+    body {
+      background-color: #f1f5f9;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .slide-wrapper {
+      width: 1100px;
+      background: #ffffff;
+      border: 2px solid #000000;
+      padding: 22px 26px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+    /* HEADER */
+    .slide-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px solid #000000;
+      padding-bottom: 12px;
+      margin-bottom: 16px;
+    }
+    .brand-title {
+      font-size: 23px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #0f172a;
+    }
+    .brand-sub {
+      font-size: 12px;
+      font-weight: 600;
+      color: #475569;
+    }
+    .header-badge {
+      background: #0f172a;
+      color: #ffffff;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 4px;
+    }
+
+    /* MAIN 2-COLUMN LAYOUT */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 530px 500px;
+      gap: 18px;
+    }
+
+    /* LEFT: CHALLENGE-SOLUTION MATRIX */
+    .section-title {
+      font-size: 13px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #0f172a;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1.5px solid #000000;
+      padding-bottom: 4px;
+    }
+    .matrix-container {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .card-pair {
+      border: 1.5px solid #000000;
+      background: #ffffff;
+      padding: 8px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .card-header {
+      font-size: 11.5px;
+      font-weight: 800;
+      color: #0f172a;
+      display: flex;
+      justify-content: space-between;
+    }
+    .risk-line {
+      font-size: 10px;
+      color: #991b1b;
+      background: #fef2f2;
+      padding: 4px 6px;
+      border-radius: 3px;
+      border-left: 3px solid #dc2626;
+      line-height: 1.3;
+    }
+    .solution-line {
+      font-size: 10px;
+      color: #166534;
+      background: #f0fdf4;
+      padding: 4px 6px;
+      border-radius: 3px;
+      border-left: 3px solid #16a34a;
+      line-height: 1.3;
+    }
+
+    /* RIGHT: FEASIBILITY PILLARS & CHART */
+    .right-col {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .feasibility-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .feasibility-pill {
+      border: 1.5px solid #000000;
+      background: #f8fafc;
+      padding: 7px 9px;
+      border-radius: 4px;
+    }
+    .pill-title {
+      font-size: 10.5px;
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: 2px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .pill-desc {
+      font-size: 9.5px;
+      color: #475569;
+      line-height: 1.3;
+    }
+
+    /* EMBEDDED CHART CONTAINER */
+    .chart-container {
+      border: 1.5px solid #000000;
+      background: #ffffff;
+      padding: 8px 10px;
+      display: flex;
+      flex-direction: column;
+    }
+    .chart-img {
+      width: 100%;
+      height: auto;
+      display: block;
+      border: 1px solid #e2e8f0;
+    }
+  </style>
+</head>
+<body>
+
+<div class="slide-wrapper">
+  <!-- HEADER -->
+  <div class="slide-header">
+    <div>
+      <div class="brand-title">Feasibility & System Viability</div>
+      <div class="brand-sub">Risk-to-Mitigation Architecture, Open Standards & Performance Benchmarks</div>
+    </div>
+    <div class="header-badge">SIH26171 / ISRO PS-171</div>
+  </div>
+
+  <div class="main-grid">
+    <!-- LEFT: 4 CHALLENGE-SOLUTION PAIRED CARDS -->
+    <div>
+      <div class="section-title">
+        <span>1. Challenge-to-Solution Matrix</span>
+        <span style="font-size: 10px; color: #16a34a; font-weight: 700;">PROVEN MITIGATIONS</span>
+      </div>
+      <div class="matrix-container">
+        <!-- PAIR 1 -->
+        <div class="card-pair">
+          <div class="card-header">
+            <span>Detection Mistakes & False Alarms</span>
+            <span style="color: #64748b; font-size: 10px;">Area: PII Accuracy</span>
+          </div>
+          <div class="risk-line"><strong>Risk:</strong> Simple regex misses segmented card boxes or redacts harmless order IDs.</div>
+          <div class="solution-line"><strong>Solution:</strong> YOLO finds faces; Luhn & Verhoeff math validates card & Aadhaar digits with 0 false alarms.</div>
+        </div>
+
+        <!-- PAIR 2 -->
+        <div class="card-pair">
+          <div class="card-header">
+            <span>Browser Lag & Heavy Memory Consumption</span>
+            <span style="color: #64748b; font-size: 10px;">Area: Client Performance</span>
+          </div>
+          <div class="risk-line"><strong>Risk:</strong> Heavy AI models freeze the browser and consume gigabytes of user RAM.</div>
+          <div class="solution-line"><strong>Solution:</strong> WebGPU runs quantized INT8 models in &lt;25ms with &lt;180MB memory footprint.</div>
+        </div>
+
+        <!-- PAIR 3 -->
+        <div class="card-pair">
+          <div class="card-header">
+            <span>Dynamic & Canvas-Rendered Webpages</span>
+            <span style="color: #64748b; font-size: 10px;">Area: Web Compatibility</span>
+          </div>
+          <div class="risk-line"><strong>Risk:</strong> Standard DOM scrapers are completely blind to HTML5 Canvas and Flutter Web.</div>
+          <div class="solution-line"><strong>Solution:</strong> Anchor Fuser merges shallow DOM labels with OmniParser pure-vision icons.</div>
+        </div>
+
+        <!-- PAIR 4 -->
+        <div class="card-pair">
+          <div class="card-header">
+            <span>Over-Masking Helpful Web Buttons</span>
+            <span style="color: #64748b; font-size: 10px;">Area: Task Completion</span>
+          </div>
+          <div class="risk-line"><strong>Risk:</strong> Excessive blackouts hide navigation buttons, causing the AI agent to get stuck.</div>
+          <div class="solution-line"><strong>Solution:</strong> Adaptive padding cushions only mask private numbers, keeping buttons clear and clickable.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: FEASIBILITY PILLARS + DEDICATED CHART -->
+    <div class="right-col">
+      <div>
+        <div class="section-title">
+          <span>2. Core Feasibility Pillars</span>
+          <span style="font-size: 10px; color: #0284c7; font-weight: 700;">OPEN STANDARDS</span>
+        </div>
+        <div class="feasibility-grid">
+          <div class="feasibility-pill">
+            <div class="pill-title">⚙️ Technical Feasibility</div>
+            <div class="pill-desc">Built with open web standards: Chrome MV3, W3C WebGPU, and ONNX Runtime Web.</div>
+          </div>
+          <div class="feasibility-pill">
+            <div class="pill-title">🚀 Operational Feasibility</div>
+            <div class="pill-desc">Functional MVP tested and working today on live web portals in Chrome & Firefox.</div>
+          </div>
+          <div class="feasibility-pill">
+            <div class="pill-title">📈 System Scalability</div>
+            <div class="pill-desc">Hybrid DOM + Vision approach works universally across any website without custom scripts.</div>
+          </div>
+          <div class="feasibility-pill">
+            <div class="pill-title">🌱 Long-Term Sustainability</div>
+            <div class="pill-desc">Modular ONNX format allows dropping in newer, smaller edge AI models seamlessly.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DEDICATED CHART SLOT (ZERO OVERLAP) -->
+      <div class="chart-container">
+        <div class="section-title" style="margin-bottom: 6px;">
+          <span>3. Empirical Latency Benchmark (Zero Overlap)</span>
+          <span style="font-size: 10px; color: #16a34a; font-weight: 700;">GUPTCHARA: 2.57s</span>
+        </div>
+        <img src="system_latency_and_privacy_comparison.png" class="chart-img" alt="Action Latency Benchmark">
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

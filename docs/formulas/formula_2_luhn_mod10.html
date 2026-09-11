@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Luhn Mod-10 Checksum Formula (ISO/IEC 7812)</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #ffffff;
+      display: inline-block;
+      padding: 16px 28px;
+    }
+    math {
+      font-family: "Latin Modern Math", "STIX Two Math", "Cambria Math", "Times New Roman", serif;
+      font-size: 32px;
+      color: #000000;
+    }
+  </style>
+</head>
+<body>
+<math display="block">
+  <mrow>
+    <mrow><mo>(</mo>
+      <munderover>
+        <mo>&#x2211;</mo>
+        <mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow>
+        <mi>k</mi>
+      </munderover>
+      <mrow><mo>[</mo>
+        <msub><mi>d</mi><mi>i</mi></msub>
+        <mo>&#xd7;</mo>
+        <mo stretchy="false">(</mo>
+        <mn>1</mn>
+        <mo>+</mo>
+        <mo stretchy="false">(</mo>
+        <mi>i</mi>
+        <mo lspace="0.25em" rspace="0.25em">mod</mo>
+        <mn>2</mn>
+        <mo stretchy="false">)</mo>
+        <mo stretchy="false">)</mo>
+      <mo>]</mo></mrow>
+    <mo>)</mo></mrow>
+    <mo lspace="0.3em" rspace="0.3em">mod</mo>
+    <mn>10</mn>
+    <mo>&#x2261;</mo>
+    <mn>0</mn>
+  </mrow>
+</math>
+</body>
+</html>

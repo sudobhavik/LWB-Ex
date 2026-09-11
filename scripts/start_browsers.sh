@@ -12,7 +12,9 @@ GPU_MODE="${GPU_MODE:-auto}"
 
 # Find Chromium binary
 find_chromium() {
-  for cmd in "$GOOGLE_CHROME_BIN" "$CHROME_BIN" google-chrome-stable google-chrome chromium chromium-browser brave brave-browser /usr/bin/brave; do
+  # Prioritize open Chromium builds (chromium, brave) which permit automated --load-extension.
+  # Note: Google Chrome 137+ official builds explicitly block --load-extension from the CLI for security.
+  for cmd in "$CHROMIUM_BIN" "$CHROME_BIN" chromium chromium-browser brave brave-browser /usr/bin/brave "$GOOGLE_CHROME_BIN" google-chrome-stable google-chrome; do
     if [ -n "$cmd" ] && command -v "$cmd" >/dev/null 2>&1; then
       echo "$cmd"
       return 0
@@ -52,13 +54,28 @@ trap cleanup EXIT INT TERM
 start_chromium() {
   CHROME_BIN_PATH=$(find_chromium || true)
   if [ -z "$CHROME_BIN_PATH" ]; then
-    echo "[!] Warning: No Chromium-based browser (google-chrome, chromium, brave) found on PATH."
+    echo "[!] Warning: No Chromium-based browser (chromium, brave, google-chrome) found on PATH."
     return 1
   fi
 
   echo "==> Launching Chromium browser ($CHROME_BIN_PATH) with GUPTCHARA extension..."
+  if [[ "$CHROME_BIN_PATH" =~ google-chrome ]]; then
+    echo "    [!] Notice: Official Google Chrome 137+ restricts command-line '--load-extension'."
+    echo "    [!] If the extension is not visible, use Chromium or load manually via chrome://extensions."
+  fi
+
   CHROME_TEMP_DIR="/tmp/ps171_chrome_profile_$$"
-  mkdir -p "$CHROME_TEMP_DIR"
+  mkdir -p "$CHROME_TEMP_DIR/Default"
+
+  # Auto-pin GUPTCHARA extension icon to the browser toolbar
+  EXT_ID="idladkdajgfkeeleaghkjojnpdicnblm"
+  cat << EOF > "$CHROME_TEMP_DIR/Default/Preferences"
+{
+  "extensions": {
+    "pinned_extensions": ["$EXT_ID"]
+  }
+}
+EOF
 
   # Base WebGPU & Hardware Acceleration flags (bypasses Linux GPU blocklist)
   GPU_FLAGS=(
@@ -122,9 +139,15 @@ start_firefox() {
     echo "[!] Warning: Firefox not found on PATH."
     return 1
   fi
+  echo "==> Preparing Firefox extension build with Firefox Manifest V3..."
+  FF_STAGING_DIR="/tmp/ps171_firefox_ext_$$"
+  mkdir -p "$FF_STAGING_DIR"
+  cp -r "$EXT_DIR"/* "$FF_STAGING_DIR"/
+  cp "$EXT_DIR/manifest.firefox.json" "$FF_STAGING_DIR/manifest.json"
+
   echo "==> Launching Firefox ($FF_BIN_PATH) with web-ext..."
   npx web-ext run \
-    --source-dir="$EXT_DIR" \
+    --source-dir="$FF_STAGING_DIR" \
     --firefox="$FF_BIN_PATH" \
     --start-url="$DEMO_URL" \
     --pref="dom.webgpu.enabled=true" \

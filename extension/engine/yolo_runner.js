@@ -16,20 +16,46 @@ class YoloWebGPURunner {
   }
 
   /**
-   * Initializes the ONNX Runtime Web session.
-   * Prioritizes WebGPU execution provider with automatic WASM fallback.
+   * Initializes the ONNX Runtime Web session with a specific acceleration backend.
+   *
+   * @param {string} modelUrl - URL or relative path to yolo26n.onnx
+   * @param {string} [preferredProvider='webgpu'] - 'webgpu' | 'wasm' | 'cpu'
+   * @param {string} [wasmDir=null] - URL or path to WASM assets directory
+   * @returns {Promise<{ activeProvider: string, inputNames: string[], outputNames: string[] }>}
+   */
+  async initialize(modelUrl, preferredProvider = 'webgpu', wasmDir = null) {
+    return this.loadModel(modelUrl, wasmDir, preferredProvider);
+  }
+
+  /**
+   * Loads the model into ONNX Runtime Web.
    *
    * @param {string} modelUrl - URL or relative path to yolo26n.onnx
    * @param {string} [wasmDir] - URL or path to WASM assets directory
+   * @param {string} [preferredProvider='webgpu'] - 'webgpu' | 'wasm' | 'cpu'
    * @returns {Promise<{ activeProvider: string, inputNames: string[], outputNames: string[] }>}
    */
-  async loadModel(modelUrl, wasmDir = null) {
-    if (this.isReady && this.session) {
+  async loadModel(modelUrl, wasmDir = null, preferredProvider = 'webgpu') {
+    const targetProvider = String(preferredProvider || 'webgpu').toLowerCase();
+
+    // If already ready with the exact requested provider and model, reuse existing session
+    if (this.isReady && this.session && this.activeProvider === targetProvider && this.modelPath === modelUrl) {
       return {
         activeProvider: this.activeProvider,
         inputNames: this.session.inputNames,
         outputNames: this.session.outputNames
       };
+    }
+
+    // Clean up previous session if switching backend or reloading
+    if (this.session) {
+      try {
+        if (typeof this.session.release === 'function') {
+          await this.session.release();
+        }
+      } catch (_) {}
+      this.session = null;
+      this.isReady = false;
     }
 
     if (this.isLoading) {
@@ -38,8 +64,8 @@ class YoloWebGPURunner {
       }
       return {
         activeProvider: this.activeProvider,
-        inputNames: this.session.inputNames,
-        outputNames: this.session.outputNames
+        inputNames: this.session?.inputNames || [],
+        outputNames: this.session?.outputNames || []
       };
     }
 
@@ -56,59 +82,89 @@ class YoloWebGPURunner {
       ortInstance.env.logLevel = 'error';
     }
 
-    // Configure WASM asset location for MV3 CSP compatibility
-    if (wasmDir && ortInstance.env && ortInstance.env.wasm) {
-      ortInstance.env.wasm.wasmPaths = wasmDir.endsWith('/') ? wasmDir : `${wasmDir}/`;
+    // Configure WASM asset location and single-thread execution for Chrome MV3 CSP compatibility
+    const defaultWasmDir = (typeof browserAPI !== 'undefined' && browserAPI.runtime?.getURL)
+      ? browserAPI.runtime.getURL('lib/')
+      : ((typeof chrome !== 'undefined' && chrome.runtime?.getURL) ? chrome.runtime.getURL('lib/') : null);
+    const effectiveWasmDir = wasmDir || defaultWasmDir;
+
+    if (ortInstance.env && ortInstance.env.wasm) {
+      if (effectiveWasmDir) {
+        const base = effectiveWasmDir.endsWith('/') ? effectiveWasmDir : `${effectiveWasmDir}/`;
+        ortInstance.env.wasm.wasmPaths = {
+          'ort-wasm.wasm': `${base}ort-wasm.wasm`,
+          'ort-wasm-simd.wasm': `${base}ort-wasm-simd.wasm`,
+          'ort-wasm-threaded.wasm': `${base}ort-wasm-threaded.wasm`,
+          'ort-wasm-simd-threaded.wasm': `${base}ort-wasm-simd-threaded.wasm`,
+          'ort-wasm-simd-threaded.jsep.wasm': `${base}ort-wasm-simd-threaded.jsep.wasm`
+        };
+      }
+      ortInstance.env.wasm.numThreads = 1;
+      ortInstance.env.wasm.proxy = false;
     }
 
-    // Attempt 1: WebGPU Provider
     let session = null;
     let provider = null;
 
-    const hasWebGPU = typeof navigator !== 'undefined' && !!navigator.gpu;
-    if (hasWebGPU) {
-      try {
-        console.log('[YoloRunner] WebGPU detected in browser. Querying adapter...');
-        if (ortInstance.env && ortInstance.env.webgpu) {
-          ortInstance.env.webgpu.validateInputContent = false;
-        }
-
+    // Execution Provider Strategy based on preferredProvider:
+    if (targetProvider === 'webgpu') {
+      const hasWebGPU = typeof navigator !== 'undefined' && !!navigator.gpu;
+      if (hasWebGPU) {
         try {
-          const adapter = await navigator.gpu.requestAdapter({ powerPreference: 'high-performance' })
-            || await navigator.gpu.requestAdapter();
-          if (adapter && adapter.info) {
-            console.log('[YoloRunner] GPU Adapter:', adapter.info.vendor, adapter.info.architecture || adapter.info.device || '');
+          console.log('[YoloRunner] WebGPU detected in browser. Querying adapter...');
+          if (ortInstance.env && ortInstance.env.webgpu) {
+            ortInstance.env.webgpu.validateInputContent = false;
           }
-        } catch (_) {}
 
-        console.log('[YoloRunner] Attempting to load model with WebGPU provider...');
-        try {
-          session = await ortInstance.InferenceSession.create(modelUrl, {
-            executionProviders: [{
-              name: 'webgpu',
-              deviceType: 'gpu',
-              powerPreference: 'high-performance'
-            }],
-            logSeverityLevel: 3
-          });
-        } catch (optsErr) {
-          console.log('[YoloRunner] Trying standard executionProviders array:', optsErr.message);
-          session = await ortInstance.InferenceSession.create(modelUrl, {
-            executionProviders: ['webgpu'],
-            logSeverityLevel: 3
-          });
+          try {
+            const adapter = await navigator.gpu.requestAdapter({ powerPreference: 'high-performance' })
+              || await navigator.gpu.requestAdapter();
+            if (adapter && adapter.info) {
+              console.log('[YoloRunner] GPU Adapter:', adapter.info.vendor, adapter.info.architecture || adapter.info.device || '');
+            }
+          } catch (_) {}
+
+          console.log('[YoloRunner] Attempting to load model with WebGPU provider...');
+          try {
+            session = await ortInstance.InferenceSession.create(modelUrl, {
+              executionProviders: [{
+                name: 'webgpu',
+                deviceType: 'gpu',
+                powerPreference: 'high-performance'
+              }],
+              logSeverityLevel: 3
+            });
+          } catch (optsErr) {
+            console.log('[YoloRunner] Trying standard executionProviders array:', optsErr.message);
+            session = await ortInstance.InferenceSession.create(modelUrl, {
+              executionProviders: ['webgpu'],
+              logSeverityLevel: 3
+            });
+          }
+
+          provider = 'webgpu';
+          console.log('[YoloRunner] WebGPU session initialized successfully on GPU.');
+        } catch (err) {
+          console.warn('[YoloRunner] WebGPU session initialization failed, falling back to WASM:', err);
         }
-
-        provider = 'webgpu';
-        console.log('[YoloRunner] WebGPU session initialized successfully on GPU.');
-      } catch (err) {
-        console.warn('[YoloRunner] WebGPU session initialization failed, falling back to WASM:', err);
+      } else {
+        console.log('[YoloRunner] navigator.gpu not detected (ensure browser launched with WebGPU flags), using WASM.');
       }
-    } else {
-      console.log('[YoloRunner] navigator.gpu not detected (ensure browser is launched with --enable-unsafe-webgpu --ignore-gpu-blocklist), using WASM.');
+    } else if (targetProvider === 'cpu') {
+      try {
+        console.log('[YoloRunner] Initializing with CPU provider...');
+        session = await ortInstance.InferenceSession.create(modelUrl, {
+          executionProviders: ['cpu', 'wasm'],
+          logSeverityLevel: 3
+        });
+        provider = 'cpu';
+        console.log('[YoloRunner] CPU session initialized successfully.');
+      } catch (cpuErr) {
+        console.warn('[YoloRunner] CPU provider fallback to WASM:', cpuErr.message);
+      }
     }
 
-    // Attempt 2: WASM Fallback Provider
+    // WASM Provider (Explicit or Fallback)
     if (!session) {
       try {
         console.log('[YoloRunner] Initializing with WASM provider...');
@@ -120,7 +176,7 @@ class YoloWebGPURunner {
         console.log('[YoloRunner] WASM session initialized successfully.');
       } catch (err) {
         this.isLoading = false;
-        throw new Error(`Failed to load ONNX model with both WebGPU and WASM: ${err.message}`);
+        throw new Error(`Failed to load ONNX model with provider '${targetProvider}': ${err.message}`);
       }
     }
 
@@ -154,7 +210,7 @@ class YoloWebGPURunner {
     const processor = this.processor;
 
     // 1. Letterbox image to 640x640
-    const letterbox = processor.letterboxImage(imageSource, 640, 640);
+    const letterbox = processor.letterboxImage(imageSource, 640, 640, options.createCanvasFn);
 
     // 2. Extract NCHW Float32Array
     const tensorData = processor.canvasToNCHW(letterbox.canvas, 640, 640);
@@ -187,10 +243,30 @@ class YoloWebGPURunner {
       letterboxInfo: letterbox
     };
   }
+
+  /**
+   * Alias for detect() to support standard inference runner interface.
+   */
+  async runInference(imageSource, options = {}) {
+    return this.detect(imageSource, options);
+  }
 }
 
-if (typeof exports !== 'undefined') {
-  module.exports = { YoloWebGPURunner };
-} else if (typeof globalThis !== 'undefined') {
+// Explicit prototype mappings to guarantee methods exist even if subclassed or wrapped
+YoloWebGPURunner.prototype.initialize = function(modelUrl, preferredProvider = 'webgpu', wasmDir = null) {
+  return this.loadModel(modelUrl, wasmDir, preferredProvider);
+};
+YoloWebGPURunner.prototype.runInference = function(imageSource, options = {}) {
+  return this.detect(imageSource, options);
+};
+
+// Universal export: attach to window (extension pages), globalThis (workers/Node), and module.exports (CommonJS/vitest)
+if (typeof window !== 'undefined') {
+  window.YoloWebGPURunner = YoloWebGPURunner;
+}
+if (typeof globalThis !== 'undefined') {
   globalThis.YoloWebGPURunner = YoloWebGPURunner;
+}
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { YoloWebGPURunner };
 }

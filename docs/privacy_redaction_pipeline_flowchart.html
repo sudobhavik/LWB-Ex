@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>On-Device Privacy Redaction Pipeline Flowchart</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    }
+    body {
+      background: #ffffff;
+      padding: 16px;
+      display: inline-block;
+    }
+    .flow-wrapper {
+      width: 1040px;
+      border: 2px solid #000000;
+      background: #ffffff;
+      padding: 18px 20px;
+    }
+    .flow-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+      padding-bottom: 10px;
+      border-bottom: 1.5px solid #000000;
+    }
+    .flow-title {
+      font-size: 15px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #0f172a;
+    }
+    .flow-badge {
+      font-size: 11px;
+      font-weight: 700;
+      color: #166534;
+      background: #dcfce7;
+      border: 1px solid #86efac;
+      padding: 3px 8px;
+      border-radius: 4px;
+    }
+    .pipeline-grid {
+      display: grid;
+      grid-template-columns: 180px 24px 200px 24px 200px 24px 200px;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .pipe-step {
+      border: 1.5px solid #000000;
+      background: #f8fafc;
+      padding: 10px 12px;
+      min-height: 110px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .pipe-step.green {
+      background: #f0fdf4;
+      border-color: #16a34a;
+    }
+    .step-tag {
+      font-size: 9px;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: #64748b;
+      margin-bottom: 3px;
+    }
+    .step-name {
+      font-size: 11.5px;
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: 3px;
+      line-height: 1.25;
+    }
+    .step-desc {
+      font-size: 10px;
+      color: #475569;
+      line-height: 1.35;
+    }
+    .pipe-arrow {
+      text-align: center;
+      font-size: 16px;
+      font-weight: 900;
+      color: #000000;
+    }
+    .bottom-bar {
+      background: #0f172a;
+      color: #ffffff;
+      padding: 8px 14px;
+      font-size: 11px;
+      font-weight: 700;
+      display: flex;
+      justify-content: space-between;
+      border-radius: 4px;
+    }
+    .bar-hl { color: #4ade80; font-weight: 800; }
+  </style>
+</head>
+<body>
+
+<div class="flow-wrapper">
+  <div class="flow-header">
+    <div class="flow-title">On-Device Privacy Redaction Pipeline (Zero-Egress Execution)</div>
+    <div class="flow-badge">100% In-Memory Canvas Masking</div>
+  </div>
+
+  <div class="pipeline-grid">
+    <!-- STEP 1 -->
+    <div class="pipe-step">
+      <div class="step-tag">Step 1: Ingestion</div>
+      <div class="step-name">Client Screen Buffer</div>
+      <div class="step-desc">Captures viewport pixels in local RAM. Never saved to disk or network.</div>
+    </div>
+
+    <div class="pipe-arrow">&#8594;</div>
+
+    <!-- STEP 2 -->
+    <div class="pipe-step green">
+      <div class="step-tag" style="color: #16a34a;">Step 2: Detection</div>
+      <div class="step-name">YOLO + Context Regex</div>
+      <div class="step-desc">Locates faces (18ms) and scans candidate credit card & Aadhaar strings.</div>
+    </div>
+
+    <div class="pipe-arrow">&#8594;</div>
+
+    <!-- STEP 3 -->
+    <div class="pipe-step green">
+      <div class="step-tag" style="color: #16a34a;">Step 3: Verification</div>
+      <div class="step-name">Luhn & Verhoeff Math</div>
+      <div class="step-desc">Validates checksums. Eliminates false alarms on harmless order numbers.</div>
+    </div>
+
+    <div class="pipe-arrow">&#8594;</div>
+
+    <!-- STEP 4 -->
+    <div class="pipe-step">
+      <div class="step-tag">Step 4: Redaction</div>
+      <div class="step-name">Canvas Blackout Paint</div>
+      <div class="step-desc">Applies tight padding cushion. Masks private pixels before model query.</div>
+    </div>
+  </div>
+
+  <div class="bottom-bar">
+    <span>AIR-GAP VERIFIED: <span class="bar-hl">No Personal Data Ever Leaves Client Memory</span></span>
+    <span>DPDP Act 2023 Sec 6/8 · EU GDPR Art. 25 · 0.00% Network Egress</span>
+  </div>
+</div>
+
+</body>
+</html>

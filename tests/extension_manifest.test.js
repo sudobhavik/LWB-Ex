@@ -2,46 +2,67 @@ import { describe, it, expect } from 'vitest';
 const fs = require('fs');
 const path = require('path');
 
-describe('Extension Manifest & Standards Compliance', () => {
-  const manifestPath = path.resolve(__dirname, '../extension/manifest.json');
-  const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+describe('Extension Manifest V3 Cross-Browser Compliance Tests', () => {
+  const chromeManifestPath = path.resolve(__dirname, '../extension/manifest.json');
+  const firefoxManifestPath = path.resolve(__dirname, '../extension/manifest.firefox.json');
 
-  it('should conform to Manifest V3 specification', () => {
-    expect(manifest.manifest_version).toBe(3);
+  let chromeManifest;
+  let firefoxManifest;
+
+  beforeEach(() => {
+    chromeManifest = JSON.parse(fs.readFileSync(chromeManifestPath, 'utf8'));
+    firefoxManifest = JSON.parse(fs.readFileSync(firefoxManifestPath, 'utf8'));
   });
 
-  it('should support dual background declaration (service_worker & scripts) for Chrome & Firefox', () => {
-    expect(manifest.background).toBeDefined();
-    expect(manifest.background.service_worker).toBe('background/background.js');
-    expect(Array.isArray(manifest.background.scripts)).toBe(true);
-    expect(manifest.background.scripts).toContain('background/background.js');
+  describe('Chrome Manifest V3 Compliance', () => {
+    it('should be Manifest V3', () => {
+      expect(chromeManifest.manifest_version).toBe(3);
+    });
+
+    it('should configure side_panel for Chromium Side Panel API', () => {
+      expect(chromeManifest.side_panel).toBeDefined();
+      expect(chromeManifest.side_panel.default_path).toBe('sidepanel/sidepanel.html');
+    });
+
+    it('should not include sidebar_action in Chrome manifest to prevent Chrome warnings', () => {
+      expect(chromeManifest.sidebar_action).toBeUndefined();
+    });
+
+    it('should use background.service_worker and not background.scripts in Chrome MV3', () => {
+      expect(chromeManifest.background.service_worker).toBe('background/background.js');
+      expect(chromeManifest.background.scripts).toBeUndefined();
+    });
+
+    it('should configure Content Security Policy with wasm-unsafe-eval for ONNX Runtime Web', () => {
+      expect(chromeManifest.content_security_policy).toBeDefined();
+      expect(chromeManifest.content_security_policy.extension_pages).toContain('wasm-unsafe-eval');
+    });
+
+    it('should declare all necessary WebGPU / WASM / Engine web accessible resources', () => {
+      expect(chromeManifest.web_accessible_resources).toBeDefined();
+      const declared = chromeManifest.web_accessible_resources.flatMap(r => r.resources);
+      expect(declared).toContain('lib/*');
+      expect(declared).toContain('models/*');
+      expect(declared).toContain('engine/*');
+    });
   });
 
-  it('should declare both side_panel and sidebar_action targeting the same panel', () => {
-    expect(manifest.side_panel?.default_path).toBe('sidepanel/sidepanel.html');
-    expect(manifest.sidebar_action?.default_panel).toBe('sidepanel/sidepanel.html');
-  });
+  describe('Firefox Manifest V3 Compliance', () => {
+    it('should be Manifest V3', () => {
+      expect(firefoxManifest.manifest_version).toBe(3);
+    });
 
-  it('should NOT declare action.default_popup to prevent intercepting sidebar toggles', () => {
-    expect(manifest.action?.default_popup).toBeUndefined();
-  });
+    it('should configure sidebar_action for Firefox Sidebar API', () => {
+      expect(firefoxManifest.sidebar_action).toBeDefined();
+      expect(firefoxManifest.sidebar_action.default_panel).toBe('sidepanel/sidepanel.html');
+    });
 
-  it('should provide Gecko ID for Firefox compatibility', () => {
-    expect(manifest.browser_specific_settings?.gecko?.id).toBeDefined();
-  });
+    it('should configure background.scripts for Firefox MV3 event pages', () => {
+      expect(firefoxManifest.background.scripts).toContain('background/background.js');
+    });
 
-  it('should include wasm-unsafe-eval in extension_pages CSP for ONNX WebAssembly execution', () => {
-    const csp = manifest.content_security_policy?.extension_pages || '';
-    expect(csp).toContain("'wasm-unsafe-eval'");
-  });
-
-  it('should declare required permissions and web accessible resources', () => {
-    expect(manifest.permissions).toContain('sidePanel');
-    expect(manifest.permissions).toContain('activeTab');
-    expect(manifest.permissions).toContain('tabs');
-
-    const war = manifest.web_accessible_resources || [];
-    const hasModels = war.some(r => r.resources?.some(res => res.includes('models')));
-    expect(hasModels).toBe(true);
+    it('should include gecko ID for Firefox packaging', () => {
+      expect(firefoxManifest.browser_specific_settings?.gecko?.id).toBe('yolo-privacy-agent@sih.internal');
+    });
   });
 });

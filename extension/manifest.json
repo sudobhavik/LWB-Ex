@@ -3,6 +3,11 @@
   "name": "GUPTCHARA - AI Privacy Agent",
   "version": "1.0.0",
   "description": "GUPTCHARA: Zero-egress visual privacy engine running YOLO via WebGPU and Presidio PII filtering with live DOM redaction and autonomous VLM agent loop.",
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
   "browser_specific_settings": {
     "gecko": {
       "id": "yolo-privacy-agent@sih.internal",
@@ -46,18 +51,8 @@
   "side_panel": {
     "default_path": "sidepanel/sidepanel.html"
   },
-  "sidebar_action": {
-    "default_title": "GUPTCHARA - AI Privacy Agent",
-    "default_panel": "sidepanel/sidepanel.html",
-    "default_icon": {
-      "16": "icons/icon16.png",
-      "48": "icons/icon48.png",
-      "128": "icons/icon128.png"
-    }
-  },
   "background": {
-    "service_worker": "background/background.js",
-    "scripts": ["background/background.js"]
+    "service_worker": "background/background.js"
   },
   "content_scripts": [
     {

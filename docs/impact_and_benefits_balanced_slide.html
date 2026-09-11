@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Impact and Benefits Slide - Balanced Layout</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    width: 1920px;
+    height: 1080px;
+    background-color: #F8FAFC;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    color: #0F172A;
+    display: flex;
+    flex-direction: column;
+    padding: 32px 48px;
+    overflow: hidden;
+  }
+
+  /* Header */
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    position: relative;
+  }
+  .team-pill {
+    display: inline-block;
+    border: 2.5px solid #0F172A;
+    border-radius: 9999px;
+    padding: 10px 32px;
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    background: #FFFFFF;
+  }
+  .title-center {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+  }
+  .title-center h1 {
+    font-size: 42px;
+    font-weight: 800;
+    color: #0F172A;
+    letter-spacing: -0.5px;
+  }
+  .sih-branding {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .sih-text {
+    text-align: right;
+  }
+  .sih-text h2 {
+    font-size: 20px;
+    font-weight: 900;
+    line-height: 1.15;
+    color: #0F172A;
+  }
+  .sih-logo-circle {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #F97316 0%, #10B981 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 900;
+    font-size: 16px;
+  }
+
+  /* Main Slide Grid */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 460px 1fr;
+    gap: 28px;
+    flex: 1;
+    min-height: 0;
+  }
+
+  /* Left Column: IMPACTS Container */
+  .impacts-box {
+    background: #FFFFFF;
+    border: 3.5px solid #7C3AED;
+    border-radius: 16px;
+    padding: 24px 24px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 4px 16px rgba(124, 58, 237, 0.08);
+  }
+  .impacts-box h2 {
+    font-size: 30px;
+    font-weight: 900;
+    color: #0F172A;
+    margin-bottom: 20px;
+    letter-spacing: 0.5px;
+  }
+  .impact-item {
+    margin-bottom: 16px;
+  }
+  .impact-title {
+    font-size: 18px;
+    font-weight: 800;
+    color: #EA580C;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+  .impact-title::before {
+    content: "▶";
+    font-size: 13px;
+    color: #0F172A;
+  }
+  .impact-desc {
+    font-size: 14.5px;
+    color: #334155;
+    line-height: 1.38;
+    padding-left: 20px;
+  }
+  .impact-desc li {
+    margin-bottom: 3px;
+    list-style-type: disc;
+  }
+
+  /* Right Container */
+  .right-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    min-height: 0;
+  }
+
+  /* Top Right: Benefits Header & 4 Cards */
+  .benefits-section-title {
+    text-align: center;
+    font-size: 32px;
+    font-weight: 900;
+    color: #0F172A;
+  }
+  .benefits-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+  }
+  .benefit-card {
+    background: #FFFFFF;
+    border: 1.5px solid #E2E8F0;
+    border-radius: 12px;
+    padding: 16px 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  }
+  .benefit-icon {
+    width: 44px;
+    height: 44px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    background: #F1F5F9;
+    border-radius: 50%;
+  }
+  .benefit-card h3 {
+    font-size: 16px;
+    font-weight: 800;
+    color: #0F172A;
+    margin-bottom: 12px;
+    min-height: 38px;
+    display: flex;
+    align-items: center;
+  }
+  .meta-tag {
+    font-size: 11px;
+    font-weight: 800;
+    color: #64748B;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 3px;
+    align-self: flex-start;
+  }
+  .meta-body {
+    font-size: 12.5px;
+    color: #334155;
+    line-height: 1.35;
+    text-align: left;
+    margin-bottom: 10px;
+  }
+
+  /* Bottom Right Grid: Chart on Left, Real-World Sectors on Right */
+  .bottom-right-grid {
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: 20px;
+    flex: 1;
+    min-height: 0;
+  }
+
+  /* Chart Panel */
+  .chart-panel {
+    background: #FFFFFF;
+    border: 1.5px solid #E2E8F0;
+    border-radius: 14px;
+    padding: 14px 18px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+  .panel-header {
+    font-size: 18px;
+    font-weight: 800;
+    color: #0F172A;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .chart-img-container {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  .chart-img-container img {
+    max-width: 100%;
+    max-height: 330px;
+    object-fit: contain;
+  }
+
+  /* Sectors Panel (Filling the Empty Space) */
+  .sectors-panel {
+    background: #FFFFFF;
+    border: 1.5px solid #E2E8F0;
+    border-radius: 14px;
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+  .sectors-list {
+    display: flex;
+    flex-direction: column;
+    gap: 11px;
+    margin-top: 4px;
+    flex: 1;
+    justify-content: space-around;
+  }
+  .sector-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px 14px;
+    background: #F8FAFC;
+    border-left: 4px solid #2563EB;
+    border-radius: 6px;
+  }
+  .sector-card.card-fintech { border-color: #2563EB; }
+  .sector-card.card-health  { border-color: #10B981; }
+  .sector-card.card-gov     { border-color: #F59E0B; }
+  .sector-card.card-ai      { border-color: #8B5CF6; }
+
+  .sector-icon {
+    font-size: 22px;
+    line-height: 1;
+    margin-top: 2px;
+  }
+  .sector-content h4 {
+    font-size: 15px;
+    font-weight: 800;
+    color: #0F172A;
+    margin-bottom: 2px;
+  }
+  .sector-content p {
+    font-size: 12.8px;
+    color: #475569;
+    line-height: 1.32;
+  }
+</style>
+</head>
+<body>
+
+  <!-- Top Header -->
+  <div class="header">
+    <div class="team-pill">Guptachara</div>
+    <div class="title-center">
+      <h1>Impact and Benefits</h1>
+    </div>
+    <div class="sih-branding">
+      <div class="sih-text">
+        <h2>SMART INDIA<br>HACKATHON<br>2026</h2>
+      </div>
+      <div class="sih-logo-circle">SIH</div>
+    </div>
+  </div>
+
+  <!-- Main Slide Grid -->
+  <div class="main-grid">
+
+    <!-- Left Column: IMPACTS (Purple Box) -->
+    <div class="impacts-box">
+      <h2>IMPACTS</h2>
+
+      <div class="impact-item">
+        <div class="impact-title">100,000+ PII Entities Sanitized</div>
+        <ul class="impact-desc">
+          <li>Faces, Aadhaar cards, PAN numbers, and cards masked in browser memory.</li>
+          <li>Sensitive raw pixels never transmitted to cloud AI models.</li>
+        </ul>
+      </div>
+
+      <div class="impact-item">
+        <div class="impact-title">&lt;25 ms On-Device Detection Latency</div>
+        <ul class="impact-desc">
+          <li>Quantized INT8 YOLO models run directly on commodity laptop GPUs via WebGPU.</li>
+          <li>Private text masked at interactive speeds without causing tab lag.</li>
+        </ul>
+      </div>
+
+      <div class="impact-item">
+        <div class="impact-title">0% False-Positive Redactions</div>
+        <ul class="impact-desc">
+          <li>Verhoeff (D₅) and Luhn checksums mathematically verify digits.</li>
+          <li>Prevents accidental redaction of order IDs and button labels.</li>
+        </ul>
+      </div>
+
+      <div class="impact-item">
+        <div class="impact-title">91.2% Universal Web Reachability</div>
+        <ul class="impact-desc">
+          <li>Anchor Fuser merges shallow DOM text with OmniParser vision boxes.</li>
+          <li>Automates HTML5 Canvas, WebGL, and Flutter Web apps.</li>
+        </ul>
+      </div>
+
+      <div class="impact-item">
+        <div class="impact-title">95.2% Browser UI Thread Headroom</div>
+        <ul class="impact-desc">
+          <li>GPU compute shaders use only 4.8% CPU and 38.5 MB RAM.</li>
+          <li>Maintains fluid 60 FPS without tab freezing.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Right Container -->
+    <div class="right-container">
+
+      <!-- Benefits Header -->
+      <div class="benefits-section-title">Benefits</div>
+
+      <!-- 4 Benefit Cards -->
+      <div class="benefits-cards-grid">
+        <div class="benefit-card">
+          <div class="benefit-icon">🛡️</div>
+          <h3>Breach Liability Immunity</h3>
+          <div class="meta-tag">Mechanism</div>
+          <div class="meta-body">Zero data egress guarantees numbers and photos never leave the browser.</div>
+          <div class="meta-tag">Impact</div>
+          <div class="meta-body">Protects from ₹17.9 Cr breach fines under DPDP Act & GDPR.</div>
+        </div>
+
+        <div class="benefit-card">
+          <div class="benefit-icon">💰</div>
+          <h3>85% Cloud Cost Reduction</h3>
+          <div class="meta-tag">Mechanism</div>
+          <div class="meta-body">Screens redacted on-device, sending only safe lightweight text queries.</div>
+          <div class="meta-tag">Impact</div>
+          <div class="meta-body">Saves ~$1.4M annually in vision API calls for 100k daily tasks.</div>
+        </div>
+
+        <div class="benefit-card">
+          <div class="benefit-icon">⚡</div>
+          <h3>Zero Browser Freezing</h3>
+          <div class="meta-tag">Mechanism</div>
+          <div class="meta-body">Calculations run as WebGPU shaders without blocking UI threads.</div>
+          <div class="meta-tag">Impact</div>
+          <div class="meta-body">Delivers smooth 60 FPS on regular laptops and Intel GPUs.</div>
+        </div>
+
+        <div class="benefit-card">
+          <div class="benefit-icon">⚙️</div>
+          <h3>Universal Automation</h3>
+          <div class="meta-tag">Mechanism</div>
+          <div class="meta-body">Anchor fusion bridges raw DOM trees with pure visual pixels.</div>
+          <div class="meta-tag">Impact</div>
+          <div class="meta-body">Navigates modern enterprise apps like Salesforce and SAP.</div>
+        </div>
+      </div>
+
+      <!-- Bottom Right Grid: Chart on Left, Real-World Sectors on Right -->
+      <div class="bottom-right-grid">
+
+        <!-- Chart Panel -->
+        <div class="chart-panel">
+          <div class="panel-header">❖ How We Cut Data Leakage Risk by 80%</div>
+          <div class="chart-img-container">
+            <img src="/home/human/SIH_BRAIN/LWB-Ex/docs/guptchara_code_relevant_risk_reduction.png" alt="Risk Reduction Chart">
+          </div>
+        </div>
+
+        <!-- Real-World Deployment Sectors Panel (Filling the Empty Space) -->
+        <div class="sectors-panel">
+          <div class="panel-header">❖ Real-World Deployment Sectors</div>
+          <div class="sectors-list">
+            <div class="sector-card card-fintech">
+              <div class="sector-icon">🏦</div>
+              <div class="sector-content">
+                <h4>FinTech & Banking</h4>
+                <p>Auto-fills loan and KYC forms without exposing 16-digit cards or balances.</p>
+              </div>
+            </div>
+
+            <div class="sector-card card-health">
+              <div class="sector-icon">🏥</div>
+              <div class="sector-content">
+                <h4>Healthcare Portals</h4>
+                <p>Redacts patient medical records, health IDs, and photos before cloud processing.</p>
+              </div>
+            </div>
+
+            <div class="sector-card card-gov">
+              <div class="sector-icon">🏛️</div>
+              <div class="sector-content">
+                <h4>Sovereign Gov Portals</h4>
+                <p>Safely automates DigiLocker, UMANG, and IRCTC without cloud leakage.</p>
+              </div>
+            </div>
+
+            <div class="sector-card card-ai">
+              <div class="sector-icon">🤖</div>
+              <div class="sector-content">
+                <h4>Enterprise AI Automation</h4>
+                <p>Drop-in client SDK that sanitizes screens before forwarding prompts to LLMs.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</body>
+</html>

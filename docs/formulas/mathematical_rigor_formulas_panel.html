@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Mathematical Rigor & Checksum Algebra Panel</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    }
+    body {
+      background: #ffffff;
+      padding: 24px;
+      display: inline-block;
+    }
+    .panel-container {
+      width: 1040px;
+      border: 2px solid #000000;
+      background: #ffffff;
+    }
+    .panel-header {
+      padding: 12px 16px;
+      background: #ffffff;
+      border-bottom: 2px solid #000000;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .panel-title {
+      font-size: 16px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #000000;
+    }
+    .panel-tag {
+      font-size: 12px;
+      font-weight: 700;
+      color: #000000;
+      background: #f0f0f0;
+      padding: 3px 10px;
+      border: 1px solid #000000;
+    }
+    .formula-row {
+      display: flex;
+      border-bottom: 1.5px solid #000000;
+      min-height: 120px;
+    }
+    .formula-row:last-child {
+      border-bottom: none;
+    }
+    .formula-meta {
+      width: 440px;
+      padding: 14px 16px;
+      border-right: 1.5px solid #000000;
+      background: #fafafa;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .formula-number {
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: #555555;
+      margin-bottom: 4px;
+    }
+    .formula-heading {
+      font-size: 14px;
+      font-weight: 800;
+      color: #000000;
+      margin-bottom: 6px;
+    }
+    .formula-desc {
+      font-size: 11.5px;
+      color: #222222;
+      line-height: 1.4;
+    }
+    .formula-render {
+      flex: 1;
+      padding: 14px 20px;
+      background: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    math {
+      font-family: "Latin Modern Math", "STIX Two Math", "Cambria Math", "Times New Roman", serif;
+      font-size: 26px;
+      color: #000000;
+    }
+  </style>
+</head>
+<body>
+
+<div class="panel-container">
+  <div class="panel-header">
+    <div class="panel-title">Mathematical Rigor & Checksum Algebra</div>
+    <div class="panel-tag">Non-Naive Validation & Fusion Proofs</div>
+  </div>
+
+  <!-- FORMULA 1 -->
+  <div class="formula-row">
+    <div class="formula-meta">
+      <div class="formula-number">Algorithm 1</div>
+      <div class="formula-heading">Dihedral Group D₅ (Verhoeff Aadhaar Checksum)</div>
+      <div class="formula-desc">Permutation matrices (F) and Cayley multiplication tables (D) eliminate false-positive redactions on arbitrary 12-digit order IDs or timestamps.</div>
+    </div>
+    <div class="formula-render">
+      <math display="block">
+        <mrow>
+          <mtext mathvariant="bold">CheckDigit</mtext>
+          <mo stretchy="false">(</mo><mi>c</mi><mo stretchy="false">)</mo>
+          <mo>=</mo>
+          <mtext>inv</mtext>
+          <mrow><mo>(</mo>
+            <munderover>
+              <mo>&#x2211;</mo>
+              <mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow>
+              <mi>n</mi>
+            </munderover>
+            <mi>F</mi>
+            <mo stretchy="false">(</mo>
+            <mi>i</mi>
+            <mo lspace="0.25em" rspace="0.25em">mod</mo>
+            <mn>8</mn>
+            <mo>,</mo>
+            <msub><mi>d</mi><mi>i</mi></msub>
+            <mo stretchy="false">)</mo>
+            <mo>&#x2208;</mo>
+            <msub><mi>D</mi><mn>5</mn></msub>
+          <mo>)</mo></mrow>
+        </mrow>
+      </math>
+    </div>
+  </div>
+
+  <!-- FORMULA 2 -->
+  <div class="formula-row">
+    <div class="formula-meta">
+      <div class="formula-number">Algorithm 2</div>
+      <div class="formula-heading">Luhn Mod-10 Checksum (ISO/IEC 7812)</div>
+      <div class="formula-desc">Validates 16-digit credit/debit card numbers and grouped 4-box segmented inputs, rejecting non-payment 16-digit sequences.</div>
+    </div>
+    <div class="formula-render">
+      <math display="block">
+        <mrow>
+          <mrow><mo>(</mo>
+            <munderover>
+              <mo>&#x2211;</mo>
+              <mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow>
+              <mi>k</mi>
+            </munderover>
+            <mrow><mo>[</mo>
+              <msub><mi>d</mi><mi>i</mi></msub>
+              <mo>&#xd7;</mo>
+              <mo stretchy="false">(</mo>
+              <mn>1</mn>
+              <mo>+</mo>
+              <mo stretchy="false">(</mo>
+              <mi>i</mi>
+              <mo lspace="0.25em" rspace="0.25em">mod</mo>
+              <mn>2</mn>
+              <mo stretchy="false">)</mo>
+              <mo stretchy="false">)</mo>
+            <mo>]</mo></mrow>
+          <mo>)</mo></mrow>
+          <mo lspace="0.3em" rspace="0.3em">mod</mo>
+          <mn>10</mn>
+          <mo>&#x2261;</mo>
+          <mn>0</mn>
+        </mrow>
+      </math>
+    </div>
+  </div>
+
+  <!-- FORMULA 3 -->
+  <div class="formula-row">
+    <div class="formula-meta">
+      <div class="formula-number">Algorithm 3</div>
+      <div class="formula-heading">Anchor Fusion IoU NMS (Non-Maximum Suppression)</div>
+      <div class="formula-desc">Deduplicates overlapping DOM clickable bounds and pure-vision OmniParser icon bounding boxes at spatial overlap threshold τ = 0.45.</div>
+    </div>
+    <div class="formula-render">
+      <math display="block">
+        <mrow>
+          <mtext mathvariant="bold">IoU</mtext>
+          <mo stretchy="false">(</mo>
+          <msub><mi>B</mi><mtext>DOM</mtext></msub>
+          <mo>,</mo>
+          <msub><mi>B</mi><mtext>Vision</mtext></msub>
+          <mo stretchy="false">)</mo>
+          <mo>=</mo>
+          <mfrac>
+            <mrow>
+              <mtext>Area</mtext>
+              <mo stretchy="false">(</mo>
+              <msub><mi>B</mi><mtext>DOM</mtext></msub>
+              <mo>&#x2229;</mo>
+              <msub><mi>B</mi><mtext>Vision</mtext></msub>
+              <mo stretchy="false">)</mo>
+            </mrow>
+            <mrow>
+              <mtext>Area</mtext>
+              <mo stretchy="false">(</mo>
+              <msub><mi>B</mi><mtext>DOM</mtext></msub>
+              <mo>&#x222a;</mo>
+              <msub><mi>B</mi><mtext>Vision</mtext></msub>
+              <mo stretchy="false">)</mo>
+            </mrow>
+          </mfrac>
+        </mrow>
+      </math>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

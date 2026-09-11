@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>GUPTCHARA - Piece-Wise Modular Block Architecture</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+    }
+    body {
+      background-color: #0f172a;
+      color: #f8fafc;
+      padding: 40px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .page-header {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+    .page-title {
+      font-size: 26px;
+      font-weight: 800;
+      color: #38bdf8;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+    .page-subtitle {
+      font-size: 14px;
+      color: #94a3b8;
+    }
+    .diagram-container {
+      width: 1040px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      position: relative;
+    }
+
+    /* Major Section Containers (Client Side vs Server Side) */
+    .boundary-card {
+      background: #1e293b;
+      border: 2px solid #334155;
+      border-radius: 12px;
+      padding: 24px 28px;
+      position: relative;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    }
+    .boundary-tag {
+      position: absolute;
+      top: -12px;
+      right: 24px;
+      background: #3b82f6;
+      color: #ffffff;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      padding: 3px 12px;
+      border-radius: 9999px;
+      text-transform: uppercase;
+    }
+    .boundary-tag.server {
+      background: #10b981;
+    }
+    .section-label {
+      font-size: 14px;
+      font-weight: 700;
+      color: #cbd5e1;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Grid of Blocks */
+    .block-grid {
+      display: grid;
+      gap: 12px;
+    }
+    .grid-3 { grid-template-columns: repeat(3, 1fr); }
+    .grid-4 { grid-template-columns: repeat(4, 1fr); }
+    .grid-5 { grid-template-columns: repeat(5, 1fr); }
+    .grid-2 { grid-template-columns: repeat(2, 1fr); }
+
+    /* Individual Modular Block */
+    .module-box {
+      background: #0f172a;
+      border: 1.5px solid #475569;
+      border-radius: 8px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      transition: all 0.2s ease;
+    }
+    .module-box:hover {
+      border-color: #38bdf8;
+      box-shadow: 0 4px 12px rgba(56, 189, 248, 0.15);
+      transform: translateY(-2px);
+    }
+    .box-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+    .box-icon {
+      font-size: 16px;
+    }
+    .box-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #f1f5f9;
+      line-height: 1.25;
+    }
+    .box-desc {
+      font-size: 11.5px;
+      color: #94a3b8;
+      line-height: 1.4;
+      flex: 1;
+    }
+    .box-tech {
+      font-size: 10px;
+      font-family: monospace;
+      color: #38bdf8;
+      margin-top: 6px;
+      background: rgba(56, 189, 248, 0.08);
+      padding: 2px 6px;
+      border-radius: 4px;
+      display: inline-block;
+      align-self: flex-start;
+    }
+
+    /* Category Accents */
+    .accent-blue { border-top: 3px solid #38bdf8; }
+    .accent-amber { border-top: 3px solid #f59e0b; }
+    .accent-red { border-top: 3px solid #ef4444; }
+    .accent-emerald { border-top: 3px solid #10b981; }
+    .accent-purple { border-top: 3px solid #a855f7; }
+
+    /* Connecting Arrows */
+    .arrow-divider {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin: 12px 0;
+      color: #64748b;
+      font-size: 12px;
+      font-weight: 600;
+      gap: 2px;
+    }
+    .arrow-line {
+      width: 2px;
+      height: 18px;
+      background: #475569;
+    }
+    .arrow-head {
+      width: 0;
+      height: 0;
+      border-left: 6px solid transparent;
+      border-right: 6px solid transparent;
+      border-top: 8px solid #475569;
+    }
+    .arrow-label {
+      background: #0f172a;
+      border: 1px solid #334155;
+      padding: 3px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      color: #cbd5e1;
+      margin-bottom: 4px;
+    }
+
+    /* Connector Hero Box */
+    .connector-hero {
+      background: #090d16;
+      border: 2px solid #0284c7;
+      border-radius: 10px;
+      padding: 14px 20px;
+      text-align: center;
+      margin: 4px 0;
+      box-shadow: 0 0 20px rgba(2, 132, 199, 0.2);
+    }
+    .connector-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: #38bdf8;
+      letter-spacing: 0.5px;
+    }
+    .connector-sub {
+      font-size: 12px;
+      color: #94a3b8;
+      margin-top: 4px;
+    }
+
+    /* Loop Back Indicator */
+    .loop-banner {
+      background: rgba(6, 182, 212, 0.1);
+      border: 1.5px dashed #06b6d4;
+      border-radius: 8px;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #22d3ee;
+      margin-top: 14px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="page-header">
+    <div class="page-title">GUPTCHARA: Piece-Wise Modular Architecture</div>
+    <div class="page-subtitle">Every mechanism, model, and security check fully separated into distinct functional blocks</div>
+  </div>
+
+  <div class="diagram-container">
+
+    <!-- ====================================================================
+         SECTION 1: CLIENT SIDE
+         ==================================================================== -->
+    <div class="boundary-card">
+      <div class="boundary-tag">Client Side (Zero-Egress Zone)</div>
+
+      <!-- STAGE 1: DUAL INGESTION -->
+      <div class="section-label">Stage 1: Multi-Modal Ingestion</div>
+      <div class="block-grid grid-3">
+        <div class="module-box accent-blue">
+          <div class="box-header">
+            <span class="box-icon">📷</span>
+            <span class="box-title">Viewport Screen Grab</span>
+          </div>
+          <div class="box-desc">Captures instant pixel representation of the active tab viewport without window border clutter.</div>
+          <div class="box-tech">chrome.tabs.captureVisibleTab</div>
+        </div>
+
+        <div class="module-box accent-blue">
+          <div class="box-header">
+            <span class="box-icon">🌐</span>
+            <span class="box-title">Shallow DOM Extractor</span>
+          </div>
+          <div class="box-desc">Scans interactive HTML elements: buttons, links, inputs, selects, and text fields.</div>
+          <div class="box-tech">content.js: getCandidateElements</div>
+        </div>
+
+        <div class="module-box accent-blue">
+          <div class="box-header">
+            <span class="box-icon">🎨</span>
+            <span class="box-title">Canvas & WebGL Scanner</span>
+          </div>
+          <div class="box-desc">Identifies HTML5 &lt;canvas&gt; boundaries and WebGL viewports where traditional DOM is absent.</div>
+          <div class="box-tech">document.querySelectorAll('canvas')</div>
+        </div>
+      </div>
+
+      <!-- DOWN ARROW -->
+      <div class="arrow-divider">
+        <div class="arrow-label">Raw Pixels + DOM Elements</div>
+        <div class="arrow-line"></div>
+        <div class="arrow-head"></div>
+      </div>
+
+      <!-- STAGE 2: PARALLEL DETECTION PIPELINE -->
+      <div class="section-label">Stage 2: Parallel Detection Pipeline (On-Device Local Memory)</div>
+      <div class="block-grid grid-5">
+        <!-- 2A -->
+        <div class="module-box accent-amber">
+          <div class="box-header">
+            <span class="box-icon">👤</span>
+            <span class="box-title">YOLOv26s Neural Engine</span>
+          </div>
+          <div class="box-desc">Executes on-device visual face detection directly on GPU in 25 milliseconds.</div>
+          <div class="box-tech">ONNX Runtime WebGPU</div>
+        </div>
+
+        <!-- 2B -->
+        <div class="module-box accent-amber">
+          <div class="box-header">
+            <span class="box-icon">📝</span>
+            <span class="box-title">Presidio Regex Engine</span>
+          </div>
+          <div class="box-desc">Scans textual context for sensitive identifiers: PAN, Indian mobile numbers, and emails.</div>
+          <div class="box-tech">pii_detector.js</div>
+        </div>
+
+        <!-- 2C -->
+        <div class="module-box accent-amber">
+          <div class="box-header">
+            <span class="box-icon">💳</span>
+            <span class="box-title">Luhn Card Validator</span>
+          </div>
+          <div class="box-desc">Mathematically validates 16-digit credit/debit card checksums and 4-box segmented card inputs.</div>
+          <div class="box-tech">Mod-10 Checksum Algorithm</div>
+        </div>
+
+        <!-- 2D -->
+        <div class="module-box accent-amber">
+          <div class="box-header">
+            <span class="box-icon">🆔</span>
+            <span class="box-title">Verhoeff Aadhaar Engine</span>
+          </div>
+          <div class="box-desc">Validates 12-digit UIDAI Indian Aadhaar numbers using dihedral group D5 permutation tables.</div>
+          <div class="box-tech">Verhoeff D5 Checksum</div>
+        </div>
+
+        <!-- 2E -->
+        <div class="module-box accent-amber">
+          <div class="box-header">
+            <span class="box-icon">🔘</span>
+            <span class="box-title">OmniParser INT8 Detector</span>
+          </div>
+          <div class="box-desc">Pure-vision UI detector (19.6MB quantized) spots buttons & icons inside Canvas/Flutter.</div>
+          <div class="box-tech">omniparser_detector.js</div>
+        </div>
+      </div>
+
+      <!-- DOWN ARROW -->
+      <div class="arrow-divider">
+        <div class="arrow-label">Detections: Faces, PII Bounding Boxes, Visual Icons</div>
+        <div class="arrow-line"></div>
+        <div class="arrow-head"></div>
+      </div>
+
+      <!-- STAGE 3: FUSION & REDACTION -->
+      <div class="section-label">Stage 3: Fusion & Visual Redaction (Privacy Barrier)</div>
+      <div class="block-grid grid-4">
+        <!-- 3A -->
+        <div class="module-box accent-red">
+          <div class="box-header">
+            <span class="box-icon">🔗</span>
+            <span class="box-title">Anchor Fuser</span>
+          </div>
+          <div class="box-desc">Performs IoU overlap matching between DOM candidate boxes and OmniParser vision anchors.</div>
+          <div class="box-tech">anchor_fuser.js: fuseAnchors</div>
+        </div>
+
+        <!-- 3B -->
+        <div class="module-box accent-red">
+          <div class="box-header">
+            <span class="box-icon">🛡️</span>
+            <span class="box-title">Adaptive Cushion Engine</span>
+          </div>
+          <div class="box-desc">Adds 4px protective padding around numbers; clamps to 0px near clickable buttons.</div>
+          <div class="box-tech">canvas_redactor.js: clamp</div>
+        </div>
+
+        <!-- 3C -->
+        <div class="module-box accent-red">
+          <div class="box-header">
+            <span class="box-icon">⬛</span>
+            <span class="box-title">Canvas Blackout Painter</span>
+          </div>
+          <div class="box-desc">Fills solid black rectangles directly over sensitive pixels on offscreen HTML5 canvas.</div>
+          <div class="box-tech">ctx.fillRect(x, y, w, h)</div>
+        </div>
+
+        <!-- 3D -->
+        <div class="module-box accent-red">
+          <div class="box-header">
+            <span class="box-icon">🏷️</span>
+            <span class="box-title">Numbered Tag Overlay</span>
+          </div>
+          <div class="box-desc">Paints distinct interactive badges ([1], [2], [3]) with normalized ratios (normX, normY).</div>
+          <div class="box-tech">DPI-Invariant Badge Renderer</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====================================================================
+         CONNECTOR: DATA EGRESS BOUNDARY
+         ==================================================================== -->
+    <div class="arrow-divider">
+      <div class="arrow-line" style="height: 12px;"></div>
+      <div class="arrow-head"></div>
+    </div>
+
+    <div class="connector-hero">
+      <div class="connector-title">🛡️ ZERO-EGRESS PRIVACY BOUNDARY: Sanitized Canvas Output</div>
+      <div class="connector-sub">Zero raw screen data leaves client memory. ONLY sanitized image (blacked-out PII & faces) + numbered tags transmitted.</div>
+    </div>
+
+    <div class="arrow-divider">
+      <div class="arrow-label">Sanitized Screenshot + Numbered Candidate List</div>
+      <div class="arrow-line"></div>
+      <div class="arrow-head"></div>
+    </div>
+
+    <!-- ====================================================================
+         SECTION 2: SERVER SIDE / REASONING LAYER
+         ==================================================================== -->
+    <div class="boundary-card">
+      <div class="boundary-tag server">Reasoning & Execution Layer</div>
+
+      <!-- STAGE 4: AI REASONING -->
+      <div class="section-label">Stage 4: Multi-Modal AI Reasoning (Brain)</div>
+      <div class="block-grid grid-4">
+        <!-- 4A -->
+        <div class="module-box accent-emerald">
+          <div class="box-header">
+            <span class="box-icon">🔒</span>
+            <span class="box-title">Egress Firewall Guard</span>
+          </div>
+          <div class="box-desc">Validates payload before dispatch. Strictly blocks unredacted buffers or raw camera feeds.</div>
+          <div class="box-tech">Pre-Flight Privacy Audit</div>
+        </div>
+
+        <!-- 4B -->
+        <div class="module-box accent-emerald">
+          <div class="box-header">
+            <span class="box-icon">📋</span>
+            <span class="box-title">Grounded Prompt Assembler</span>
+          </div>
+          <div class="box-desc">Packages user goal, interaction history, and numbered anchor coordinates into VLM prompt.</div>
+          <div class="box-tech">vlm_router.js: buildPrompt</div>
+        </div>
+
+        <!-- 4C -->
+        <div class="module-box accent-emerald">
+          <div class="box-header">
+            <span class="box-icon">⚡</span>
+            <span class="box-title">Dual Model Router</span>
+          </div>
+          <div class="box-desc">Routes to 100% Offline Local VLM (Ollama Qwen3-VL / Chrome Gemini Nano) or Cloud GPT-4o.</div>
+          <div class="box-tech">Offline Server & Cloud Gate</div>
+        </div>
+
+        <!-- 4D -->
+        <div class="module-box accent-emerald">
+          <div class="box-header">
+            <span class="box-icon">🧠</span>
+            <span class="box-title">Decision & Intent Parser</span>
+          </div>
+          <div class="box-desc">Extracts actionable command (e.g., Click [3]) from strict JSON or recovers intent from stream.</div>
+          <div class="box-tech">parseDecision + Intent Recovery</div>
+        </div>
+      </div>
+
+      <!-- DOWN ARROW -->
+      <div class="arrow-divider">
+        <div class="arrow-label">Parsed Action: { action: "CLICK", targetId: 3, normX: 0.42, normY: 0.65 }</div>
+        <div class="arrow-line"></div>
+        <div class="arrow-head"></div>
+      </div>
+
+      <!-- STAGE 5: GROUNDED EXECUTION & LOOP -->
+      <div class="section-label">Stage 5: Grounded Action Execution & Feedback Loop</div>
+      <div class="block-grid grid-5">
+        <!-- 5A -->
+        <div class="module-box accent-purple">
+          <div class="box-header">
+            <span class="box-icon">⚠️</span>
+            <span class="box-title">Consequential Action Gate</span>
+          </div>
+          <div class="box-desc">Detects financial or irreversible keywords (buy, checkout, pay) and pauses for user confirmation.</div>
+          <div class="box-tech">askBeforeConsequential Check</div>
+        </div>
+
+        <!-- 5B -->
+        <div class="module-box accent-purple">
+          <div class="box-header">
+            <span class="box-icon">📐</span>
+            <span class="box-title">Coordinate Normalizer</span>
+          </div>
+          <div class="box-desc">Scales normX/normY to exact physical pixel coordinates invariant to device zoom and screen DPI.</div>
+          <div class="box-tech">normX * innerWidth</div>
+        </div>
+
+        <!-- 5C -->
+        <div class="module-box accent-purple">
+          <div class="box-header">
+            <span class="box-icon">🎯</span>
+            <span class="box-title">Container Click Resolver</span>
+          </div>
+          <div class="box-desc">Automatically bubbles click from nested child icons or SVGs to the parent interactive button.</div>
+          <div class="box-tech">targetEl.closest('button, a')</div>
+        </div>
+
+        <!-- 5D -->
+        <div class="module-box accent-purple">
+          <div class="box-header">
+            <span class="box-icon">🖱️</span>
+            <span class="box-title">Canvas Sub-Pixel Dispatch</span>
+          </div>
+          <div class="box-desc">Dispatches real PointerEvent and MouseEvent coordinates directly onto HTML5 &lt;canvas&gt; surfaces.</div>
+          <div class="box-tech">element.dispatchEvent(ev)</div>
+        </div>
+
+        <!-- 5E -->
+        <div class="module-box accent-purple">
+          <div class="box-header">
+            <span class="box-icon">💫</span>
+            <span class="box-title">Ripple HUD & Mutation Monitor</span>
+          </div>
+          <div class="box-desc">Renders on-screen visual ripple ring and verifies if URL or DOM mutated. Advances agent step.</div>
+          <div class="box-tech">Visual Ripple + State Check</div>
+        </div>
+      </div>
+
+      <!-- LOOP BACK BANNER -->
+      <div class="loop-banner">
+        <span>🔄</span>
+        <span>CONTINUOUS AGENT LOOP: Action complete &bull; Next step triggers Stage 1 Viewport Capture</span>
+        <span>➔</span>
+      </div>
+
+    </div>
+
+  </div>
+
+</body>
+</html>

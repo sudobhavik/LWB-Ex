@@ -1,0 +1,39 @@
+services:
+  demo-site:
+    image: node:20-alpine
+    container_name: guptchara-demo-site
+    working_dir: /app
+    volumes:
+      - .:/app
+    environment:
+      - PORT=8080
+    command: node scripts/serve_demo.js
+    restart: unless-stopped
+    networks:
+      - guptchara-net
+
+  guptchara-browser:
+    image: lscr.io/linuxserver/chromium:latest
+    container_name: guptchara-streamed-browser
+    depends_on:
+      - demo-site
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+      # Launch Chromium with GUPTCHARA extension and navigate to demo site
+      - CHROME_CLI=--load-extension=/app/extension --no-first-run --no-default-browser-check --disable-gpu-sandbox --enable-features=WebGPU,Vulkan --ignore-gpu-blocklist http://demo-site:8080/index.html
+    volumes:
+      - ./extension:/app/extension:ro
+      - ./chrome-config:/config
+    ports:
+      - "3000:3000"
+      - "3001:3001"
+    shm_size: "2gb"
+    restart: unless-stopped
+    networks:
+      - guptchara-net
+
+networks:
+  guptchara-net:
+    driver: bridge

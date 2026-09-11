@@ -24,6 +24,17 @@ if (sidePanelAPI && typeof sidePanelAPI.setPanelBehavior === 'function') {
   } catch (_) {}
 }
 
+// Automatically open the side panel interface upon first installation so it is immediately visible
+browserAPI.runtime?.onInstalled?.addListener((details) => {
+  if (details.reason === 'install') {
+    try {
+      if (browserAPI.tabs && browserAPI.tabs.create) {
+        browserAPI.tabs.create({ url: 'sidepanel/sidepanel.html' });
+      }
+    } catch (_) {}
+  }
+});
+
 const actionAPI = (typeof browser !== 'undefined' && browser.action)
   ? browser.action
   : ((typeof chrome !== 'undefined' && chrome.action) ? chrome.action : null);

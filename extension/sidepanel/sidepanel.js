@@ -25,7 +25,6 @@ const footerStatusText = document.getElementById('footer-status-text');
 const chatStream = document.getElementById('chat-stream');
 const chatWelcome = document.getElementById('chat-welcome');
 const messagesList = document.getElementById('messages-list');
-const promptChips = document.querySelectorAll('.prompt-chip');
 const stepProgressIndicator = document.getElementById('step-progress-indicator');
 const progressStatusText = document.getElementById('progress-status-text');
 
@@ -83,21 +82,53 @@ async function loadSavedKeys() {
         'ollamaModel',
         'preferredProvider'
       ]);
+
+      // Check for optional bundled config.json (used for cloud demo instances)
+      if ((!stored.openaiKey || !stored.preferredProvider) && browserAPI.runtime && typeof browserAPI.runtime.getURL === 'function' && typeof fetch === 'function') {
+        try {
+          const cfgUrl = browserAPI.runtime.getURL('config.json');
+          const cfgRes = await fetch(cfgUrl);
+          if (cfgRes && cfgRes.ok) {
+            const cfg = await cfgRes.json();
+            if (cfg && cfg.openaiKey && !stored.openaiKey) {
+              stored.openaiKey = cfg.openaiKey;
+              browserAPI.storage.local.set({ openaiKey: cfg.openaiKey });
+            }
+            if (cfg && cfg.preferredProvider && !stored.preferredProvider) {
+              stored.preferredProvider = cfg.preferredProvider;
+              browserAPI.storage.local.set({ preferredProvider: cfg.preferredProvider });
+            }
+          }
+        } catch (_) {}
+      }
+
       if (stored.openaiKey) inputOpenAIKey.value = stored.openaiKey;
       if (stored.geminiKey) inputGeminiKey.value = stored.geminiKey;
       if (stored.ollamaEndpoint && inputOllamaEndpoint) inputOllamaEndpoint.value = stored.ollamaEndpoint;
       if (stored.ollamaModel && inputOllamaModel) inputOllamaModel.value = stored.ollamaModel;
-      if (stored.preferredProvider) selectProvider.value = stored.preferredProvider;
+      if (stored.preferredProvider) {
+        if (stored.preferredProvider === 'openai-gpt4o' || stored.preferredProvider === 'openai') {
+          selectProvider.value = 'openai-gpt4o';
+        } else {
+          selectProvider.value = 'offline';
+        }
+      } else {
+        selectProvider.value = 'offline';
+      }
 
       vlmRouter = new (window.VLMRouter || globalThis.VLMRouter)({
         openaiKey: stored.openaiKey || '',
         geminiKey: stored.geminiKey || '',
         ollamaEndpoint: stored.ollamaEndpoint || 'http://localhost:11434',
         ollamaModel: stored.ollamaModel || 'qwen3-vl:2b',
-        preferredProvider: stored.preferredProvider || 'auto'
+        preferredProvider: selectProvider.value === 'openai-gpt4o' ? 'openai' : 'ollama',
+        openaiModel: 'gpt-4o'
       });
+      updateProviderConfig();
     } else {
+      selectProvider.value = 'offline';
       vlmRouter = new (window.VLMRouter || globalThis.VLMRouter)();
+      updateProviderConfig();
     }
 
     // Probe Ollama local server daemon
@@ -223,9 +254,10 @@ async function initializeModel() {
     const modelUrl = browserAPI.runtime.getURL('models/yolo26n.onnx');
     const wasmDir = browserAPI.runtime.getURL('lib/');
 
-    const info = await runner.loadModel(modelUrl, wasmDir);
+    const initFn = (typeof runner.loadModel === 'function') ? runner.loadModel : runner.initialize;
+    const info = await initFn.call(runner, modelUrl, wasmDir);
 
-    if (info.activeProvider === 'webgpu') {
+    if (info && info.activeProvider === 'webgpu') {
       providerBadge.className = 'pill-badge pill-webgpu';
       providerBadge.textContent = 'WEBGPU ACTIVE';
       footerStatusText.textContent = 'Zero-Egress Active • WebGPU accelerated on-device vision';
@@ -241,7 +273,8 @@ async function initializeModel() {
       if (omniClass) {
         omniParserDetector = new omniClass();
         const omniModelUrl = browserAPI.runtime.getURL('models/omniparser_icon_detect.onnx');
-        await omniParserDetector.loadModel(omniModelUrl, wasmDir);
+        const omniInit = (typeof omniParserDetector.loadModel === 'function') ? omniParserDetector.loadModel : omniParserDetector.initialize;
+        await omniInit.call(omniParserDetector, omniModelUrl, wasmDir);
         console.log('[OmniParser] On-device pure vision UI detector initialized.');
       }
     } catch (omniErr) {
@@ -315,52 +348,39 @@ function updateProviderConfig() {
   const val = selectProvider.value;
   if (!vlmRouter) return;
 
-  if (val === 'chrome-ai') {
-    vlmRouter.preferredProvider = 'chrome-ai';
-  } else if (val === 'ollama') {
+  if (val === 'offline') {
     vlmRouter.preferredProvider = 'ollama';
-  } else if (val === 'auto') {
-    vlmRouter.preferredProvider = 'auto';
-    vlmRouter.openaiModel = 'gpt-4o';
-    vlmRouter.geminiModel = 'gemini-2.0-flash';
   } else if (val === 'openai-gpt4o') {
     vlmRouter.preferredProvider = 'openai';
     vlmRouter.openaiModel = 'gpt-4o';
-  } else if (val === 'openai-gpt4o-mini') {
-    vlmRouter.preferredProvider = 'openai';
-    vlmRouter.openaiModel = 'gpt-4o-mini';
-  } else if (val === 'gemini-2.0-flash') {
-    vlmRouter.preferredProvider = 'gemini';
-    vlmRouter.geminiModel = 'gemini-2.0-flash';
-  } else if (val === 'gemini-1.5-flash') {
-    vlmRouter.preferredProvider = 'gemini';
-    vlmRouter.geminiModel = 'gemini-1.5-flash';
   }
 }
 
+// Active Model Selection Change Listener
+selectProvider.addEventListener('change', async () => {
+  updateProviderConfig();
+  const selectedVal = selectProvider.value;
+  if (browserAPI?.storage?.local) {
+    await browserAPI.storage.local.set({ preferredProvider: selectedVal });
+  }
+  const label = selectedVal === 'openai-gpt4o' ? 'GPT-4o' : 'Offline';
+  appendSystemMessage(`Reasoning model updated to: ${label}`);
+});
+
 function validateProviderKeys() {
   updateProviderConfig();
-  if (selectProvider.value === 'chrome-ai' || selectProvider.value === 'ollama') {
-    // Both Chrome Built-in AI and local Ollama run 100% locally and require zero cloud API keys
+  if (selectProvider.value === 'offline') {
+    // Offline local reasoning requires zero cloud API keys
     return true;
   }
   if (!vlmRouter) {
     appendSystemMessage('VLM Router is not initialized.', true);
     return false;
   }
-  if (vlmRouter.preferredProvider === 'openai' && !vlmRouter.openaiKey) {
-    appendSystemMessage('Please configure your OpenAI API Key in Settings (⚙️ top right) or switch to Ollama / Chrome AI.', true);
+  if (selectProvider.value === 'openai-gpt4o' && !vlmRouter.openaiKey) {
+    appendSystemMessage('Please configure your OpenAI API Key in Settings (⚙️ top right) to use GPT-4o.', true);
     settingsModal.style.display = 'flex';
     return false;
-  }
-  if (vlmRouter.preferredProvider === 'gemini' && !vlmRouter.geminiKey) {
-    appendSystemMessage('Please configure your Gemini API Key in Settings (⚙️ top right) or switch to Ollama / Chrome AI.', true);
-    settingsModal.style.display = 'flex';
-    return false;
-  }
-  if (vlmRouter.preferredProvider === 'auto' && !vlmRouter.openaiKey && !vlmRouter.geminiKey) {
-    // Auto-fallback works offline via Ollama or Chrome AI without external keys
-    return true;
   }
   return true;
 }
@@ -740,7 +760,8 @@ async function executeSingleAgentStep(goal, step, maxSteps) {
 
   let faceRegions = [];
   if (runner && runner.isReady) {
-    const yoloResult = await runner.detect(img, { confidenceThreshold: 0.35 });
+    const detectFn = (typeof runner.detect === 'function') ? runner.detect : runner.runInference;
+    const yoloResult = await detectFn.call(runner, img, { confidenceThreshold: 0.35 });
     const processor = window.YoloProcessor || globalThis.YoloProcessor;
     const rawFaces = yoloResult.detections.filter(d => d.className === 'face');
     faceRegions = processor && processor.filterFaces
@@ -832,21 +853,54 @@ async function executeSingleAgentStep(goal, step, maxSteps) {
   let decision = null;
   let providerUsed = 'WebGPU YOLO (On-Device)';
 
-  // Priority 1: Direct On-Device Chrome Built-in AI (Gemini Nano)
-  if (selectProvider.value === 'chrome-ai' && chromeAIEngine) {
-    showProgress(`Analyzing: Step ${step}/${maxSteps} - Running Chrome Gemini Nano (On-Device)...`);
-    try {
-      decision = await chromeAIEngine.decideLocalAction(goal, activeAnchors, step, agentHistory);
-      providerUsed = 'Chrome Built-in AI (Gemini Nano)';
-    } catch (cErr) {
-      console.log('Chrome AI decision notice:', cErr);
+  // Query Model: Offline or GPT-4o
+  if (selectProvider.value === 'offline') {
+    // Priority 1: Direct Local Offline VLM (Ollama Server - Qwen3-VL)
+    if (vlmRouter) {
+      showProgress(`Analyzing: Step ${step}/${maxSteps} - Running Local Ollama (${vlmRouter.ollamaModel})...`);
+      try {
+        vlmRouter.preferredProvider = 'ollama';
+        const vlmRes = await vlmRouter.decide(
+          goal,
+          sanitized.dataUrl,
+          activeAnchors,
+          step,
+          agentHistory
+        );
+        decision = vlmRes.decision;
+        providerUsed = vlmRes.providerUsed || 'Local Ollama';
+      } catch (ollamaErr) {
+        console.log('Local Ollama VLM notice:', ollamaErr);
+      }
     }
-  }
 
-  // Priority 2: Direct Local Offline VLM (Ollama Server - Qwen3-VL)
-  if (!decision && selectProvider.value === 'ollama' && vlmRouter) {
-    showProgress(`Analyzing: Step ${step}/${maxSteps} - Running Local Ollama (${vlmRouter.ollamaModel})...`);
+    // Priority 2: Direct On-Device Chrome Built-in AI (Gemini Nano)
+    if (!decision && chromeAIEngine) {
+      showProgress(`Analyzing: Step ${step}/${maxSteps} - Running Chrome Built-in AI (Gemini Nano)...`);
+      try {
+        decision = await chromeAIEngine.decideLocalAction(goal, activeAnchors, step, agentHistory);
+        providerUsed = 'Chrome Built-in AI (Gemini Nano)';
+      } catch (cErr) {
+        console.log('Chrome AI decision notice:', cErr);
+      }
+    }
+
+    if (!decision) {
+      appendSystemMessage('Offline reasoning unavailable. Ensure Ollama daemon is running (`ollama serve`), or switch to GPT-4o with an API key.', true);
+      stopExecution();
+      return;
+    }
+  } else if (selectProvider.value === 'openai-gpt4o') {
+    if (!vlmRouter || !vlmRouter.openaiKey) {
+      appendSystemMessage('OpenAI API Key is required for GPT-4o. Click ⚙️ to configure.', true);
+      settingsModal.style.display = 'flex';
+      stopExecution();
+      return;
+    }
+    showProgress(`Analyzing: Step ${step}/${maxSteps} - Querying OpenAI GPT-4o...`);
     try {
+      vlmRouter.preferredProvider = 'openai';
+      vlmRouter.openaiModel = 'gpt-4o';
       const vlmRes = await vlmRouter.decide(
         goal,
         sanitized.dataUrl,
@@ -855,34 +909,12 @@ async function executeSingleAgentStep(goal, step, maxSteps) {
         agentHistory
       );
       decision = vlmRes.decision;
-      providerUsed = vlmRes.providerUsed;
-    } catch (ollamaErr) {
-      console.log('Local Ollama VLM notice:', ollamaErr);
-      appendSystemMessage(`Ollama Error: ${ollamaErr.message}`, true);
-    }
-  }
-
-  const hasKeys = vlmRouter && (
-    (vlmRouter.preferredProvider === 'openai' && vlmRouter.openaiKey) ||
-    (vlmRouter.preferredProvider === 'gemini' && vlmRouter.geminiKey) ||
-    (vlmRouter.preferredProvider === 'auto' && (vlmRouter.openaiKey || vlmRouter.geminiKey))
-  );
-
-  // Priority 3: Multimodal VLM (Cloud OpenAI / Gemini or Auto Router)
-  if (!decision && vlmRouter && (hasKeys || vlmRouter.preferredProvider === 'auto')) {
-    showProgress(`Analyzing: Step ${step}/${maxSteps} - Querying VLM (${vlmRouter.preferredProvider})...`);
-    try {
-      const vlmRes = await vlmRouter.decide(
-        goal,
-        sanitized.dataUrl,
-        activeAnchors,
-        step,
-        agentHistory
-      );
-      decision = vlmRes.decision;
-      providerUsed = vlmRes.providerUsed;
+      providerUsed = vlmRes.providerUsed || 'OpenAI (GPT-4o)';
     } catch (vlmErr) {
-      console.log('VLM query notice, using local fallbacks:', vlmErr);
+      console.log('GPT-4o query error:', vlmErr);
+      appendSystemMessage(`GPT-4o Error: ${vlmErr.message}`, true);
+      stopExecution();
+      return;
     }
   }
 
@@ -1172,17 +1204,6 @@ chatInput.addEventListener('keydown', (e) => {
 chatInput.addEventListener('input', () => {
   chatInput.style.height = 'auto';
   chatInput.style.height = Math.min(chatInput.scrollHeight, 120) + 'px';
-});
-
-// Prompt Chips
-promptChips.forEach(chip => {
-  chip.addEventListener('click', () => {
-    const prompt = chip.getAttribute('data-prompt');
-    if (prompt) {
-      chatInput.value = prompt;
-      handleSendMessage();
-    }
-  });
 });
 
 // Firefox Right-Panel Tip Banner
