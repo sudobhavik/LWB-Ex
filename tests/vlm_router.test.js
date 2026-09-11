@@ -103,5 +103,17 @@ describe('Dual VLM Router Tests', () => {
       expect(router._cleanKey(undefined)).toBe('');
       expect(router._cleanKey('')).toBe('');
     });
+
+    it('should strictly reject truncated placeholder stubs like sk-proj- and sk-proj-...', () => {
+      expect(router._cleanKey('sk-proj-')).toBe('');
+      expect(router._cleanKey('sk-proj-...')).toBe('');
+      expect(router._cleanKey('   sk-proj-...   ')).toBe('');
+      expect(router._cleanKey('sk-proj-short')).toBe('');
+    });
+
+    it('should accept valid full-length OpenAI project keys (160+ chars)', () => {
+      const fullKey = 'sk-proj-mocktestkey1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890abcdefghijkl';
+      expect(router._cleanKey(fullKey)).toBe(fullKey);
+    });
   });
 });

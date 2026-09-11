@@ -76,11 +76,28 @@ function extractApiKey(raw) {
   if (!raw) return '';
   let str = String(raw).trim();
   str = str.replace(/^Bearer\s+/i, '').trim();
+
+  // Reject placeholder values such as "sk-proj-", "sk-proj-...", or empty stubs
+  if (/^sk-proj-[.\s]*$/i.test(str) || str === 'sk-proj-') {
+    return '';
+  }
+
+  // Require standard OpenAI keys to be at least 15 characters and not ending in hyphen
   const openAiMatch = str.match(/sk-[a-zA-Z0-9_\-]+/);
-  if (openAiMatch) return openAiMatch[0];
+  if (openAiMatch) {
+    const matchKey = openAiMatch[0];
+    if (matchKey.length >= 15 && !matchKey.endsWith('-')) {
+      return matchKey;
+    }
+    return '';
+  }
+
+  // Require Gemini keys to be at least 15 characters
   const geminiMatch = str.match(/AIza[a-zA-Z0-9_\-]+/);
-  if (geminiMatch) return geminiMatch[0];
-  return str.replace(/\x1B\[[0-9;]*[a-zA-Z~]/g, '').replace(/[^\x20-\x7E]/g, '').replace(/^['"]|['"]$/g, '').trim();
+  if (geminiMatch && geminiMatch[0].length >= 15) return geminiMatch[0];
+
+  const fallback = str.replace(/\x1B\[[0-9;]*[a-zA-Z~]/g, '').replace(/[^\x20-\x7E]/g, '').replace(/^['"]|['"]$/g, '').trim();
+  return fallback.length >= 10 && !fallback.startsWith('sk-proj-') ? fallback : '';
 }
 
 async function loadSavedKeys() {

@@ -17,9 +17,12 @@ echo "============================================================"
 # 1. Check or Prompt for OpenAI API Key
 RAW_KEY="${1:-${OPENAI_API_KEY:-}}"
 
-# If not provided via CLI arg or env, check existing config.json
+# If not provided via CLI arg or env, check existing config.json (must be a real key >= 40 chars)
 if [ -z "$RAW_KEY" ] && [ -f "$ROOT_DIR/extension/config.json" ]; then
-  RAW_KEY=$(grep -oE 'sk-[a-zA-Z0-9_-]+' "$ROOT_DIR/extension/config.json" | head -n 1 || true)
+  CANDIDATE=$(grep -oE 'sk-[a-zA-Z0-9_-]{20,}' "$ROOT_DIR/extension/config.json" | head -n 1 || true)
+  if [ -n "$CANDIDATE" ] && [ ${#CANDIDATE} -ge 40 ]; then
+    RAW_KEY="$CANDIDATE"
+  fi
 fi
 
 while [ -z "$API_KEY" ]; do
@@ -29,20 +32,25 @@ while [ -z "$API_KEY" ]; do
   else
     echo ""
     echo "Please enter your OpenAI API Key for GPT-4o visual reasoning:"
-    echo "(Example: sk-proj-... or sk-...)"
+    echo "(Example: sk-proj-... - minimum 40 characters)"
     read -r -s -p "OpenAI API Key: " USER_INPUT
     echo ""
   fi
 
   # Robust extraction: regex match standard OpenAI key format
-  API_KEY=$(echo "$USER_INPUT" | grep -oE 'sk-[a-zA-Z0-9_-]+' | head -n 1 || true)
+  API_KEY=$(echo "$USER_INPUT" | grep -oE 'sk-[a-zA-Z0-9_-]{20,}' | head -n 1 || true)
   if [ -z "$API_KEY" ]; then
     # Fallback: strip ANSI escape codes (e.g. bracketed paste \033[200~), non-printable ASCII, quotes
     API_KEY=$(echo "$USER_INPUT" | sed -r 's/\x1B\[[0-9;]*[a-zA-Z~]//g' | tr -dc '[:alnum:]_-\n' | tr -d '\r\n')
   fi
 
+  if [ -n "$API_KEY" ] && [ ${#API_KEY} -lt 40 ]; then
+    echo "[!] Error: Detected invalid or stub key '${API_KEY}' (${#API_KEY} chars). Real OpenAI keys must be 50+ characters."
+    API_KEY=""
+  fi
+
   if [ -z "$API_KEY" ]; then
-    echo "[!] Error: OpenAI API Key cannot be empty or invalid format."
+    echo "[!] Error: OpenAI API Key cannot be empty, truncated, or shorter than 40 characters."
   fi
 done
 

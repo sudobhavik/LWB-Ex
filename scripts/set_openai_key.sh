@@ -23,9 +23,14 @@ if [ -z "$RAW_KEY" ]; then
 fi
 
 # Clean and extract OpenAI key regex (sk-...)
-API_KEY=$(echo "$RAW_KEY" | grep -oE 'sk-[a-zA-Z0-9_-]+' | head -n 1 || true)
+API_KEY=$(echo "$RAW_KEY" | grep -oE 'sk-[a-zA-Z0-9_-]{20,}' | head -n 1 || true)
 if [ -z "$API_KEY" ]; then
   API_KEY=$(echo "$RAW_KEY" | sed -r 's/\x1B\[[0-9;]*[a-zA-Z~]//g' | tr -dc '[:alnum:]_-\n' | tr -d '\r\n')
+fi
+
+if [ -n "$API_KEY" ] && [ ${#API_KEY} -lt 40 ]; then
+  echo "[!] Error: The provided key '${API_KEY}' is too short (${#API_KEY} chars). Real OpenAI keys must be 50+ characters."
+  exit 1
 fi
 
 if [ -z "$API_KEY" ]; then
@@ -66,10 +71,10 @@ echo "==> Stopping browser to release storage locks..."
 $COMPOSE_CMD -f docker-compose.azure.yml stop guptchara-browser 2>/dev/null || true
 
 echo "==> Purging stale extension storage caches..."
-find "$ROOT_DIR/chrome-config" -name "Singleton*" -delete 2>/dev/null || true
-find "$ROOT_DIR/chrome-config" -type d -name "*Extension Settings*" -exec rm -rf {} + 2>/dev/null || true
-find "$ROOT_DIR/chrome-config" -type d -name "*Sync Extension Settings*" -exec rm -rf {} + 2>/dev/null || true
-find "$ROOT_DIR/chrome-config" -type d -name "*IndexedDB*" -exec rm -rf {} + 2>/dev/null || true
+sudo find "$ROOT_DIR/chrome-config" -name "Singleton*" -delete 2>/dev/null || find "$ROOT_DIR/chrome-config" -name "Singleton*" -delete 2>/dev/null || true
+sudo find "$ROOT_DIR/chrome-config" -type d -name "*Extension Settings*" -exec rm -rf {} + 2>/dev/null || find "$ROOT_DIR/chrome-config" -type d -name "*Extension Settings*" -exec rm -rf {} + 2>/dev/null || true
+sudo find "$ROOT_DIR/chrome-config" -type d -name "*Sync Extension Settings*" -exec rm -rf {} + 2>/dev/null || find "$ROOT_DIR/chrome-config" -type d -name "*Sync Extension Settings*" -exec rm -rf {} + 2>/dev/null || true
+sudo find "$ROOT_DIR/chrome-config" -type d -name "*IndexedDB*" -exec rm -rf {} + 2>/dev/null || find "$ROOT_DIR/chrome-config" -type d -name "*IndexedDB*" -exec rm -rf {} + 2>/dev/null || true
 
 echo "==> Restarting Chromium container..."
 $COMPOSE_CMD -f docker-compose.azure.yml up -d --force-recreate guptchara-browser
