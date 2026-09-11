@@ -41,9 +41,21 @@ else
 fi
 
 if curl -s -m 2 http://127.0.0.1:80 >/dev/null 2>&1; then
-  echo "    [✓] Port 80 (Standard Web Port for PPT): ACTIVE"
+  echo "    [✓] Port 80 (HTTP / Caddy Redirect): ACTIVE"
 else
   echo "    [!] Port 80: Not responding locally or needs sudo permission."
+fi
+
+if curl -k -s -m 2 https://127.0.0.1:443 >/dev/null 2>&1; then
+  echo "    [✓] Port 443 (HTTPS / Caddy SSL): ACTIVE"
+else
+  echo "    [!] Port 443: Not responding yet or certificate is generating."
+fi
+
+if curl -k -s -m 2 https://127.0.0.1:3001 >/dev/null 2>&1; then
+  echo "    [✓] Port 3001 (Direct Chromium HTTPS): ACTIVE"
+else
+  echo "    [!] Port 3001: Not responding."
 fi
 
 echo ""
@@ -54,25 +66,25 @@ if command -v host >/dev/null 2>&1 && [ "$PUBLIC_IP" != "UNKNOWN" ]; then
   AZURE_FQDN=$(host "$PUBLIC_IP" 2>/dev/null | awk '{print $NF}' | sed 's/\.$//' || true)
 fi
 
+if [ -z "$AZURE_FQDN" ] || [[ "$AZURE_FQDN" != *"cloudapp.azure.com"* ]]; then
+  if [ -f "$ROOT_DIR/.env" ] && grep -q "AZURE_DOMAIN=" "$ROOT_DIR/.env"; then
+    AZURE_FQDN=$(grep "AZURE_DOMAIN=" "$ROOT_DIR/.env" | cut -d'=' -f2 | tr -d ' "')
+  fi
+  if [ -z "$AZURE_FQDN" ] || [[ "$AZURE_FQDN" != *"cloudapp.azure.com"* ]]; then
+    AZURE_FQDN="guptchara-demo.malaysiawest.cloudapp.azure.com"
+  fi
+fi
+
 echo "============================================================"
 echo "    SUBMISSION LINKS FOR YOUR PRESENTATION (PPT)           "
 echo "============================================================"
 
-if [ -n "$AZURE_FQDN" ] && [[ "$AZURE_FQDN" == *"cloudapp.azure.com"* ]]; then
-  echo " ⭐ RECOMMENDED PPT LINK (Official Microsoft Azure FQDN):"
-  echo "    http://${AZURE_FQDN}"
-  echo ""
-  echo " Alternative Link with Port 3000:"
-  echo "    http://${AZURE_FQDN}:3000"
-else
-  echo " Direct IP Link (Port 80):"
-  echo "    http://${PUBLIC_IP}"
-  echo ""
-  echo " Direct IP Link (Port 3000):"
-  echo "    http://${PUBLIC_IP}:3000"
-  echo ""
-  echo " Tip to get your permanent *.cloudapp.azure.com link:"
-  echo "  1. Azure Portal -> VM 'guptchara-vm' -> Public IP -> Configuration"
-  echo "  2. Enter 'guptchara-demo' into 'DNS name label' and click Save"
-fi
+echo " ⭐ RECOMMENDED PPT LINK (Official Microsoft Azure HTTPS):"
+echo "    https://${AZURE_FQDN}"
+echo ""
+echo " Direct HTTPS Fallback (Port 3001):"
+echo "    https://${AZURE_FQDN}:3001"
+echo ""
+echo " Note: Ensure Port 443 is allowed in Azure NSG:"
+echo "   Azure Portal -> Networking -> Add Inbound Rule -> HTTPS (Port 443)"
 echo "============================================================"

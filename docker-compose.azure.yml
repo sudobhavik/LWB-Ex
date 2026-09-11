@@ -27,13 +27,34 @@ services:
       - ./extension:/app/extension:ro
       - ./chrome-config:/config
     ports:
-      - "80:3000"
       - "3000:3000"
       - "3001:3001"
     shm_size: "2gb"
     restart: unless-stopped
     networks:
       - guptchara-net
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: guptchara-caddy
+    restart: unless-stopped
+    depends_on:
+      - guptchara-browser
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - AZURE_DOMAIN=${AZURE_DOMAIN:-guptchara-demo.malaysiawest.cloudapp.azure.com}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - guptchara-net
+
+volumes:
+  caddy_data:
+  caddy_config:
 
 networks:
   guptchara-net:

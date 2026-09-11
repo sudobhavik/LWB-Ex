@@ -81,9 +81,32 @@ fi
 mkdir -p "$ROOT_DIR/chrome-config"
 chmod -R 777 "$ROOT_DIR/chrome-config" 2>/dev/null || true
 
-# 4. Launch Docker Stack
+# 4. Fetch Public IP and Azure DNS Hostname
+PUBLIC_IP=$(curl -s -m 3 ifconfig.me || curl -s -m 3 icanhazip.com || echo "YOUR_VM_PUBLIC_IP")
+
+AZURE_FQDN=""
+if command -v host >/dev/null 2>&1 && [ "$PUBLIC_IP" != "YOUR_VM_PUBLIC_IP" ]; then
+  AZURE_FQDN=$(host "$PUBLIC_IP" 2>/dev/null | awk '{print $NF}' | sed 's/\.$//' || true)
+fi
+
+# If reverse DNS lookup did not return a cloudapp.azure.com domain, use existing .env or default
+if [ -z "$AZURE_FQDN" ] || [[ "$AZURE_FQDN" != *"cloudapp.azure.com"* ]]; then
+  if [ -f "$ROOT_DIR/.env" ] && grep -q "AZURE_DOMAIN=" "$ROOT_DIR/.env"; then
+    AZURE_FQDN=$(grep "AZURE_DOMAIN=" "$ROOT_DIR/.env" | cut -d'=' -f2 | tr -d ' "')
+  fi
+  if [ -z "$AZURE_FQDN" ] || [[ "$AZURE_FQDN" != *"cloudapp.azure.com"* ]]; then
+    AZURE_FQDN="guptchara-demo.malaysiawest.cloudapp.azure.com"
+  fi
+fi
+
+# Write to .env for docker compose
+echo "AZURE_DOMAIN=$AZURE_FQDN" > "$ROOT_DIR/.env"
+export AZURE_DOMAIN="$AZURE_FQDN"
+echo "    [+] Configured domain for Caddy SSL: $AZURE_FQDN"
+
+# 5. Launch Docker Stack (includes Caddy Reverse Proxy for automatic HTTPS)
 echo "==> Pulling images and starting GUPTCHARA services..."
-$COMPOSE_CMD -f docker-compose.azure.yml pull demo-site || true
+$COMPOSE_CMD -f docker-compose.azure.yml pull demo-site caddy || true
 $COMPOSE_CMD -f docker-compose.azure.yml up -d
 
 echo "==> Waiting for Chromium Desktop & Web UI to become ready on port 3000..."
@@ -105,42 +128,33 @@ else
   echo "        ${COMPOSE_CMD} -f docker-compose.azure.yml logs -f"
 fi
 
-# 5. Fetch Public IP and Azure DNS Hostname
-PUBLIC_IP=$(curl -s -m 3 ifconfig.me || curl -s -m 3 icanhazip.com || echo "YOUR_VM_PUBLIC_IP")
-
-AZURE_FQDN=""
-if command -v host >/dev/null 2>&1 && [ "$PUBLIC_IP" != "YOUR_VM_PUBLIC_IP" ]; then
-  AZURE_FQDN=$(host "$PUBLIC_IP" 2>/dev/null | awk '{print $NF}' | sed 's/\.$//' || true)
-fi
-
 echo ""
 echo "============================================================"
 echo "    GUPTCHARA CLOUD INSTANCE SUCCESSFULLY DEPLOYED!         "
 echo "============================================================"
 echo ""
-echo "⭐ PERMANENT URL FOR YOUR PPT SUBMISSION (NEVER EXPIRES):"
+echo "⭐ PERMANENT OFFICIAL HTTPS URL (PUT THIS IN YOUR PPT):"
 echo "------------------------------------------------------------"
-if [ -n "$AZURE_FQDN" ] && [[ "$AZURE_FQDN" == *"cloudapp.azure.com"* ]]; then
-  echo "Official Azure FQDN : http://${AZURE_FQDN}"
-  echo "Alternative Port 3000: http://${AZURE_FQDN}:3000"
-else
-  echo "Direct Public IP    : http://${PUBLIC_IP}"
-  echo "Alternative Port 3000: http://${PUBLIC_IP}:3000"
-  echo ""
-  echo "Tip: To assign a custom permanent DNS name like 'http://guptchara-sih.centralindia.cloudapp.azure.com':"
-  echo "  1. In Azure Portal -> Public IP resource -> 'Configuration'"
-  echo "  2. Fill in 'DNS name label' (e.g. guptchara-demo) and click Save."
-fi
+echo "Official Trusted HTTPS : https://${AZURE_FQDN}"
+echo ""
+echo "Alternative Fallbacks:"
+echo "Direct HTTPS (Port 3001): https://${AZURE_FQDN}:3001"
+echo "Direct HTTP  (Port 3000): http://${AZURE_FQDN}:3000"
 echo "------------------------------------------------------------"
 echo ""
+echo "Important: Ensure Port 443 (HTTPS) is opened in Azure NSG:"
+echo "  1. Azure Portal -> VM 'guptchara-vm' -> 'Networking'"
+echo "  2. Add inbound port rule: Service 'HTTPS' (Port 443) -> Add"
+echo ""
 echo "What judges see when opening the link:"
-echo "1. Full Chromium desktop streaming live directly in their browser (via KasmVNC)."
-echo "2. The GUPTCHARA e-commerce demo testbed loads immediately."
-echo "3. The GUPTCHARA extension is loaded with GPT-4o pre-configured."
-echo "4. Autonomous privacy-preserving tasks run with zero cloud PII egress."
+echo "1. Valid SSL padlock (encrypted & trusted connection)."
+echo "2. Full Chromium desktop streaming live directly in their browser."
+echo "3. The GUPTCHARA e-commerce demo testbed loads immediately."
+echo "4. The GUPTCHARA extension is loaded with GPT-4o pre-configured."
 echo ""
 echo "Useful Commands:"
 echo "  Check Status   : ./scripts/check_status.sh"
+echo "  View Caddy Logs: ${COMPOSE_CMD} -f docker-compose.azure.yml logs -f caddy"
 echo "  View Live Logs : ${COMPOSE_CMD} -f docker-compose.azure.yml logs -f"
 echo "  Restart Stack  : ${COMPOSE_CMD} -f docker-compose.azure.yml restart"
 echo "============================================================"
