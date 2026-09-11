@@ -17,12 +17,14 @@ services:
     container_name: guptchara-streamed-browser
     depends_on:
       - demo-site
+    security_opt:
+      - seccomp:unconfined
     environment:
       - PUID=1000
       - PGID=1000
       - TZ=Etc/UTC
       # Launch Chromium with GUPTCHARA extension and navigate to demo site
-      - CHROME_CLI=--load-extension=/app/extension --no-first-run --no-default-browser-check --disable-gpu-sandbox --enable-features=WebGPU,Vulkan --ignore-gpu-blocklist http://demo-site:8080/index.html
+      - CHROME_CLI=--no-sandbox --disable-gpu --disable-dev-shm-usage --start-maximized --no-first-run --no-default-browser-check --load-extension=/app/extension http://demo-site:8080/index.html
     volumes:
       - ./extension:/app/extension:ro
       - ./chrome-config:/config

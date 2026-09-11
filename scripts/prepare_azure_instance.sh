@@ -77,8 +77,9 @@ else
   COMPOSE_CMD="${DOCKER_PREFIX}docker compose"
 fi
 
-# 3. Setup Chromium profile directories
+# 3. Setup Chromium profile directories & clear stale locks
 mkdir -p "$ROOT_DIR/chrome-config"
+find "$ROOT_DIR/chrome-config" -name "Singleton*" -delete 2>/dev/null || true
 chmod -R 777 "$ROOT_DIR/chrome-config" 2>/dev/null || true
 
 # 4. Fetch Public IP and Azure DNS Hostname
@@ -105,11 +106,11 @@ export AZURE_DOMAIN="$AZURE_FQDN"
 echo "    [+] Configured domain for Caddy SSL: $AZURE_FQDN"
 
 # 5. Launch Docker Stack (includes Caddy Reverse Proxy for automatic HTTPS)
-echo "==> Pulling images and starting GUPTCHARA services..."
+echo "==> Starting GUPTCHARA services..."
 $COMPOSE_CMD -f docker-compose.azure.yml pull demo-site caddy || true
-# Ensure Caddy is recreated to pick up updated configuration and fresh ACME state
-$COMPOSE_CMD -f docker-compose.azure.yml stop caddy 2>/dev/null || true
-$COMPOSE_CMD -f docker-compose.azure.yml rm -f caddy 2>/dev/null || true
+# Ensure both browser and caddy are recreated to pick up updated flags and clear locks
+$COMPOSE_CMD -f docker-compose.azure.yml stop guptchara-browser caddy 2>/dev/null || true
+$COMPOSE_CMD -f docker-compose.azure.yml rm -f guptchara-browser caddy 2>/dev/null || true
 $COMPOSE_CMD -f docker-compose.azure.yml up -d
 
 echo "==> Waiting for Chromium Desktop & Web UI to become ready on port 3000..."
