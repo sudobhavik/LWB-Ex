@@ -72,6 +72,17 @@ let agentHistory = [];
 // Settings Modal & API Keys
 // ==========================================================================
 
+function extractApiKey(raw) {
+  if (!raw) return '';
+  let str = String(raw).trim();
+  str = str.replace(/^Bearer\s+/i, '').trim();
+  const openAiMatch = str.match(/sk-[a-zA-Z0-9_\-]+/);
+  if (openAiMatch) return openAiMatch[0];
+  const geminiMatch = str.match(/AIza[a-zA-Z0-9_\-]+/);
+  if (geminiMatch) return geminiMatch[0];
+  return str.replace(/\x1B\[[0-9;]*[a-zA-Z~]/g, '').replace(/[^\x20-\x7E]/g, '').replace(/^['"]|['"]$/g, '').trim();
+}
+
 async function loadSavedKeys() {
   try {
     if (browserAPI.storage && browserAPI.storage.local) {
@@ -91,14 +102,14 @@ async function loadSavedKeys() {
           if (cfgRes && cfgRes.ok) {
             const cfg = await cfgRes.json();
             if (cfg && cfg.openaiKey) {
-              const cleanKey = String(cfg.openaiKey).trim().replace(/^['"]|['"]$/g, '');
+              const cleanKey = extractApiKey(cfg.openaiKey);
               if (cleanKey) {
                 stored.openaiKey = cleanKey;
                 browserAPI.storage.local.set({ openaiKey: cleanKey });
               }
             }
             if (cfg && cfg.geminiKey) {
-              const cleanGeminiKey = String(cfg.geminiKey).trim().replace(/^['"]|['"]$/g, '');
+              const cleanGeminiKey = extractApiKey(cfg.geminiKey);
               if (cleanGeminiKey) {
                 stored.geminiKey = cleanGeminiKey;
                 browserAPI.storage.local.set({ geminiKey: cleanGeminiKey });
@@ -113,11 +124,11 @@ async function loadSavedKeys() {
       }
 
       if (stored.openaiKey) {
-        stored.openaiKey = String(stored.openaiKey).trim().replace(/^['"]|['"]$/g, '');
+        stored.openaiKey = extractApiKey(stored.openaiKey);
         inputOpenAIKey.value = stored.openaiKey;
       }
       if (stored.geminiKey) {
-        stored.geminiKey = String(stored.geminiKey).trim().replace(/^['"]|['"]$/g, '');
+        stored.geminiKey = extractApiKey(stored.geminiKey);
         inputGeminiKey.value = stored.geminiKey;
       }
       if (stored.ollamaEndpoint && inputOllamaEndpoint) inputOllamaEndpoint.value = stored.ollamaEndpoint;
@@ -229,11 +240,14 @@ settingsModal.addEventListener('click', (e) => {
 });
 
 btnSaveKeys.addEventListener('click', async () => {
-  const oKey = inputOpenAIKey.value.trim();
-  const gKey = inputGeminiKey.value.trim();
+  const oKey = extractApiKey(inputOpenAIKey.value);
+  const gKey = extractApiKey(inputGeminiKey.value);
   const oEndpoint = inputOllamaEndpoint ? inputOllamaEndpoint.value.trim() : 'http://localhost:11434';
   const oModel = inputOllamaModel ? inputOllamaModel.value.trim() : 'qwen3-vl:2b';
   const prov = selectProvider.value;
+
+  inputOpenAIKey.value = oKey;
+  inputGeminiKey.value = gKey;
 
   if (vlmRouter) {
     vlmRouter.setKeys(oKey, gKey);
@@ -1002,6 +1016,12 @@ async function executeSingleAgentStep(goal, step, maxSteps) {
       return { finished: true, error: true };
     }
   } else if (selectProvider.value === 'openai-gpt4o') {
+    if (inputOpenAIKey && inputOpenAIKey.value) {
+      const liveKey = extractApiKey(inputOpenAIKey.value);
+      if (liveKey && vlmRouter && (!vlmRouter.openaiKey || vlmRouter.openaiKey !== liveKey)) {
+        vlmRouter.openaiKey = liveKey;
+      }
+    }
     if (!vlmRouter || !vlmRouter.openaiKey) {
       appendSystemMessage('OpenAI API Key is required for GPT-4o. Click ⚙️ to configure.', true);
       settingsModal.style.display = 'flex';

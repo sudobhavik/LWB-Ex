@@ -17,7 +17,13 @@ class VLMRouter {
 
   _cleanKey(key) {
     if (!key) return '';
-    return String(key).trim().replace(/^['"]|['"]$/g, '');
+    let str = String(key).trim();
+    str = str.replace(/^Bearer\s+/i, '').trim();
+    const openAiMatch = str.match(/sk-[a-zA-Z0-9_\-]+/);
+    if (openAiMatch) return openAiMatch[0];
+    const geminiMatch = str.match(/AIza[a-zA-Z0-9_\-]+/);
+    if (geminiMatch) return geminiMatch[0];
+    return str.replace(/\x1B\[[0-9;]*[a-zA-Z~]/g, '').replace(/[^\x20-\x7E]/g, '').replace(/^['"]|['"]$/g, '').trim();
   }
 
   setKeys(openaiKey, geminiKey) {
@@ -254,7 +260,11 @@ DECIDE THE NEXT ACTION. Respond with STRICT JSON matching this schema:
 
     if (!response.ok) {
       const errBody = await response.text();
-      throw new Error(`OpenAI API Error (${response.status}): ${errBody}`);
+      let msg = `OpenAI API Error (${response.status}): ${errBody}`;
+      if (response.status === 401) {
+        msg = `OpenAI Authentication Failed (401): Invalid or incorrect API key. Please check your key in Settings (⚙️). Error details: ${errBody}`;
+      }
+      throw new Error(msg);
     }
 
     const data = await response.json();

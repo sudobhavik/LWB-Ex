@@ -69,7 +69,7 @@ xpi_name = '$XPI_NAME'
 with zipfile.ZipFile(zip_name, 'w', zipfile.ZIP_DEFLATED) as z:
     for root, dirs, files in os.walk(ext_dir):
         for f in files:
-            if f.endswith('.firefox.json'):
+            if f.endswith('.firefox.json') or f == 'config.json':
                 continue
             full_path = os.path.join(root, f)
             rel_path = os.path.relpath(full_path, ext_dir)
@@ -80,7 +80,7 @@ print('    [OK] Chrome package created:', zip_name)
 with zipfile.ZipFile(xpi_name, 'w', zipfile.ZIP_DEFLATED) as z:
     for root, dirs, files in os.walk(ext_dir):
         for f in files:
-            if f == 'manifest.json' or f.endswith('.firefox.json'):
+            if f == 'manifest.json' or f.endswith('.firefox.json') or f == 'config.json':
                 continue
             full_path = os.path.join(root, f)
             rel_path = os.path.relpath(full_path, ext_dir)

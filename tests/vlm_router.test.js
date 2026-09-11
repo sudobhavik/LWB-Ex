@@ -81,4 +81,27 @@ describe('Dual VLM Router Tests', () => {
       );
     });
   });
+
+  describe('_cleanKey Key Sanitization', () => {
+    it('should strip terminal bracketed paste sequences and control codes', () => {
+      const corrupted = '\u001b[200~sk-proj-test123abc456\u001b[201~\r\n';
+      expect(router._cleanKey(corrupted)).toBe('sk-proj-test123abc456');
+    });
+
+    it('should strip Bearer prefix, outer quotes, and surrounding whitespace', () => {
+      const keyWithBearer = '   Bearer "sk-proj-my-key-999"   ';
+      expect(router._cleanKey(keyWithBearer)).toBe('sk-proj-my-key-999');
+    });
+
+    it('should cleanly extract Gemini API keys', () => {
+      const geminiKey = '\u001b[200~AIzaSyD-abc_12345XYZ\u001b[201~';
+      expect(router._cleanKey(geminiKey)).toBe('AIzaSyD-abc_12345XYZ');
+    });
+
+    it('should safely return empty string for null, undefined, or empty key', () => {
+      expect(router._cleanKey(null)).toBe('');
+      expect(router._cleanKey(undefined)).toBe('');
+      expect(router._cleanKey('')).toBe('');
+    });
+  });
 });

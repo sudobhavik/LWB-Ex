@@ -63,6 +63,17 @@ class SettingsManager {
     this.isLoaded = false;
   }
 
+  _cleanKey(key) {
+    if (!key) return '';
+    let str = String(key).trim();
+    str = str.replace(/^Bearer\s+/i, '').trim();
+    const openAiMatch = str.match(/sk-[a-zA-Z0-9_\-]+/);
+    if (openAiMatch) return openAiMatch[0];
+    const geminiMatch = str.match(/AIza[a-zA-Z0-9_\-]+/);
+    if (geminiMatch) return geminiMatch[0];
+    return str.replace(/\x1B\[[0-9;]*[a-zA-Z~]/g, '').replace(/[^\x20-\x7E]/g, '').replace(/^['"]|['"]$/g, '').trim();
+  }
+
   /**
    * Load settings from storage, falling back to default values.
    */
@@ -87,26 +98,36 @@ class SettingsManager {
       };
 
       // Check for optional bundled config.json (used for cloud demo instances)
-      if (!this.settings.openaiKey && typeof chrome !== 'undefined' && chrome.runtime && typeof chrome.runtime.getURL === 'function' && typeof fetch === 'function') {
+      if (typeof chrome !== 'undefined' && chrome.runtime && typeof chrome.runtime.getURL === 'function' && typeof fetch === 'function') {
         try {
           const cfgUrl = chrome.runtime.getURL('config.json');
           const cfgRes = await fetch(cfgUrl);
           if (cfgRes && cfgRes.ok) {
             const cfg = await cfgRes.json();
             if (cfg && cfg.openaiKey) {
-              this.settings.openaiKey = cfg.openaiKey;
-              if (cfg.preferredProvider) {
-                this.settings.preferredProvider = cfg.preferredProvider;
-              }
-              if (this.storage && this.storage.set) {
-                this.storage.set({
-                  openaiKey: this.settings.openaiKey,
-                  preferredProvider: this.settings.preferredProvider
-                }, () => {});
+              const cleanKey = this._cleanKey(cfg.openaiKey);
+              if (cleanKey) {
+                this.settings.openaiKey = cleanKey;
+                if (cfg.preferredProvider) {
+                  this.settings.preferredProvider = cfg.preferredProvider;
+                }
+                if (this.storage && this.storage.set) {
+                  this.storage.set({
+                    openaiKey: this.settings.openaiKey,
+                    preferredProvider: this.settings.preferredProvider
+                  }, () => {});
+                }
               }
             }
           }
         } catch (_) {}
+      }
+
+      if (this.settings.openaiKey) {
+        this.settings.openaiKey = this._cleanKey(this.settings.openaiKey);
+      }
+      if (this.settings.geminiKey) {
+        this.settings.geminiKey = this._cleanKey(this.settings.geminiKey);
       }
 
       this.isLoaded = true;
@@ -122,11 +143,15 @@ class SettingsManager {
    * Save a single setting key and value.
    */
   async saveSetting(key, val) {
-    this.settings[key] = val;
+    let cleanVal = val;
+    if (key === 'openaiKey' || key === 'geminiKey') {
+      cleanVal = this._cleanKey(val);
+    }
+    this.settings[key] = cleanVal;
     if (!this.storage) return;
 
     try {
-      const payload = { [key]: val };
+      const payload = { [key]: cleanVal };
       await new Promise((resolve, reject) => {
         const res = this.storage.set(payload, () => {
           if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.lastError) {

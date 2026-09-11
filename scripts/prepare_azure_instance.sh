@@ -15,25 +15,39 @@ echo "    GUPTCHARA: Azure for Students Cloud Browser Setup       "
 echo "============================================================"
 
 # 1. Check or Prompt for OpenAI API Key
-API_KEY="${OPENAI_API_KEY:-}"
-if [ -n "$API_KEY" ]; then
-  API_KEY=$(echo "$API_KEY" | tr -d '\r\n"' | sed "s/^[[:space:]]*//;s/[[:space:]]*$//")
+RAW_KEY="${1:-${OPENAI_API_KEY:-}}"
+
+# If not provided via CLI arg or env, check existing config.json
+if [ -z "$RAW_KEY" ] && [ -f "$ROOT_DIR/extension/config.json" ]; then
+  RAW_KEY=$(grep -oE 'sk-[a-zA-Z0-9_-]+' "$ROOT_DIR/extension/config.json" | head -n 1 || true)
 fi
 
 while [ -z "$API_KEY" ]; do
-  echo ""
-  echo "Please enter your OpenAI API Key for GPT-4o visual reasoning:"
-  echo "(Example: sk-proj-... or sk-...)"
-  read -r -s -p "OpenAI API Key: " API_KEY
-  echo ""
-  API_KEY=$(echo "$API_KEY" | tr -d '\r\n"' | sed "s/^[[:space:]]*//;s/[[:space:]]*$//")
+  if [ -n "$RAW_KEY" ]; then
+    USER_INPUT="$RAW_KEY"
+    RAW_KEY=""
+  else
+    echo ""
+    echo "Please enter your OpenAI API Key for GPT-4o visual reasoning:"
+    echo "(Example: sk-proj-... or sk-...)"
+    read -r -s -p "OpenAI API Key: " USER_INPUT
+    echo ""
+  fi
+
+  # Robust extraction: regex match standard OpenAI key format
+  API_KEY=$(echo "$USER_INPUT" | grep -oE 'sk-[a-zA-Z0-9_-]+' | head -n 1 || true)
   if [ -z "$API_KEY" ]; then
-    echo "[!] Error: OpenAI API Key cannot be empty."
+    # Fallback: strip ANSI escape codes (e.g. bracketed paste \033[200~), non-printable ASCII, quotes
+    API_KEY=$(echo "$USER_INPUT" | sed -r 's/\x1B\[[0-9;]*[a-zA-Z~]//g' | tr -dc '[:alnum:]_-\n' | tr -d '\r\n')
+  fi
+
+  if [ -z "$API_KEY" ]; then
+    echo "[!] Error: OpenAI API Key cannot be empty or invalid format."
   fi
 done
 
 echo ""
-echo "==> Configuring extension with GPT-4o and provided API Key..."
+echo "==> Configuring extension with GPT-4o and sanitized API Key..."
 cat << EOF > "$ROOT_DIR/extension/config.json"
 {
   "openaiKey": "$API_KEY",
@@ -43,7 +57,7 @@ cat << EOF > "$ROOT_DIR/extension/config.json"
 }
 EOF
 chmod 644 "$ROOT_DIR/extension/config.json"
-echo "    [+] extension/config.json created successfully."
+echo "    [+] extension/config.json created successfully (Prefix: ${API_KEY:0:12}..., Length: ${#API_KEY} chars)."
 
 # 2. Check if Docker and Docker Compose are installed
 echo "==> Checking Docker installation..."
@@ -81,10 +95,17 @@ else
   COMPOSE_CMD="${DOCKER_PREFIX}docker compose"
 fi
 
-# 3. Setup Chromium profile directories & clear stale locks, metadata, and stale cached extension settings
+# 3. Stop running browser containers first to avoid writing cached storage back to disk on shutdown
+echo "==> Stopping running browser container to purge stale SQLite caches..."
+$COMPOSE_CMD -f docker-compose.azure.yml stop guptchara-browser caddy 2>/dev/null || true
+$COMPOSE_CMD -f docker-compose.azure.yml rm -f guptchara-browser caddy 2>/dev/null || true
+
+# Clear stale locks, metadata, and cached extension settings
 mkdir -p "$ROOT_DIR/chrome-config"
 find "$ROOT_DIR/chrome-config" -name "Singleton*" -delete 2>/dev/null || true
 find "$ROOT_DIR/chrome-config" -type d -name "*Extension Settings*" -exec rm -rf {} + 2>/dev/null || true
+find "$ROOT_DIR/chrome-config" -type d -name "*Sync Extension Settings*" -exec rm -rf {} + 2>/dev/null || true
+find "$ROOT_DIR/chrome-config" -type d -name "*IndexedDB*" -exec rm -rf {} + 2>/dev/null || true
 chmod -R 777 "$ROOT_DIR/chrome-config" 2>/dev/null || true
 
 # Purge any stale unpacked metadata and grant write permissions for Chromium ruleset compilation
@@ -120,7 +141,7 @@ $COMPOSE_CMD -f docker-compose.azure.yml pull demo-site caddy || true
 # Ensure both browser and caddy are recreated to pick up updated flags and clear locks
 $COMPOSE_CMD -f docker-compose.azure.yml stop guptchara-browser caddy 2>/dev/null || true
 $COMPOSE_CMD -f docker-compose.azure.yml rm -f guptchara-browser caddy 2>/dev/null || true
-$COMPOSE_CMD -f docker-compose.azure.yml up -d
+$COMPOSE_CMD -f docker-compose.azure.yml up -d --force-recreate
 
 echo "==> Waiting for Chromium Desktop & Web UI to become ready on port 3000..."
 READY=0
