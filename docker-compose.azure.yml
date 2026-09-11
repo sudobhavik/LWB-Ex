@@ -24,9 +24,9 @@ services:
       - PGID=1000
       - TZ=Etc/UTC
       # Launch Chromium with GUPTCHARA extension and navigate to demo site
-      - CHROME_CLI=--no-sandbox --disable-gpu --disable-dev-shm-usage --start-maximized --no-first-run --no-default-browser-check --load-extension=/app/extension http://demo-site:8080/index.html
+      - CHROME_CLI=--no-sandbox --disable-gpu --disable-dev-shm-usage --start-maximized --no-first-run --no-default-browser-check --load-extension=/app/extension --disable-extensions-except=/app/extension http://demo-site:8080/index.html
     volumes:
-      - ./extension:/app/extension:ro
+      - ./extension:/app/extension:rw
       - ./chrome-config:/config
     ports:
       - "3000:3000"

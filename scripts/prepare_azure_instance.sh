@@ -38,7 +38,7 @@ cat << EOF > "$ROOT_DIR/extension/config.json"
   "deployedAt": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 }
 EOF
-chmod 600 "$ROOT_DIR/extension/config.json"
+chmod 644 "$ROOT_DIR/extension/config.json"
 echo "    [+] extension/config.json created successfully."
 
 # 2. Check if Docker and Docker Compose are installed
@@ -77,10 +77,14 @@ else
   COMPOSE_CMD="${DOCKER_PREFIX}docker compose"
 fi
 
-# 3. Setup Chromium profile directories & clear stale locks
+# 3. Setup Chromium profile directories & clear stale locks and metadata
 mkdir -p "$ROOT_DIR/chrome-config"
 find "$ROOT_DIR/chrome-config" -name "Singleton*" -delete 2>/dev/null || true
 chmod -R 777 "$ROOT_DIR/chrome-config" 2>/dev/null || true
+
+# Purge any stale unpacked metadata and grant write permissions for Chromium ruleset compilation
+rm -rf "$ROOT_DIR/extension/_metadata" 2>/dev/null || true
+chmod -R 777 "$ROOT_DIR/extension" 2>/dev/null || true
 
 # 4. Fetch Public IP and Azure DNS Hostname
 PUBLIC_IP=$(curl -s -m 3 ifconfig.me || curl -s -m 3 icanhazip.com || echo "YOUR_VM_PUBLIC_IP")
