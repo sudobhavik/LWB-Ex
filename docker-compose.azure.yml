@@ -27,6 +27,7 @@ services:
       - ./extension:/app/extension:ro
       - ./chrome-config:/config
     ports:
+      - "80:3000"
       - "3000:3000"
       - "3001:3001"
     shm_size: "2gb"
