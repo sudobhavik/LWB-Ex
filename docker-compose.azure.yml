@@ -45,6 +45,7 @@ services:
       - "443:443"
     environment:
       - AZURE_DOMAIN=${AZURE_DOMAIN:-guptchara-demo.malaysiawest.cloudapp.azure.com}
+      - CADDY_TLS_DIRECTIVE=${CADDY_TLS_DIRECTIVE:-}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data

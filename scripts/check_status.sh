@@ -32,34 +32,7 @@ else
 fi
 
 echo ""
-echo "[2] Checking Local Service Ports..."
-if curl -s -m 2 http://127.0.0.1:3000 >/dev/null 2>&1; then
-  echo "    [✓] Port 3000 (Chromium KasmVNC Desktop): ACTIVE"
-else
-  echo "    [✗] Port 3000: NOT RESPONDING"
-  echo "        Check container logs with: $DOCKER_CMD logs guptchara-streamed-browser --tail 50"
-fi
-
-if curl -s -m 2 http://127.0.0.1:80 >/dev/null 2>&1; then
-  echo "    [✓] Port 80 (HTTP / Caddy Redirect): ACTIVE"
-else
-  echo "    [!] Port 80: Not responding locally or needs sudo permission."
-fi
-
-if curl -k -s -m 2 https://127.0.0.1:443 >/dev/null 2>&1; then
-  echo "    [✓] Port 443 (HTTPS / Caddy SSL): ACTIVE"
-else
-  echo "    [!] Port 443: Not responding yet or certificate is generating."
-fi
-
-if curl -k -s -m 2 https://127.0.0.1:3001 >/dev/null 2>&1; then
-  echo "    [✓] Port 3001 (Direct Chromium HTTPS): ACTIVE"
-else
-  echo "    [!] Port 3001: Not responding."
-fi
-
-echo ""
-echo "[3] Resolving Public Address & Azure Hostname..."
+echo "[2] Resolving Domain Configuration..."
 PUBLIC_IP=$(curl -s -m 3 ifconfig.me || curl -s -m 3 icanhazip.com || echo "UNKNOWN")
 AZURE_FQDN=""
 if command -v host >/dev/null 2>&1 && [ "$PUBLIC_IP" != "UNKNOWN" ]; then
@@ -74,7 +47,30 @@ if [ -z "$AZURE_FQDN" ] || [[ "$AZURE_FQDN" != *"cloudapp.azure.com"* ]]; then
     AZURE_FQDN="guptchara-demo.malaysiawest.cloudapp.azure.com"
   fi
 fi
+echo "    [✓] Active Azure Domain: $AZURE_FQDN"
 
+echo ""
+echo "[3] Checking Service Endpoints & TLS Handshake..."
+if curl -s -m 2 http://127.0.0.1:3000 >/dev/null 2>&1; then
+  echo "    [✓] Port 3000 (Chromium Desktop Core): ACTIVE"
+else
+  echo "    [✗] Port 3000: NOT RESPONDING"
+fi
+
+if curl -s -m 2 http://127.0.0.1:80 >/dev/null 2>&1; then
+  echo "    [✓] Port 80 (HTTP / Caddy Redirect): ACTIVE"
+else
+  echo "    [!] Port 80: Not responding locally."
+fi
+
+if curl -k -s -m 3 --resolve "${AZURE_FQDN}:443:127.0.0.1" "https://${AZURE_FQDN}" >/dev/null 2>&1; then
+  echo "    [✓] Port 443 (HTTPS / TLS Handshake): ACTIVE & HEALTHY"
+else
+  echo "    [!] Port 443: TLS handshake pending or certificate generating."
+  echo "        Run: sudo docker compose -f docker-compose.azure.yml logs --tail 20 caddy"
+fi
+
+echo ""
 echo "============================================================"
 echo "    SUBMISSION LINKS FOR YOUR PRESENTATION (PPT)           "
 echo "============================================================"
@@ -82,9 +78,8 @@ echo "============================================================"
 echo " ⭐ RECOMMENDED PPT LINK (Official Microsoft Azure HTTPS):"
 echo "    https://${AZURE_FQDN}"
 echo ""
-echo " Direct HTTPS Fallback (Port 3001):"
-echo "    https://${AZURE_FQDN}:3001"
+echo " Direct HTTP Link (Redirects to HTTPS automatically):"
+echo "    http://${AZURE_FQDN}"
 echo ""
-echo " Note: Ensure Port 443 is allowed in Azure NSG:"
-echo "   Azure Portal -> Networking -> Add Inbound Rule -> HTTPS (Port 443)"
+echo " Note: Port 443 and Port 80 must be allowed in Azure NSG."
 echo "============================================================"

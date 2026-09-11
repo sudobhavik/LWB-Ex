@@ -1,8 +1,9 @@
 {
-    email admin@guptchara.local
+    email namdeoshreyas@gmail.com
 }
 
 {$AZURE_DOMAIN:guptchara-demo.malaysiawest.cloudapp.azure.com} {
+    {$CADDY_TLS_DIRECTIVE}
     reverse_proxy guptchara-browser:3000 {
         header_up Host {host}
         header_up X-Real-IP {remote_host}

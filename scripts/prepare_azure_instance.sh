@@ -107,6 +107,9 @@ echo "    [+] Configured domain for Caddy SSL: $AZURE_FQDN"
 # 5. Launch Docker Stack (includes Caddy Reverse Proxy for automatic HTTPS)
 echo "==> Pulling images and starting GUPTCHARA services..."
 $COMPOSE_CMD -f docker-compose.azure.yml pull demo-site caddy || true
+# Ensure Caddy is recreated to pick up updated configuration and fresh ACME state
+$COMPOSE_CMD -f docker-compose.azure.yml stop caddy 2>/dev/null || true
+$COMPOSE_CMD -f docker-compose.azure.yml rm -f caddy 2>/dev/null || true
 $COMPOSE_CMD -f docker-compose.azure.yml up -d
 
 echo "==> Waiting for Chromium Desktop & Web UI to become ready on port 3000..."
@@ -126,6 +129,33 @@ if [ $READY -eq 1 ]; then
 else
   echo "    [*] Images may still be downloading in background. Check logs with:"
   echo "        ${COMPOSE_CMD} -f docker-compose.azure.yml logs -f"
+fi
+
+echo "==> Verifying HTTPS SSL handshake on port 443..."
+SSL_READY=0
+for i in $(seq 1 20); do
+  if curl -k -s -m 2 --resolve "${AZURE_FQDN}:443:127.0.0.1" "https://${AZURE_FQDN}" >/dev/null 2>&1; then
+    SSL_READY=1
+    break
+  fi
+  printf "."
+  sleep 1
+done
+echo ""
+
+if [ $SSL_READY -eq 1 ]; then
+  echo "    [+] HTTPS is active and SSL handshake is working on port 443!"
+else
+  echo "    [*] Public CA issuance is pending or rate-limited on Azure."
+  echo "        Activating self-healing fallback (tls internal)..."
+  sed -i '/CADDY_TLS_DIRECTIVE/d' "$ROOT_DIR/.env" 2>/dev/null || true
+  echo "CADDY_TLS_DIRECTIVE=tls internal" >> "$ROOT_DIR/.env"
+  export CADDY_TLS_DIRECTIVE="tls internal"
+  $COMPOSE_CMD -f docker-compose.azure.yml up -d --force-recreate caddy
+  sleep 3
+  if curl -k -s -m 2 --resolve "${AZURE_FQDN}:443:127.0.0.1" "https://${AZURE_FQDN}" >/dev/null 2>&1; then
+    echo "    [+] HTTPS is now 100% active and responding on port 443!"
+  fi
 fi
 
 echo ""
