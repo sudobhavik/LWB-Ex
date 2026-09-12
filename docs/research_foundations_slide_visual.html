@@ -301,19 +301,36 @@
       </div>
       <div class="pillar-body">
         <div class="item-group">
-          <div class="item-label">Dihedral Group D5 (Aadhaar)</div>
+          <div class="item-label">
+            <span>Dihedral Group D5 (Aadhaar)</span>
+            <a href="https://ir.cwi.nl/pub/6791" target="_blank" style="font-size: 9px; font-weight: 700; color: #1d4ed8; text-decoration: none; background: #dbeafe; padding: 1px 5px; border-radius: 3px;">[Verhoeff 1969]</a>
+          </div>
           <div class="item-desc">Verhoeff permutation matrices eliminate false-positive redaction on arbitrary 12-digit order numbers.</div>
           <div class="formula-box">inv(Σ F(i mod 8, d_i) ∈ D5)</div>
         </div>
         <div class="item-group">
-          <div class="item-label">Luhn Mod-10 (Card Checksum)</div>
+          <div class="item-label">
+            <span>Luhn Mod-10 (Card Checksum)</span>
+            <a href="https://patents.google.com/patent/US2950048A/en" target="_blank" style="font-size: 9px; font-weight: 700; color: #1d4ed8; text-decoration: none; background: #dbeafe; padding: 1px 5px; border-radius: 3px;">[ISO/IEC 7812]</a>
+          </div>
           <div class="item-desc">ISO/IEC 7812 checksum validates credit/debit sequences across segmented input boxes.</div>
           <div class="formula-box">Σ(d_i × (1 + i mod 2)) mod 10 = 0</div>
         </div>
         <div class="item-group">
-          <div class="item-label">Anchor Fusion IoU NMS</div>
+          <div class="item-label">
+            <span>Anchor Fusion IoU NMS</span>
+            <a href="https://arxiv.org/abs/1504.08083" target="_blank" style="font-size: 9px; font-weight: 700; color: #1d4ed8; text-decoration: none; background: #dbeafe; padding: 1px 5px; border-radius: 3px;">[Jaccard / NMS]</a>
+          </div>
           <div class="item-desc">Deduplicates DOM and vision boxes at threshold τ = 0.45.</div>
           <div class="formula-box">IoU = Area(B1 ∩ B2) / Area(B1 ∪ B2)</div>
+        </div>
+        <div class="item-group">
+          <div class="item-label">
+            <span>Shannon Entropy Secret Filter</span>
+            <a href="https://doi.org/10.1002/j.1538-7305.1948.tb01338.x" target="_blank" style="font-size: 9px; font-weight: 700; color: #1d4ed8; text-decoration: none; background: #dbeafe; padding: 1px 5px; border-radius: 3px;">[Shannon 1948]</a>
+          </div>
+          <div class="item-desc">Filters high-entropy alphanumeric strings (H > 4.5) to redact API keys and passwords.</div>
+          <div class="formula-box">H(S) = - Σ p(x) log2 p(x)</div>
         </div>
       </div>
     </div>

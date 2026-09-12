@@ -148,7 +148,19 @@ GUPTCHARA is engineered to operate on commodity edge laptops without dedicated c
    * *Google Chrome for Developers & W3C WICG (2024–2025)* — [https://developer.chrome.com/docs/ai/built-in](https://developer.chrome.com/docs/ai/built-in)
 8. **Microsoft Presidio SDK**
    * *Microsoft Open Source (2024)* — [https://microsoft.github.io/presidio/](https://microsoft.github.io/presidio/)
-9. **Verhoeff & Luhn Checksum Specifications**
-   * *Verhoeff, J. (1969) / ISO/IEC 7812-1:2017* — [ISO/IEC 7812-1](https://en.wikipedia.org/wiki/Luhn_algorithm) & [Verhoeff (1969)](https://en.wikipedia.org/wiki/Verhoeff_algorithm)
-10. **The Gazette of India: Digital Personal Data Protection Act 2023**
+9. **Verhoeff Dihedral Checksum Algorithm (D5 Group Permutations)**
+   * *Jacobus Verhoeff. "Error Detecting Decimal Codes", Mathematical Centre Tracts 29, Mathematisch Centrum Amsterdam (CWI), 1969.*
+   * *Canonical Repository:* [https://ir.cwi.nl/pub/6791](https://ir.cwi.nl/pub/6791) | *UIDAI Aadhaar Specification:* [UIDAI Govt of India](https://uidai.gov.in/)
+10. **Luhn Mod-10 Checksum Algorithm & ISO/IEC 7812 Identification Cards**
+    * *Hans Peter Luhn. "Computer for Verifying Numbers", US Patent No. 2,950,048, granted August 23, 1960.*
+    * *Standard Specification:* *ISO/IEC 7812-1:2017: Identification cards — Identification of issuers — Part 1: Numbering system.*
+    * *Official Patent Record:* [US Patent 2,950,048](https://patents.google.com/patent/US2950048A/en) | [ISO 7812](https://www.iso.org/standard/70484.html)
+11. **Intersection over Union (IoU) & Non-Maximum Suppression (NMS)**
+    * *Paul Jaccard. "The Distribution of the Flora in the Alpine Zone", New Phytologist, 11(2):37–50, 1912.* — [DOI: 10.1111/j.1469-8137.1912.tb05611.x](https://doi.org/10.1111/j.1469-8137.1912.tb05611.x)
+    * *Alexander Neubeck, Luc Van Gool. "Efficient Non-Maximum Suppression", IEEE ICPR 2006, pp. 850–855.* — [DOI: 10.1109/ICPR.2006.479](https://doi.org/10.1109/ICPR.2006.479)
+    * *Ross Girshick. "Fast R-CNN", IEEE ICCV 2015, pp. 1440–1448.* — [https://arxiv.org/abs/1504.08083](https://arxiv.org/abs/1504.08083)
+12. **Shannon Information Entropy for High-Entropy Secret Detection**
+    * *Claude Elwood Shannon. "A Mathematical Theory of Communication", Bell System Technical Journal, 27(3):379–423, 1948.* — [DOI: 10.1002/j.1538-7305.1948.tb01338.x](https://doi.org/10.1002/j.1538-7305.1948.tb01338.x)
+    * *Dylan Ayrey, Dustin Decker. "High Entropy String Secret Scanning in Static Security Analysis", Truffle Security, 2017.*
+13. **The Gazette of India: Digital Personal Data Protection Act 2023**
     * *MeitY, Government of India (Act No. 22 of 2023)* — [Official Gazette](https://www.meity.gov.in/content/digital-personal-data-protection-act-2023)
