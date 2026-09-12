@@ -148,10 +148,58 @@ On any standard HTML button—for example, the "Proceed to Checkout" button:
 
 ---
 
-## 4. Summary: Quick-Fire Presentation Talking Points
+## 4. Algorithm 4: Shannon Information Entropy (Secret & Token Discovery)
 
-| Algorithm | Formula Summary | Why It Matters (The "Elevator Pitch") |
-| :--- | :--- | :--- |
-| **1. Verhoeff Dihedral $D_5$** | Non-commutative Cayley group multiplication | **"Prevents redacting order IDs."** Stops the agent from blinding itself on Amazon order numbers while ensuring 100% Aadhaar redaction. |
-| **2. Luhn Mod-10 (ISO/IEC 7812)** | Alternating doubled digit modulo 10 arithmetic | **"Catches split credit card boxes."** Aggregates 4-box segmented payment inputs and verifies them before blacking them out. |
-| **3. Anchor Fusion IoU NMS** | Intersection over Union spatial overlap ($\tau=0.45$) | **"Prevents double badges and prompt bloat."** Merges duplicate DOM and Vision buttons into a single clean numbered badge (`[1]`, `[2]`). |
+### Mathematical Formulation
+$$H(S) = -\sum_{x \in \mathcal{A}} p(x) \log_2 p(x)$$
+
+Where:
+* $S$ is an alphanumeric candidate string extracted from input fields or DOM text.
+* $\mathcal{A}$ is the character alphabet (lowercase, uppercase, digits, punctuation: $|\mathcal{A}| \le 95$).
+* $p(x) = \frac{\text{count}(x)}{|S|}$ is the empirical probability of character $x$ appearing in string $S$.
+* $H(S)$ is the Shannon entropy measured in bits per character.
+
+---
+
+### Why It Is Used in GUPTCHARA
+
+#### 1. The Real-World Scenario
+When automating developer consoles, cloud dashboards (AWS, Azure, Hugging Face, GitHub), or enterprise settings, users frequently enter or view high-value credentials:
+* **Cloud API Keys**: `sk-proj-...`, `AKIAIOSFODNN7EXAMPLE`
+* **Cryptographic Secrets & JWTs**: High-entropy Base64/Hex authentication tokens
+* **One-Time Passwords (OTPs) & Passwords**: Temporary credentials
+
+#### 2. Why Naive Regex Fails
+Regex patterns for tokens (e.g. looking for `bearer`, `api_key`) fail when the input label is obfuscated or rendered inside custom canvas forms. Conversely, matching arbitrary strings of length 32+ causes false alarms on product SKUs, CSS class names, and image hashes.
+
+#### 3. How Shannon Entropy Solves It
+* **Natural English / Text Entropy**: Natural language words and standard product names have low entropy ($H \approx 2.0 - 3.5$ bits/char) due to high redundancy (vowels, repeated consonants).
+* **Cryptographic / Random Token Entropy**: Cryptographically generated secrets have nearly uniform character distributions ($H > 4.5$ bits/char).
+* **Entropy Threshold Gate**: Strings with $H(S) > 4.5$ and length $\ge 16$ are flagged as secrets and redacted, protecting sensitive keys from cloud VLM exposure.
+
+#### 4. Code Implementation
+* Implemented in [`extension/engine/pii_detector.js`](file:///home/human/SIH_BRAIN/LWB-Ex/extension/engine/pii_detector.js) (`calculateShannonEntropy`).
+* Validated in unit test suite: [`tests/pii_detector.test.js`](file:///home/human/SIH_BRAIN/LWB-Ex/tests/pii_detector.test.js).
+
+---
+
+## 5. Summary: Presentation Talking Points & Quick Reference
+
+| Algorithm | Formula Summary | Why It Matters (The "Elevator Pitch") | Academic / Standard Citation |
+| :--- | :--- | :--- | :--- |
+| **1. Verhoeff Dihedral $D_5$** | Non-commutative Cayley group multiplication | **"Prevents redacting order IDs."** Stops the agent from blinding itself on Amazon order numbers while ensuring 100% Aadhaar redaction. | [J. Verhoeff (1969, CWI Tract 29)](https://ir.cwi.nl/pub/6791); UIDAI Spec |
+| **2. Luhn Mod-10 (ISO/IEC 7812)** | Alternating doubled digit modulo 10 arithmetic | **"Catches split credit card boxes."** Aggregates 4-box segmented payment inputs and verifies them before blacking them out. | [H.P. Luhn (1960, US Patent 2,950,048)](https://patents.google.com/patent/US2950048A/en); ISO/IEC 7812-1:2017 |
+| **3. Anchor Fusion IoU NMS** | Intersection over Union spatial overlap ($\tau=0.45$) | **"Prevents double badges and prompt bloat."** Merges duplicate DOM and Vision buttons into a single clean numbered badge (`[1]`, `[2]`). | [P. Jaccard (1912)](https://doi.org/10.1111/j.1469-8137.1912.tb05611.x); [Neubeck & Van Gool (ICPR 2006)](https://doi.org/10.1109/ICPR.2006.479); [Fast R-CNN (2015)](https://arxiv.org/abs/1504.08083) |
+| **4. Shannon Entropy Secret Filter** | $H(S) = -\sum p(x) \log_2 p(x) > 4.5$ | **"Detects API keys & passwords."** Filters high-entropy cryptographic strings without requiring static keyword tags. | [C.E. Shannon (1948, Bell Labs)](https://doi.org/10.1002/j.1538-7305.1948.tb01338.x); TruffleHog SAST |
+
+---
+
+## 6. Academic References & Canonical DOIs
+
+1. **Verhoeff, J. (1969)**. *Error Detecting Decimal Codes*. Mathematical Centre Tracts 29, Mathematisch Centrum Amsterdam (CWI). Canonical URL: [https://ir.cwi.nl/pub/6791](https://ir.cwi.nl/pub/6791)
+2. **Luhn, H. P. (1960)**. *Computer for Verifying Numbers*. US Patent No. 2,950,048. Canonical Record: [https://patents.google.com/patent/US2950048A/en](https://patents.google.com/patent/US2950048A/en)
+3. **ISO/IEC 7812-1:2017**. *Identification cards — Identification of issuers — Part 1: Numbering system*. International Organization for Standardization. URL: [https://www.iso.org/standard/70484.html](https://www.iso.org/standard/70484.html)
+4. **Jaccard, P. (1912)**. *The Distribution of the Flora in the Alpine Zone*. *New Phytologist*, 11(2):37–50. DOI: [10.1111/j.1469-8137.1912.tb05611.x](https://doi.org/10.1111/j.1469-8137.1912.tb05611.x)
+5. **Neubeck, A., & Van Gool, L. (2006)**. *Efficient Non-Maximum Suppression*. In *18th International Conference on Pattern Recognition (ICPR)*, pages 850–855. DOI: [10.1109/ICPR.2006.479](https://doi.org/10.1109/ICPR.2006.479)
+6. **Girshick, R. (2015)**. *Fast R-CNN*. In *IEEE International Conference on Computer Vision (ICCV)*, pages 1440–1448. ArXiv: [https://arxiv.org/abs/1504.08083](https://arxiv.org/abs/1504.08083)
+7. **Shannon, C. E. (1948)**. *A Mathematical Theory of Communication*. *Bell System Technical Journal*, 27(3):379–423. DOI: [10.1002/j.1538-7305.1948.tb01338.x](https://doi.org/10.1002/j.1538-7305.1948.tb01338.x)
