@@ -5,6 +5,8 @@
 
 ---
 
+Check the demo link :- https://guptchara-demo.malaysiawest.cloudapp.azure.com/
+
 ## What is GUPTCHARA?
 Modern AI browser agents stream raw screenshots to remote cloud Vision-Language Models (VLMs), risking sensitive data exposure (passwords, bank accounts, Aadhaar/PAN, personal faces) and failing on graphical HTML5 `<canvas>` elements that have no DOM representation.
 
